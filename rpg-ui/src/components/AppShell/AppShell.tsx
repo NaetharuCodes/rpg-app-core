@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { Menu, User, LogIn, Home, Package, Map, BookOpen, Info, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Mock Link component for artifact demo
-const Link = ({ to, className, children, onClick, ...props }: any) => (
-  <a href={to} className={className} onClick={onClick} {...props}>{children}</a>
-);
-
-// Mock useLocation for artifact demo
-const useLocation = () => ({ pathname: '/' });
 
 interface AppShellProps {
   children: React.ReactNode;
