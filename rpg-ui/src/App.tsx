@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
+import { HomePage } from './pages/HomePage/HomePage';
 // Placeholder components for now
-const HomePage = () => <div className="p-6"><h1 className="text-2xl font-bold">Home Page</h1><p>Welcome to the RPG Adventure Manager!</p></div>;
 const AssetsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Assets Library</h1><p>Browse characters, creatures, items, and locations.</p></div>;
 const AdventuresPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Adventures</h1><p>Discover and create epic adventures.</p></div>;
 const RulesPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Simple D6 Rules</h1><p>Learn the game rules.</p></div>;
