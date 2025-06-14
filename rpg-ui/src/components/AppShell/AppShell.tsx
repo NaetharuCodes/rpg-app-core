@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Menu, User, LogIn, Home, Package, Map, BookOpen, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, User, LogIn, Home, Package, Map, BookOpen, Info, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Mock Link component for artifact demo
@@ -16,8 +16,24 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    // Check localStorage first, then system preference, default to dark
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches || true;
+  });
   const location = useLocation();
   
+  // Apply theme on mount and when isDark changes
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+  
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+  };
+
   // Mock auth state - will replace with real auth context later
   const isAuthenticated = false;
   
@@ -74,29 +90,27 @@ export function AppShell({ children }: AppShellProps) {
             })}
           </nav>
           
-          {/* Bottom section - only show Dashboard when authenticated */}
-          {isAuthenticated && (
-            <div className="p-2 border-t border-border">
-              <div className="group relative">
-                <Link
-                  to="/dashboard"
-                  className="flex items-center justify-center w-12 h-12 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                  title="Dashboard"
-                >
-                  <User className="h-5 w-5" />
-                </Link>
-                
-                {/* Tooltip */}
-                <div className="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                  Dashboard
-                </div>
+          {/* Bottom section - Theme toggle */}
+          <div className="p-2 border-t border-border">
+            <div className="group relative">
+              <button
+                onClick={toggleTheme}
+                className="flex items-center justify-center w-12 h-12 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              
+              {/* Tooltip */}
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                {isDark ? "Light mode" : "Dark mode"}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu overlay - unchanged */}
+      {/* Mobile menu overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setSidebarOpen(false)} />
@@ -134,13 +148,21 @@ export function AppShell({ children }: AppShellProps) {
                 );
               })}
               
-              {/* Auth section in mobile menu */}
+              {/* Theme toggle and auth in mobile menu */}
               <div className="pt-4 border-t border-border mt-4">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full"
+                >
+                  {isDark ? <Sun className="mr-3 h-5 w-5" /> : <Moon className="mr-3 h-5 w-5" />}
+                  {isDark ? "Light Mode" : "Dark Mode"}
+                </button>
+                
                 {isAuthenticated ? (
                   <Link
                     to="/dashboard"
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mt-2"
                   >
                     <User className="mr-3 h-5 w-5" />
                     Dashboard
@@ -149,7 +171,7 @@ export function AppShell({ children }: AppShellProps) {
                   <Link
                     to="/login"
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:bg-accent transition-colors mt-2"
                   >
                     <LogIn className="mr-3 h-5 w-5" />
                     Sign In
