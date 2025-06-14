@@ -1,7 +1,14 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { Menu, User, LogIn, Home, Package, Map, BookOpen, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Mock Link component for artifact demo
+const Link = ({ to, className, children, onClick, ...props }: any) => (
+  <a href={to} className={className} onClick={onClick} {...props}>{children}</a>
+);
+
+// Mock useLocation for artifact demo
+const useLocation = () => ({ pathname: '/' });
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -29,59 +36,74 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar for desktop */}
-      <div className="hidden md:flex md:w-64 md:flex-col">
+      {/* Compact sidebar for desktop */}
+      <div className="hidden md:flex md:w-16 md:flex-col">
         <div className="flex flex-col flex-grow border-r border-border bg-card">
-          {/* Logo */}
-          <div className="flex items-center h-16 px-4 border-b border-border">
-            <h1 className="text-xl font-bold text-foreground">RPG Manager</h1>
+          {/* Logo - just icon */}
+          <div className="flex items-center justify-center h-16 border-b border-border">
+            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">R</span>
+            </div>
           </div>
           
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-4 space-y-2">
+          <nav className="flex-1 px-2 py-4 space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    isActive(item.href)
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  )}
-                >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                </Link>
+                <div key={item.name} className="group relative">
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "flex items-center justify-center w-12 h-12 rounded-md transition-colors",
+                      isActive(item.href)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    )}
+                    title={item.name}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </Link>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    {item.name}
+                  </div>
+                </div>
               );
             })}
           </nav>
           
           {/* Bottom section - only show Dashboard when authenticated */}
           {isAuthenticated && (
-            <div className="p-4 border-t border-border">
-              <Link
-                to="/dashboard"
-                className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              >
-                <User className="mr-3 h-5 w-5" />
-                Dashboard
-              </Link>
+            <div className="p-2 border-t border-border">
+              <div className="group relative">
+                <Link
+                  to="/dashboard"
+                  className="flex items-center justify-center w-12 h-12 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  title="Dashboard"
+                >
+                  <User className="h-5 w-5" />
+                </Link>
+                
+                {/* Tooltip */}
+                <div className="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Dashboard
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile menu overlay - unchanged */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setSidebarOpen(false)} />
           <div className="fixed top-0 left-0 right-0 bg-card border-b border-border shadow-lg transform transition-transform duration-300 ease-in-out">
             {/* Header with logo and close */}
             <div className="flex items-center justify-between h-16 px-4 border-b border-border">
-              <h1 className="text-xl font-bold text-foreground">RPG Manager</h1>
+              <h1 className="text-xl font-bold text-foreground">RPG Core</h1>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -151,11 +173,13 @@ export function AppShell({ children }: AppShellProps) {
             <Menu className="h-6 w-6" />
           </button>
           
-          {/* Desktop: empty space for logo is in sidebar */}
-          <div className="hidden md:block" />
+          {/* Desktop: App name */}
+          <div className="hidden md:block">
+            <h1 className="text-lg font-bold text-foreground">RPG Core</h1>
+          </div>
           
           {/* Mobile: logo */}
-          <h1 className="text-lg font-bold text-foreground md:hidden">RPG Manager</h1>
+          <h1 className="text-lg font-bold text-foreground md:hidden">RPG Core</h1>
           
           {/* User menu */}
           <div className="flex items-center space-x-4">
