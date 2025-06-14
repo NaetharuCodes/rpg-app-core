@@ -38,8 +38,18 @@ function App() {
           <Route path="/assets" element={<AssetsGalleryPage />} />
           <Route path="/assets/create" element={<AssetCreatorPage />} />
           <Route path="/adventures" element={<AdventureTitlePage />} />
-          <Route path="/adventures/scene" element={<AdventureScenePage />} />
-          <Route path="/adventures/epi" element={<AdventureEpiloguePage />} />
+          <Route
+            path="/adventures/:adventureId"
+            element={<AdventureTitlePage />}
+          />
+          <Route
+            path="/adventures/:adventureId/scenes/:sceneNumber"
+            element={<AdventureScenePage />}
+          />
+          <Route
+            path="/adventures/:adventureId/epilogue"
+            element={<AdventureEpiloguePage />}
+          />
           <Route path="/rules" element={<RulesPage />} />
           <Route path="/about" element={<AboutPage />} />
 
