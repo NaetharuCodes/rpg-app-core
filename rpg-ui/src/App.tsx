@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
 import { HomePage } from './pages/HomePage/HomePage';
+import { RulesPage } from './pages/RulesPage/RulesPage';
 // Placeholder components for now
 const AssetsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Assets Library</h1><p>Browse characters, creatures, items, and locations.</p></div>;
 const AdventuresPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Adventures</h1><p>Discover and create epic adventures.</p></div>;
-const RulesPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Simple D6 Rules</h1><p>Learn the game rules.</p></div>;
 const AboutPage = () => <div className="p-6"><h1 className="text-2xl font-bold">About</h1><p>About this RPG platform.</p></div>;
 const LoginPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Sign In</h1><p>Sign in to access your content.</p></div>;
 const DashboardPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Dashboard</h1><p>Your personal RPG hub.</p></div>;
