@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Copy, Play } from 'lucide-react';
-import { Button } from '@/components/Button/Button';
-import { Badge } from '@/components/Badge/Badge';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { Plus, Search, Filter, Edit, Trash2, Copy, Play } from "lucide-react";
+import { Button } from "@/components/Button/Button";
+import { Badge } from "@/components/Badge/Badge";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
-// Mock Link component for artifact demo
-const Link = ({ to, className, children, ...props }: any) => (
-  <a href={to} className={className} {...props}>{children}</a>
-);
-
-type AssetType = 'character' | 'creature' | 'location' | 'item';
-type ViewMode = 'rpg-core' | 'my-assets';
+type AssetType = "character" | "creature" | "location" | "item";
+type ViewMode = "rpg-core" | "my-assets";
 
 interface Asset {
   id: string;
@@ -26,129 +22,133 @@ interface Asset {
 const mockAssets: Asset[] = [
   // Official RPG Core Assets
   {
-    id: '1',
-    name: 'Sir Marcus Brightblade',
-    description: 'A young knight seeking to prove his honor in the realm.',
-    type: 'character',
-    imageUrl: 'https://i.redd.it/js4sf6gq2dc91.jpg',
+    id: "1",
+    name: "Sir Marcus Brightblade",
+    description: "A young knight seeking to prove his honor in the realm.",
+    type: "character",
+    imageUrl: "https://i.redd.it/js4sf6gq2dc91.jpg",
     isOfficial: true,
-    genres: ['fantasy']
+    genres: ["fantasy"],
   },
   {
-    id: '2',
-    name: 'Ancient Red Dragon',
-    description: 'A massive, ancient dragon with scales like molten metal.',
-    type: 'creature',
-    imageUrl: 'https://via.placeholder.com/768x1024/DC2626/FFFFFF?text=Dragon',
+    id: "2",
+    name: "Ancient Red Dragon",
+    description: "A massive, ancient dragon with scales like molten metal.",
+    type: "creature",
+    imageUrl: "https://via.placeholder.com/768x1024/DC2626/FFFFFF?text=Dragon",
     isOfficial: true,
-    genres: ['fantasy']
+    genres: ["fantasy"],
   },
   {
-    id: '3',
-    name: 'The Whispering Woods',
-    description: 'A mystical forest where the trees themselves seem to speak.',
-    type: 'location',
-    imageUrl: 'https://via.placeholder.com/768x1024/059669/FFFFFF?text=Forest',
+    id: "3",
+    name: "The Whispering Woods",
+    description: "A mystical forest where the trees themselves seem to speak.",
+    type: "location",
+    imageUrl: "https://via.placeholder.com/768x1024/059669/FFFFFF?text=Forest",
     isOfficial: true,
-    genres: ['fantasy']
+    genres: ["fantasy"],
   },
   {
-    id: '4',
-    name: 'Blade of Echoing Thunder',
-    description: 'A legendary sword that crackles with electrical energy.',
-    type: 'item',
-    imageUrl: 'https://via.placeholder.com/768x1024/D97706/FFFFFF?text=Sword',
+    id: "4",
+    name: "Blade of Echoing Thunder",
+    description: "A legendary sword that crackles with electrical energy.",
+    type: "item",
+    imageUrl: "https://via.placeholder.com/768x1024/D97706/FFFFFF?text=Sword",
     isOfficial: true,
-    genres: ['fantasy']
+    genres: ["fantasy"],
   },
   {
-    id: '5',
-    name: 'Detective Sarah Chen',
-    description: 'A sharp-minded detective with an eye for detail.',
-    type: 'character',
-    imageUrl: 'https://via.placeholder.com/768x1024/7C3AED/FFFFFF?text=Detective',
+    id: "5",
+    name: "Detective Sarah Chen",
+    description: "A sharp-minded detective with an eye for detail.",
+    type: "character",
+    imageUrl:
+      "https://via.placeholder.com/768x1024/7C3AED/FFFFFF?text=Detective",
     isOfficial: true,
-    genres: ['modern', 'mystery']
+    genres: ["modern", "mystery"],
   },
   {
-    id: '6',
-    name: 'Abandoned Warehouse',
-    description: 'A crumbling industrial building with dark secrets.',
-    type: 'location',
-    imageUrl: 'https://via.placeholder.com/768x1024/6B7280/FFFFFF?text=Warehouse',
+    id: "6",
+    name: "Abandoned Warehouse",
+    description: "A crumbling industrial building with dark secrets.",
+    type: "location",
+    imageUrl:
+      "https://via.placeholder.com/768x1024/6B7280/FFFFFF?text=Warehouse",
     isOfficial: true,
-    genres: ['modern', 'horror']
+    genres: ["modern", "horror"],
   },
   // User's Custom Assets (only visible when logged in)
   {
-    id: '7',
-    name: 'My Custom Hero',
-    description: 'A character I created for our campaign.',
-    type: 'character',
-    imageUrl: 'https://via.placeholder.com/768x1024/10B981/FFFFFF?text=Hero',
+    id: "7",
+    name: "My Custom Hero",
+    description: "A character I created for our campaign.",
+    type: "character",
+    imageUrl: "https://via.placeholder.com/768x1024/10B981/FFFFFF?text=Hero",
     isOfficial: false,
   },
   {
-    id: '8',
-    name: 'The Lost Temple',
-    description: 'An ancient temple from our latest adventure.',
-    type: 'location',
-    imageUrl: 'https://via.placeholder.com/768x1024/F59E0B/FFFFFF?text=Temple',
+    id: "8",
+    name: "The Lost Temple",
+    description: "An ancient temple from our latest adventure.",
+    type: "location",
+    imageUrl: "https://via.placeholder.com/768x1024/F59E0B/FFFFFF?text=Temple",
     isOfficial: false,
   },
 ];
 
 const assetTypeColors = {
-  character: 'fantasy',
-  creature: 'horror', 
-  location: 'scifi',
-  item: 'mystery'
+  character: "fantasy",
+  creature: "horror",
+  location: "scifi",
+  item: "mystery",
 } as const;
 
 const assetTypeIcons = {
-  character: '👤',
-  creature: '🐉',
-  location: '🏰',
-  item: '⚔️'
+  character: "👤",
+  creature: "🐉",
+  location: "🏰",
+  item: "⚔️",
 };
 
 export function AssetsGalleryPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>('rpg-core');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<AssetType | 'all'>('all');
-  
+  const [viewMode, setViewMode] = useState<ViewMode>("rpg-core");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<AssetType | "all">("all");
+
   // Mock auth state - will replace with real auth context later
   const isAuthenticated = true; // Change to false to test logged-out state
 
-  const filteredAssets = mockAssets.filter(asset => {
+  const filteredAssets = mockAssets.filter((asset) => {
     // Filter by official/custom based on view mode
-    const matchesViewMode = viewMode === 'rpg-core' ? asset.isOfficial : !asset.isOfficial;
-    
+    const matchesViewMode =
+      viewMode === "rpg-core" ? asset.isOfficial : !asset.isOfficial;
+
     // Filter by search term
-    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         asset.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.description.toLowerCase().includes(searchTerm.toLowerCase());
+
     // Filter by type
-    const matchesType = filterType === 'all' || asset.type === filterType;
-    
+    const matchesType = filterType === "all" || asset.type === filterType;
+
     return matchesViewMode && matchesSearch && matchesType;
   });
 
   const handleUseAsset = (asset: Asset) => {
     // In real app, this would add to campaign or open in editor
-    console.log('Using asset:', asset.name);
+    console.log("Using asset:", asset.name);
     alert(`Added "${asset.name}" to your campaign!`);
   };
 
   const handleEditAsset = (asset: Asset) => {
     // In real app, this would navigate to edit page
-    console.log('Editing asset:', asset.name);
+    console.log("Editing asset:", asset.name);
     alert(`Editing "${asset.name}"`);
   };
 
   const handleDeleteAsset = (asset: Asset) => {
     // In real app, this would show confirmation and delete
-    console.log('Deleting asset:', asset.name);
+    console.log("Deleting asset:", asset.name);
     if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
       alert(`"${asset.name}" deleted!`);
     }
@@ -156,7 +156,7 @@ export function AssetsGalleryPage() {
 
   const handleDuplicateAsset = (asset: Asset) => {
     // In real app, this would create a copy
-    console.log('Duplicating asset:', asset.name);
+    console.log("Duplicating asset:", asset.name);
     alert(`Created a copy of "${asset.name}"!`);
   };
 
@@ -169,15 +169,14 @@ export function AssetsGalleryPage() {
             <div>
               <h1 className="text-3xl font-bold">Assets Library</h1>
               <p className="text-muted-foreground mt-1">
-                {viewMode === 'rpg-core' 
-                  ? 'Browse official characters, creatures, locations, and items'
-                  : 'Manage your personal collection of custom assets'
-                }
+                {viewMode === "rpg-core"
+                  ? "Browse official characters, creatures, locations, and items"
+                  : "Manage your personal collection of custom assets"}
               </p>
             </div>
-            
+
             {/* Create Asset Button - only show in My Assets view */}
-            {viewMode === 'my-assets' && isAuthenticated && (
+            {viewMode === "my-assets" && isAuthenticated && (
               <Link to="/assets/create">
                 <Button variant="primary" leftIcon={Plus}>
                   Create Asset
@@ -190,10 +189,10 @@ export function AssetsGalleryPage() {
           <div className="flex items-center gap-4 mt-6">
             <div className="flex bg-muted rounded-lg p-1">
               <button
-                onClick={() => setViewMode('rpg-core')}
+                onClick={() => setViewMode("rpg-core")}
                 className={cn(
                   "px-4 py-2 rounded-md font-medium transition-colors",
-                  viewMode === 'rpg-core'
+                  viewMode === "rpg-core"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
@@ -202,10 +201,10 @@ export function AssetsGalleryPage() {
               </button>
               {isAuthenticated && (
                 <button
-                  onClick={() => setViewMode('my-assets')}
+                  onClick={() => setViewMode("my-assets")}
                   className={cn(
                     "px-4 py-2 rounded-md font-medium transition-colors",
-                    viewMode === 'my-assets'
+                    viewMode === "my-assets"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   )}
@@ -219,7 +218,8 @@ export function AssetsGalleryPage() {
               <div className="text-sm text-muted-foreground">
                 <Link to="/login" className="text-primary hover:underline">
                   Sign in
-                </Link> to create and manage your own assets
+                </Link>{" "}
+                to create and manage your own assets
               </div>
             )}
           </div>
@@ -246,7 +246,9 @@ export function AssetsGalleryPage() {
             <Filter className="h-4 w-4 text-muted-foreground" />
             <select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as AssetType | 'all')}
+              onChange={(e) =>
+                setFilterType(e.target.value as AssetType | "all")
+              }
               className="px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">All Types</option>
@@ -260,7 +262,8 @@ export function AssetsGalleryPage() {
 
         {/* Results Count */}
         <div className="mt-4 text-sm text-muted-foreground">
-          {filteredAssets.length} {filteredAssets.length === 1 ? 'asset' : 'assets'} found
+          {filteredAssets.length}{" "}
+          {filteredAssets.length === 1 ? "asset" : "assets"} found
         </div>
       </div>
 
@@ -269,14 +272,16 @@ export function AssetsGalleryPage() {
         {filteredAssets.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground">
-              {searchTerm || filterType !== 'all' ? (
+              {searchTerm || filterType !== "all" ? (
                 <div>
                   <p className="text-lg mb-2">No assets found</p>
                   <p>Try adjusting your search or filters</p>
                 </div>
-              ) : viewMode === 'my-assets' ? (
+              ) : viewMode === "my-assets" ? (
                 <div>
-                  <p className="text-lg mb-4">You haven't created any assets yet</p>
+                  <p className="text-lg mb-4">
+                    You haven't created any assets yet
+                  </p>
                   <Link to="/assets/create">
                     <Button variant="primary" leftIcon={Plus}>
                       Create Your First Asset
@@ -294,7 +299,7 @@ export function AssetsGalleryPage() {
               <div
                 key={asset.id}
                 className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group relative"
-                style={{ contain: 'layout style' }}
+                style={{ contain: "layout style" }}
               >
                 {/* Image */}
                 <div className="aspect-[3/4] bg-muted overflow-hidden">
@@ -309,20 +314,28 @@ export function AssetsGalleryPage() {
                 <div className="p-4 overflow-hidden">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{assetTypeIcons[asset.type]}</span>
+                      <span className="text-lg">
+                        {assetTypeIcons[asset.type]}
+                      </span>
                       <Badge variant={assetTypeColors[asset.type]} size="sm">
-                        {asset.type.charAt(0).toUpperCase() + asset.type.slice(1)}
+                        {asset.type.charAt(0).toUpperCase() +
+                          asset.type.slice(1)}
                       </Badge>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-lg mb-2 overflow-hidden text-ellipsis whitespace-nowrap">{asset.name}</h3>
-                  <p className="text-muted-foreground text-sm mb-4 overflow-hidden" style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    wordBreak: 'break-word'
-                  }}>
+                  <h3 className="font-semibold text-lg mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {asset.name}
+                  </h3>
+                  <p
+                    className="text-muted-foreground text-sm mb-4 overflow-hidden"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      wordBreak: "break-word",
+                    }}
+                  >
                     {asset.description}
                   </p>
 
@@ -339,7 +352,7 @@ export function AssetsGalleryPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    {viewMode === 'rpg-core' ? (
+                    {viewMode === "rpg-core" ? (
                       // Official assets - use in campaign
                       <Button
                         variant="primary"
