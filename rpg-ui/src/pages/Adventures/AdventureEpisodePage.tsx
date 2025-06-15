@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
+import { DiceRoller } from "@/components/DiceRoller/DiceRoller";
 
 // Mock scene data with scene-specific assets
 const mockSceneData = {
@@ -368,6 +369,8 @@ export function AdventureScenePage({
     sceneData.sceneAssets.includes(asset.id)
   );
 
+  const [showDiceRoller, setShowDiceRoller] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header with Navigation */}
@@ -425,7 +428,7 @@ export function AdventureScenePage({
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {/* Scene Image */}
         {sceneData.image && (
-          <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+          <div className="h-32 rounded-lg overflow-hidden bg-muted">
             <img
               src={sceneData.image}
               alt={sceneData.title}
@@ -530,6 +533,7 @@ export function AdventureScenePage({
                     size="sm"
                     leftIcon={Dice6}
                     className="w-full justify-start"
+                    onClick={() => setShowDiceRoller(true)}
                   >
                     Roll Dice
                   </Button>
@@ -586,6 +590,11 @@ export function AdventureScenePage({
       <AllAssetsModal
         isOpen={showAllAssets}
         onClose={() => setShowAllAssets(false)}
+      />
+      {/* Dice Roller Modal */}
+      <DiceRoller
+        isOpen={showDiceRoller}
+        onClose={() => setShowDiceRoller(false)}
       />
     </div>
   );
