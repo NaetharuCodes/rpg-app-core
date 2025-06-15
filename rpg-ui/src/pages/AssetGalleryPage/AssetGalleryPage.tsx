@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter, Edit, Trash2, Copy, Play } from "lucide-react";
+import { Plus, Search, Filter, Edit, Trash2, Play, Eye } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { AssetCard } from "@/components/AssetCard/AssetCard";
 import { cn } from "@/lib/utils";
@@ -153,7 +153,6 @@ export function AssetsGalleryPage() {
   };
 
   const handleDuplicateAsset = (asset: Asset) => {
-    // In real app, this would create a copy
     console.log("Duplicating asset:", asset.name);
     alert(`Created a copy of "${asset.name}"!`);
   };
@@ -310,6 +309,14 @@ export function AssetsGalleryPage() {
                   // Custom assets - edit/delete/duplicate
                   <>
                     <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={Eye}
+                      onClick={() => handleDuplicateAsset(asset)}
+                    >
+                      View
+                    </Button>
+                    <Button
                       variant="secondary"
                       size="sm"
                       leftIcon={Edit}
@@ -317,14 +324,7 @@ export function AssetsGalleryPage() {
                     >
                       Edit
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={Copy}
-                      onClick={() => handleDuplicateAsset(asset)}
-                    >
-                      Copy
-                    </Button>
+
                     <Button
                       variant="ghost"
                       size="sm"
