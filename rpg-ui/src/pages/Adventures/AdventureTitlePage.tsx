@@ -3,6 +3,8 @@ import { ArrowRight, Users, Clock, BookOpen } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
+import { SceneAssets } from "@/components/SceneAssets/SceneAssets";
+import { mockAssets } from "@/components/mocks/assetMocks";
 
 // Mock data based on your PDF adventure
 const mockTitleData = {
@@ -100,13 +102,13 @@ export function AdventureTitlePage({
           <div className="lg:col-span-2 space-y-8">
             {/* Adventure Info */}
             <div className="flex items-center gap-4 mb-6">
-              <Badge variant="fantasy" leftIcon={Users}>
+              <Badge variant="fantasy" icon={Users}>
                 3-5 Players
               </Badge>
-              <Badge variant="scifi" leftIcon={Clock}>
+              <Badge variant="scifi" icon={Clock}>
                 {structure.totalScenes} Scenes
               </Badge>
-              <Badge variant="mystery" leftIcon={BookOpen}>
+              <Badge variant="mystery" icon={BookOpen}>
                 {structure.episodes.length} Episodes
               </Badge>
             </div>
@@ -204,45 +206,7 @@ export function AdventureTitlePage({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Related Assets */}
-            <Card variant="elevated">
-              <CardHeader>
-                <h3 className="text-xl font-semibold">Key Assets</h3>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {titleData.relatedAssets.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="font-medium text-sm">{asset.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {asset.description}
-                        </div>
-                      </div>
-                      <Badge
-                        variant={
-                          assetTypeColors[
-                            asset.type as keyof typeof assetTypeColors
-                          ]
-                        }
-                        size="sm"
-                      >
-                        {asset.type}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-3 border-t border-border mt-4">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    View All Assets
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SceneAssets assets={mockAssets} />
           </div>
         </div>
       </div>
