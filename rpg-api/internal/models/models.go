@@ -6,6 +6,23 @@ import (
 	"github.com/lib/pq"
 )
 
+type User struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	Email      string    `json:"email" gorm:"uniqueIndex;not null"`
+	Name       string    `json:"name" gorm:"not null"`
+	Avatar     string    `json:"avatar"`
+	Provider   string    `json:"provider" gorm:"not null"` // "google", "discord", "email"
+	ProviderID string    `json:"provider_id" gorm:"index"` // OAuth provider user ID
+	IsActive   bool      `json:"is_active" gorm:"default:true"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+
+	// Relationships - user can own assets and adventures
+	Assets     []Asset     `json:"assets,omitempty" gorm:"foreignKey:UserID"`
+	Adventures []Adventure `json:"adventures,omitempty" gorm:"foreignKey:UserID"`
+}
+
+// Update existing models to include UserID foreign key
 type Asset struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
 	Name        string         `json:"name"`
@@ -14,7 +31,11 @@ type Asset struct {
 	ImageURL    string         `json:"image_url"`
 	IsOfficial  bool           `json:"is_official" gorm:"default:false"`
 	Genres      pq.StringArray `json:"genres" gorm:"type:text[]"` // PostgreSQL string array
+	UserID      *uint          `json:"user_id" gorm:"index"`      // Foreign key to User (nullable for official assets)
 	CreatedAt   time.Time      `json:"created_at"`
+
+	// Relationship
+	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
 type Adventure struct {
@@ -22,9 +43,11 @@ type Adventure struct {
 	Title          string    `json:"title"`
 	Description    string    `json:"description"`
 	BannerImageURL string    `json:"banner_image_url"`
+	UserID         *uint     `json:"user_id" gorm:"index"` // Foreign key to User (nullable for official adventures)
 	CreatedAt      time.Time `json:"created_at"`
 
 	// Relationships
+	User   *User   `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Scenes []Scene `json:"scenes,omitempty" gorm:"foreignKey:AdventureID"`
 	Assets []Asset `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
 }

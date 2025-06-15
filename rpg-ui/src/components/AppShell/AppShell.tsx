@@ -4,6 +4,7 @@ import {
   Menu,
   User,
   LogIn,
+  LogOut,
   Home,
   Package,
   Map,
@@ -13,6 +14,7 @@ import {
   Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -27,6 +29,7 @@ export function AppShell({ children }: AppShellProps) {
     return window.matchMedia("(prefers-color-scheme: dark)").matches || true;
   });
   const location = useLocation();
+  const { user, isAuthenticated, isLoading, login, logout } = useAuth();
 
   // Apply theme on mount and when isDark changes
   useEffect(() => {
@@ -37,9 +40,6 @@ export function AppShell({ children }: AppShellProps) {
   const toggleTheme = () => {
     setIsDark(!isDark);
   };
-
-  // Mock auth state - will replace with real auth context later
-  const isAuthenticated = false;
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
@@ -175,24 +175,33 @@ export function AppShell({ children }: AppShellProps) {
                   {isDark ? "Light Mode" : "Dark Mode"}
                 </button>
 
-                {isAuthenticated ? (
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mt-2"
-                  >
-                    <User className="mr-3 h-5 w-5" />
-                    Dashboard
-                  </Link>
-                ) : (
-                  <Link
-                    to="/login"
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:bg-accent transition-colors mt-2"
-                  >
-                    <LogIn className="mr-3 h-5 w-5" />
-                    Sign In
-                  </Link>
+                {/* Auth buttons */}
+                {!isLoading && (
+                  <>
+                    {isAuthenticated ? (
+                      <>
+                        <div className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground">
+                          <User className="mr-3 h-5 w-5" />
+                          {user?.name}
+                        </div>
+                        <button
+                          onClick={logout}
+                          className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full mt-2"
+                        >
+                          <LogOut className="mr-3 h-5 w-5" />
+                          Sign Out
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={login}
+                        className="flex items-center px-3 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full mt-2"
+                      >
+                        <LogIn className="mr-3 h-5 w-5" />
+                        Sign In
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </nav>
@@ -224,21 +233,34 @@ export function AppShell({ children }: AppShellProps) {
 
           {/* User menu */}
           <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
-                <User className="h-6 w-6 text-muted-foreground" />
-                <span className="text-sm font-medium hidden sm:block">
-                  Username
-                </span>
+            {isLoading ? (
+              <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : isAuthenticated && user ? (
+              <div className="flex items-center space-x-3">
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full"
+                />
+                <div className="hidden sm:block">
+                  <span className="text-sm font-medium">{user.name}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
               </div>
             ) : (
-              <Link
-                to="/login"
+              <button
+                onClick={login}
                 className="flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               >
                 <LogIn className="h-4 w-4" />
                 <span className="hidden sm:block">Sign In</span>
-              </Link>
+              </button>
             )}
           </div>
         </header>
@@ -307,7 +329,7 @@ export function AppShell({ children }: AppShellProps) {
                       className="block text-muted-foreground hover:text-foreground"
                     >
                       About
-                    </Link>{" "}
+                    </Link>
                     <Link
                       to="/faq"
                       className="block text-muted-foreground hover:text-foreground"
@@ -325,7 +347,6 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </footer>
         </main>
-        {/* Footer */}
       </div>
     </div>
   );

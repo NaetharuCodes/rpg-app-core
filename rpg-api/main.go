@@ -20,8 +20,9 @@ func main() {
 	// Connect to database
 	db := connectDB()
 
-	// Auto-migrate tables
+	// Auto-migrate tables (including the new User model)
 	db.AutoMigrate(
+		&models.User{},
 		&models.Asset{},
 		&models.Adventure{},
 		&models.Scene{},
@@ -34,6 +35,7 @@ func main() {
 	// Setup handlers
 	assetHandler := handlers.NewAssetHandler(db)
 	adventureHandler := handlers.NewAdventureHandler(db)
+	authHandler := handlers.NewAuthHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -42,13 +44,18 @@ func main() {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"}, // Vite dev server
 		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	// Auth routes
+	r.GET("/auth/google", authHandler.GoogleLogin)
+	r.GET("/auth/google/callback", authHandler.GoogleCallback)
+	r.POST("/auth/verify", authHandler.VerifyToken)
 
 	// Asset routes
 	r.POST("/assets", assetHandler.CreateAsset)
