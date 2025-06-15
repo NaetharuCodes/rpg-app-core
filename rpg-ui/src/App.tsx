@@ -9,6 +9,9 @@ import { AdventureScenePage } from "./pages/Adventures/AdventureScenePage";
 import { AdventureEpiloguePage } from "./pages/Adventures/AdventureEpiloguePage";
 import { AboutPage } from "./pages/AboutPage/AboutPage";
 import { FAQPage } from "./pages/FAQPage/FAQPage";
+import { AdventureGalleryPage } from "./pages/Adventures/AdventureGalleryPage";
+import { AdventureBuilderOverviewPage } from "./pages/Adventures/AdventureBuilderOverviewPage";
+import { AdventureTitleEditor } from "./pages/Adventures/AdventureTitleEditorPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -33,7 +36,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/assets" element={<AssetsGalleryPage />} />
           <Route path="/assets/create" element={<AssetCreatorPage />} />
-          <Route path="/adventures" element={<AdventureTitlePage />} />
+          <Route path="/adventures" element={<AdventureGalleryPage />} />
           <Route
             path="/adventures/:adventureId"
             element={<AdventureTitlePage />}
@@ -45,6 +48,14 @@ function App() {
           <Route
             path="/adventures/:adventureId/epilogue"
             element={<AdventureEpiloguePage />}
+          />
+          <Route
+            path="/adventures/builder"
+            element={<AdventureBuilderOverviewPage />}
+          />
+          <Route
+            path="/adventures/builder/title/:adventureId"
+            element={<AdventureTitleEditor />}
           />
           <Route path="/rules" element={<RulesPage />} />
           <Route path="/about" element={<AboutPage />} />
