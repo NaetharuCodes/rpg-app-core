@@ -117,9 +117,6 @@ interface AdventureBuilderOverviewProps {
 
 export function AdventureBuilderOverviewPage({
   adventureId,
-  onNavigateToTitle,
-  onNavigateToScene,
-  onNavigateToEpilogue,
   onSave,
   onPreview,
 }: AdventureBuilderOverviewProps) {
