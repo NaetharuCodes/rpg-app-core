@@ -1,4 +1,4 @@
-import type { AssetPickerAsset } from "@/components/Modals/assetPickerModal";
+import type { AssetPickerAsset } from "@/components/Modals/AssetPickerModal";
 
 export const mockAssets: AssetPickerAsset[] = [
   {
