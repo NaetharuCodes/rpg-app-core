@@ -7,14 +7,9 @@ import { AssetsGalleryPage } from "./pages/AssetGalleryPage/AssetGalleryPage";
 import { AdventureTitlePage } from "./pages/Adventures/AdventureTitlePage";
 import { AdventureScenePage } from "./pages/Adventures/AdventureEpisodePage";
 import { AdventureEpiloguePage } from "./pages/Adventures/AdventureEpiloguePage";
+import { AboutPage } from "./pages/AboutPage/AboutPage";
 
-// Placeholder components for now
-const AboutPage = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold">About</h1>
-    <p>About this RPG platform.</p>
-  </div>
-);
+// Placeholders
 const LoginPage = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold">Sign In</h1>
