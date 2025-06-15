@@ -13,6 +13,7 @@ import { AdventureGalleryPage } from "./pages/Adventures/AdventureGalleryPage";
 import { AdventureBuilderOverviewPage } from "./pages/Adventures/AdventureBuilderOverviewPage";
 import { AdventureTitleEditor } from "./pages/Adventures/AdventureTitleEditorPage";
 import { AdventureSceneEditorPage } from "./pages/Adventures/AdventureSceneEditorPage";
+import { AdventureEpilogueEditorPage } from "./pages/Adventures/AdventureEpilogueEditorPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -57,6 +58,10 @@ function App() {
           <Route
             path="/adventures/builder/title/:adventureId"
             element={<AdventureTitleEditor />}
+          />
+          <Route
+            path="/adventures/builder/epilogue"
+            element={<AdventureEpilogueEditorPage />}
           />
           <Route
             path="/adventures/builder/scene/:adventureId"
