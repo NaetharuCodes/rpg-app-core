@@ -2,21 +2,12 @@ import React, { useState } from "react";
 import { Plus, Search, Filter, Edit, Trash2, Copy, Play } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
+import { AssetCard, type Asset } from "@/components/AssetCard/AssetCard";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 type AssetType = "character" | "creature" | "location" | "item";
 type ViewMode = "rpg-core" | "my-assets";
-
-interface Asset {
-  id: string;
-  name: string;
-  description: string;
-  type: AssetType;
-  imageUrl: string;
-  isOfficial: boolean;
-  genres?: string[];
-}
 
 // Mock data - in real app this would come from your API
 const mockAssets: Asset[] = [
@@ -95,20 +86,6 @@ const mockAssets: Asset[] = [
     isOfficial: false,
   },
 ];
-
-const assetTypeColors = {
-  character: "fantasy",
-  creature: "horror",
-  location: "scifi",
-  item: "mystery",
-} as const;
-
-const assetTypeIcons = {
-  character: "👤",
-  creature: "🐉",
-  location: "🏰",
-  item: "⚔️",
-};
 
 export function AssetsGalleryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("rpg-core");
@@ -296,106 +273,49 @@ export function AssetsGalleryPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredAssets.map((asset) => (
-              <div
-                key={asset.id}
-                className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group relative"
-                style={{ contain: "layout style" }}
-              >
-                {/* Image */}
-                <div className="aspect-[3/4] bg-muted overflow-hidden">
-                  <img
-                    src={asset.imageUrl}
-                    alt={asset.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="p-4 overflow-hidden">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">
-                        {assetTypeIcons[asset.type]}
-                      </span>
-                      <Badge variant={assetTypeColors[asset.type]} size="sm">
-                        {asset.type.charAt(0).toUpperCase() +
-                          asset.type.slice(1)}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <h3 className="font-semibold text-lg mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {asset.name}
-                  </h3>
-                  <p
-                    className="text-muted-foreground text-sm mb-4 overflow-hidden"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      wordBreak: "break-word",
-                    }}
+              <AssetCard key={asset.id} asset={asset}>
+                {viewMode === "rpg-core" ? (
+                  // Official assets - use in campaign
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    leftIcon={Play}
+                    onClick={() => handleUseAsset(asset)}
+                    className="flex-1"
                   >
-                    {asset.description}
-                  </p>
-
-                  {/* Genre tags for official assets */}
-                  {asset.isOfficial && asset.genres && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {asset.genres.map((genre) => (
-                        <Badge key={genre} variant="outline" size="sm">
-                          {genre}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    {viewMode === "rpg-core" ? (
-                      // Official assets - use in campaign
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        leftIcon={Play}
-                        onClick={() => handleUseAsset(asset)}
-                        className="flex-1"
-                      >
-                        Use Asset
-                      </Button>
-                    ) : (
-                      // Custom assets - edit/delete/duplicate
-                      <>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          leftIcon={Edit}
-                          onClick={() => handleEditAsset(asset)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={Copy}
-                          onClick={() => handleDuplicateAsset(asset)}
-                        >
-                          Copy
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={Trash2}
-                          onClick={() => handleDeleteAsset(asset)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                        >
-                          Delete
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
+                    Use Asset
+                  </Button>
+                ) : (
+                  // Custom assets - edit/delete/duplicate
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={Edit}
+                      onClick={() => handleEditAsset(asset)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={Copy}
+                      onClick={() => handleDuplicateAsset(asset)}
+                    >
+                      Copy
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={Trash2}
+                      onClick={() => handleDeleteAsset(asset)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                    >
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </AssetCard>
             ))}
           </div>
         )}
