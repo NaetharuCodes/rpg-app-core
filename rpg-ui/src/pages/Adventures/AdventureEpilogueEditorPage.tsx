@@ -4,6 +4,7 @@ import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
+import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
 
 // Mock Link component for artifact demo
 const Link = ({ to, className, children, ...props }: any) => (
@@ -263,17 +264,7 @@ export function AdventureEpilogueEditorPage({
                     variant="feature"
                     className="bg-accent/5 border border-accent/20"
                   >
-                    <CardContent className="p-6">
-                      <div className="prose max-w-none text-muted-foreground">
-                        {epilogueData.content
-                          .split("\n")
-                          .map((paragraph, index) => (
-                            <p key={index} className="mb-4">
-                              {paragraph}
-                            </p>
-                          ))}
-                      </div>
-                    </CardContent>
+                    <MarkdownViewer content={epilogueData.content} />
                   </Card>
                 )}
 
@@ -851,9 +842,13 @@ export function AdventureEpilogueEditorPage({
                   <div>
                     <h4 className="font-semibold text-lg">Epilogue</h4>
                     {epilogueData.content && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 mt-1">
-                        {epilogueData.content}
-                      </p>
+                      // <p className="text-sm text-muted-foreground line-clamp-3 mt-1">
+                      //   {epilogueData.content}
+                      // </p>
+                      <MarkdownViewer
+                        content={epilogueData.content}
+                        className=""
+                      />
                     )}
                   </div>
 

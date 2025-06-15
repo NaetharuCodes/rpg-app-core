@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
-  Upload,
   ImageIcon,
   Save,
   Eye,
@@ -13,15 +12,14 @@ import {
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
-import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from "react-router-dom";
-
-// Mock Link component for artifact demo
-const Link = ({ to, className, children, ...props }: any) => (
-  <a href={to} className={className} {...props}>
-    {children}
-  </a>
-);
+import {
+  ImagePickerModal,
+  type LibraryImage,
+} from "@/components/Modals/ImagePickerModal";
+import { AssetPickerModal } from "@/components/Modals/assetPickerModal";
+import { mockLibraryImages } from "@/components/mocks/imageMocks";
+import { mockAssets } from "@/components/mocks/assetMocks";
 
 // Mock asset data
 const mockAllAssets = [
@@ -59,30 +57,6 @@ const mockAllAssets = [
     type: "item",
     description: "A mystical weapon of great power",
     imageUrl: "https://via.placeholder.com/300x400/D97706/FFFFFF?text=Sword",
-  },
-];
-
-// Mock library images
-const mockLibraryImages = [
-  {
-    id: "banner1",
-    url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=400&fit=crop",
-    name: "Epic Battle",
-  },
-  {
-    id: "banner2",
-    url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&h=400&fit=crop",
-    name: "Dark Castle",
-  },
-  {
-    id: "banner3",
-    url: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&h=400&fit=crop",
-    name: "Mystical Forest",
-  },
-  {
-    id: "banner4",
-    url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&h=400&fit=crop",
-    name: "Mountain Path",
   },
 ];
 
@@ -137,251 +111,6 @@ interface AdventureTitleEditorProps {
   adventureId?: string;
   onSave?: (titleData: TitleData) => void;
   onBack?: () => void;
-}
-
-function AssetPickerModal({
-  isOpen,
-  onClose,
-  selectedAssets,
-  onToggleAsset,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedAssets: string[];
-  onToggleAsset: (assetId: string) => void;
-}) {
-  const [filter, setFilter] = useState<
-    "all" | "character" | "creature" | "location" | "item"
-  >("all");
-
-  if (!isOpen) return null;
-
-  const filteredAssets =
-    filter === "all"
-      ? mockAllAssets
-      : mockAllAssets.filter((asset) => asset.type === filter);
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-lg w-full max-w-4xl max-h-[80vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <div>
-            <h2 className="text-xl font-semibold">Select Related Assets</h2>
-            <p className="text-muted-foreground">
-              Choose assets that appear in your adventure
-            </p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="p-6">
-          {/* Filter Tabs */}
-          <div className="flex gap-2 mb-6">
-            {(
-              ["all", "character", "creature", "location", "item"] as const
-            ).map((tab) => (
-              <Button
-                key={tab}
-                variant={filter === tab ? "primary" : "ghost"}
-                size="sm"
-                onClick={() => setFilter(tab)}
-              >
-                {tab === "all"
-                  ? "All"
-                  : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                s
-              </Button>
-            ))}
-          </div>
-
-          {/* Assets Grid */}
-          <div className="overflow-y-auto max-h-[50vh]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  onClick={() => onToggleAsset(asset.id)}
-                  className={cn(
-                    "p-3 border rounded-lg cursor-pointer transition-all hover:bg-accent/5",
-                    selectedAssets.includes(asset.id)
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                      <img
-                        src={asset.imageUrl}
-                        alt={asset.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-sm truncate">
-                          {asset.name}
-                        </h4>
-                        <Badge
-                          variant={
-                            assetTypeColors[
-                              asset.type as keyof typeof assetTypeColors
-                            ]
-                          }
-                          size="sm"
-                        >
-                          {asset.type}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {asset.description}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0">
-                      <div
-                        className={cn(
-                          "w-5 h-5 rounded border-2 flex items-center justify-center",
-                          selectedAssets.includes(asset.id)
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground"
-                        )}
-                      >
-                        {selectedAssets.includes(asset.id) && (
-                          <div className="w-2 h-2 bg-primary-foreground rounded-sm" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-border p-6">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">
-              {selectedAssets.length} asset
-              {selectedAssets.length !== 1 ? "s" : ""} selected
-            </span>
-            <Button onClick={onClose}>Done</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ImagePickerModal({
-  isOpen,
-  onClose,
-  onSelectImage,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelectImage: (imageUrl: string) => void;
-}) {
-  const [imageSource, setImageSource] = useState<"library" | "upload">(
-    "library"
-  );
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
-
-  if (!isOpen) return null;
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadPreview(result);
-        onSelectImage(result);
-        onClose();
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-lg w-full max-w-4xl max-h-[80vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <div>
-            <h2 className="text-xl font-semibold">Choose Banner Image</h2>
-            <p className="text-muted-foreground">
-              Select from library or upload your own
-            </p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="p-6">
-          {/* Source Toggle */}
-          <div className="flex gap-3 mb-6">
-            <Button
-              variant={imageSource === "library" ? "primary" : "secondary"}
-              leftIcon={ImageIcon}
-              onClick={() => setImageSource("library")}
-            >
-              From Library
-            </Button>
-            <Button
-              variant={imageSource === "upload" ? "primary" : "secondary"}
-              leftIcon={Upload}
-              onClick={() => setImageSource("upload")}
-            >
-              Upload New
-            </Button>
-          </div>
-
-          {imageSource === "library" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto max-h-[50vh]">
-              {mockLibraryImages.map((image) => (
-                <button
-                  key={image.id}
-                  onClick={() => {
-                    onSelectImage(image.url);
-                    onClose();
-                  }}
-                  className="group relative aspect-[3/1] bg-muted rounded-lg overflow-hidden hover:ring-2 hover:ring-primary transition-all"
-                >
-                  <img
-                    src={image.url}
-                    alt={image.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                  <div className="absolute bottom-2 left-2 right-2">
-                    <p className="text-white text-sm font-medium bg-black/50 rounded px-2 py-1 truncate">
-                      {image.name}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleImageUpload}
-                className="w-full px-4 py-4 border border-border rounded-lg bg-card file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer hover:file:bg-primary/90"
-              />
-              <div className="text-sm text-muted-foreground mt-3 p-4 bg-muted/20 rounded-lg">
-                <strong>Recommended:</strong> 1200x400px (3:1 ratio)
-                <br />
-                <strong>Max size:</strong> 5MB | <strong>Formats:</strong> JPG,
-                PNG, WebP
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function AdventureTitleEditor({
@@ -999,6 +728,7 @@ export function AdventureTitleEditor({
         onSelectImage={(imageUrl) =>
           setTitleData((prev) => ({ ...prev, bannerImage: imageUrl }))
         }
+        images={mockLibraryImages.banner}
       />
 
       {/* Asset Picker Modal */}
@@ -1007,6 +737,7 @@ export function AdventureTitleEditor({
         onClose={() => setShowAssetPicker(false)}
         selectedAssets={titleData.relatedAssets}
         onToggleAsset={handleToggleAsset}
+        assets={mockAssets}
       />
     </div>
   );

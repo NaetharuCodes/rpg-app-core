@@ -4,8 +4,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/naetharu/rpg-api/internal/handlers"
+	"github.com/naetharu/rpg-api/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,13 +21,46 @@ func main() {
 	db := connectDB()
 
 	// Auto-migrate tables
-	db.AutoMigrate(&User{}, &Adventure{})
+	db.AutoMigrate(
+		&models.Asset{},
+		&models.Adventure{},
+		&models.Scene{},
+		&models.TitlePage{},
+		&models.Epilogue{},
+		&models.EpilogueOutcome{},
+		&models.FollowUpHook{},
+	)
+
+	// Setup handlers
+	assetHandler := handlers.NewAssetHandler(db)
+	adventureHandler := handlers.NewAdventureHandler(db)
 
 	// Setup routes
 	r := gin.Default()
+
+	// Add CORS middleware
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"}, // Vite dev server
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowCredentials: true,
+	}))
+
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	// Asset routes
+	r.POST("/assets", assetHandler.CreateAsset)
+	r.GET("/assets", assetHandler.GetAssets)
+	r.GET("/assets/:id", assetHandler.GetAsset)
+	r.PATCH("/assets/:id", assetHandler.UpdateAsset)
+
+	// Adventure routes
+	r.POST("/adventures", adventureHandler.CreateAdventure)
+	r.GET("/adventures", adventureHandler.GetAdventures)
+	r.GET("/adventures/:id", adventureHandler.GetAdventure)
+	r.PATCH("/adventures/:id", adventureHandler.UpdateAdventure)
 
 	// Start server
 	port := os.Getenv("PORT")
@@ -48,17 +84,4 @@ func connectDB() *gorm.DB {
 	}
 
 	return db
-}
-
-// Simple models
-type User struct {
-	ID   uint   `json:"id" gorm:"primaryKey"`
-	Name string `json:"name"`
-}
-
-type Adventure struct {
-	ID     uint   `json:"id" gorm:"primaryKey"`
-	Title  string `json:"title"`
-	UserID uint   `json:"user_id"`
-	User   User   `json:"user" gorm:"foreignKey:UserID"`
 }

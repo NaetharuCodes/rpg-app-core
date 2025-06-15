@@ -5,6 +5,7 @@ import { Badge } from "@/components/Badge/Badge";
 import { cn } from "@/lib/utils";
 import { assetService } from "@/services/api";
 import { GenreInput } from "@/components/GenreInput/GenreInput";
+import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
 
 const Link = ({ to, className, children, ...props }: any) => (
   <a href={to} className={className} {...props}>
@@ -465,16 +466,11 @@ You can use Markdown formatting:
                     <div className="border-t border-border pt-4">
                       <div className="prose prose-sm max-w-none dark:prose-invert">
                         {/* Simple markdown-like rendering for preview */}
-                        <div
-                          className="text-sm text-muted-foreground whitespace-pre-wrap overflow-hidden"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 8,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          {formData.description}
-                        </div>
+
+                        <MarkdownViewer
+                          content={formData.description}
+                          className="text-sm text-muted-foreground max-h-48 overflow-y-auto"
+                        />
                       </div>
                     </div>
                   )}
