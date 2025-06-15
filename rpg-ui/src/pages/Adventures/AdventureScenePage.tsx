@@ -376,49 +376,43 @@ export function AdventureScenePage({
       {/* Header with Navigation */}
       <div className="border-b border-border bg-card">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Scene Info */}
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Badge variant="fantasy" size="sm">
-                  Episode {navigation.episode.sceneNumber}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  {navigation.episode.title}
-                </span>
-              </div>
-              <h1 className="text-2xl font-bold">{sceneData.title}</h1>
-              <p className="text-sm text-muted-foreground">
-                Scene {navigation.currentScene} of {navigation.totalScenes}
-              </p>
+          {/* Scene Info - Always at top */}
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-2">
+              <Badge variant="fantasy" size="sm">
+                Episode {navigation.episode.sceneNumber}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                {navigation.episode.title}
+              </span>
             </div>
+            <h1 className="text-2xl font-bold">{sceneData.title}</h1>
+            <p className="text-sm text-muted-foreground">
+              Scene {navigation.currentScene} of {navigation.totalScenes}
+            </p>
+          </div>
 
-            {/* Navigation Controls */}
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={onBackToTitle}>
-                Adventure Overview
+          {/* Navigation Controls - Below on separate row */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={ChevronLeft}
+                onClick={onPrevScene}
+                disabled={!navigation.hasPrev}
+              >
+                Previous
               </Button>
-
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={ChevronLeft}
-                  onClick={onPrevScene}
-                  disabled={!navigation.hasPrev}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  rightIcon={ChevronRight}
-                  onClick={onNextScene}
-                  disabled={!navigation.hasNext}
-                >
-                  Next
-                </Button>
-              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                rightIcon={ChevronRight}
+                onClick={onNextScene}
+                disabled={!navigation.hasNext}
+              >
+                Next
+              </Button>
             </div>
           </div>
         </div>
@@ -556,32 +550,22 @@ export function AdventureScenePage({
       <div className="border-t border-border bg-card">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              {navigation.hasPrev ? "Previous scene available" : "First scene"}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button
-                variant="secondary"
-                leftIcon={ChevronLeft}
-                onClick={onPrevScene}
-                disabled={!navigation.hasPrev}
-              >
-                Previous Scene
-              </Button>
-              <Button
-                variant="primary"
-                rightIcon={ChevronRight}
-                onClick={onNextScene}
-                disabled={!navigation.hasNext}
-              >
-                {navigation.hasNext ? "Next Scene" : "Epilogue"}
-              </Button>
-            </div>
-
-            <div className="text-sm text-muted-foreground">
-              {navigation.hasNext ? "Next scene ready" : "Final scene"}
-            </div>
+            <Button
+              variant="secondary"
+              leftIcon={ChevronLeft}
+              onClick={onPrevScene}
+              disabled={!navigation.hasPrev}
+            >
+              Previous Scene
+            </Button>
+            <Button
+              variant="primary"
+              rightIcon={ChevronRight}
+              onClick={onNextScene}
+              disabled={!navigation.hasNext}
+            >
+              {navigation.hasNext ? "Next Scene" : "Epilogue"}
+            </Button>
           </div>
         </div>
       </div>

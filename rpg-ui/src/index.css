@@ -104,16 +104,43 @@
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.3 0.15 194.77); /* Darker cyan accent for dark sidebar */
+  --sidebar-accent: oklch(
+    0.3 0.15 194.77
+  ); /* Darker cyan accent for dark sidebar */
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Pointer cursor for all interactive elements */
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="file"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  [role="button"],
+  [tabindex]:not([tabindex="-1"]),
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  /* Preserve default cursor for disabled elements */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }

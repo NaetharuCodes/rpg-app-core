@@ -307,6 +307,12 @@ export function AppShell({ children }: AppShellProps) {
                       className="block text-muted-foreground hover:text-foreground"
                     >
                       About
+                    </Link>{" "}
+                    <Link
+                      to="/faq"
+                      className="block text-muted-foreground hover:text-foreground"
+                    >
+                      FAQ
                     </Link>
                   </div>
                 </div>

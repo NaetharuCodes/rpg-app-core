@@ -5,9 +5,10 @@ import { RulesPage } from "./pages/RulesPage/RulesPage";
 import { AssetCreatorPage } from "./pages/AssetCreatorPage/AssetCreatorPage";
 import { AssetsGalleryPage } from "./pages/AssetGalleryPage/AssetGalleryPage";
 import { AdventureTitlePage } from "./pages/Adventures/AdventureTitlePage";
-import { AdventureScenePage } from "./pages/Adventures/AdventureEpisodePage";
+import { AdventureScenePage } from "./pages/Adventures/AdventureScenePage";
 import { AdventureEpiloguePage } from "./pages/Adventures/AdventureEpiloguePage";
 import { AboutPage } from "./pages/AboutPage/AboutPage";
+import { FAQPage } from "./pages/FAQPage/FAQPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -47,6 +48,7 @@ function App() {
           />
           <Route path="/rules" element={<RulesPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/faq" element={<FAQPage />} />
 
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
