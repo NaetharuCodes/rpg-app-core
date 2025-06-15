@@ -16,6 +16,7 @@ import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { cn } from "@/lib/utils";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Mock Link component for artifact demo
 const Link = ({ to, className, children, ...props }: any) => (
@@ -126,7 +127,21 @@ export function AdventureBuilderOverviewPage({
     adventureId ? mockExistingAdventure : createEmptyAdventure()
   );
 
-  const isEditing = Boolean(adventureId);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditing = Boolean(id);
+
+  const handleNavigateToTitle = () => {
+    navigate(`/adventures/${id}/edit/title`);
+  };
+
+  const handleNavigateToScene = (sceneID: string) => {
+    navigate(`/adventures/${id}/edit/scenes/${sceneID}`);
+  };
+
+  const handleNavigateToEpilogue = () => {
+    navigate(`/adventures/${id}/edit/epilogue`);
+  };
 
   const handleGenreToggle = (genre: string) => {
     setAdventure((prev) => ({
@@ -442,7 +457,7 @@ export function AdventureBuilderOverviewPage({
                         variant="ghost"
                         size="sm"
                         leftIcon={Edit}
-                        onClick={onNavigateToTitle}
+                        onClick={handleNavigateToTitle}
                       >
                         Edit
                       </Button>
@@ -490,7 +505,7 @@ export function AdventureBuilderOverviewPage({
                           variant="ghost"
                           size="sm"
                           leftIcon={Edit}
-                          onClick={() => onNavigateToScene?.(scene.id)}
+                          onClick={() => handleNavigateToScene(scene.id)}
                         >
                           Edit
                         </Button>
@@ -535,7 +550,7 @@ export function AdventureBuilderOverviewPage({
                         variant="ghost"
                         size="sm"
                         leftIcon={Edit}
-                        onClick={onNavigateToEpilogue}
+                        onClick={handleNavigateToEpilogue}
                       >
                         Edit
                       </Button>
@@ -566,10 +581,10 @@ export function AdventureBuilderOverviewPage({
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="fantasy" leftIcon={Users} size="sm">
+                    <Badge variant="fantasy" icon={Users} size="sm">
                       {adventure.playerCount}
                     </Badge>
-                    <Badge variant="scifi" leftIcon={Clock} size="sm">
+                    <Badge variant="scifi" icon={Clock} size="sm">
                       {adventure.duration}
                     </Badge>
                     <Badge

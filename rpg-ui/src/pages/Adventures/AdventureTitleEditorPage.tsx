@@ -14,6 +14,7 @@ import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { cn } from "@/lib/utils";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Mock Link component for artifact demo
 const Link = ({ to, className, children, ...props }: any) => (
@@ -395,7 +396,13 @@ export function AdventureTitleEditor({
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
 
-  const isEditing = Boolean(adventureId);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditing = Boolean(id);
+
+  const handleBackToOverview = () => {
+    navigate(`/adventures/${id}/edit`);
+  };
 
   const handleSave = () => {
     if (!titleData.title.trim()) {
@@ -589,7 +596,11 @@ export function AdventureTitleEditor({
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" leftIcon={ArrowLeft} onClick={onBack}>
+              <Button
+                variant="ghost"
+                leftIcon={ArrowLeft}
+                onClick={handleBackToOverview}
+              >
                 Back to Overview
               </Button>
               <div>
