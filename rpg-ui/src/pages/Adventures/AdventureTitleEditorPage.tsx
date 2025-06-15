@@ -17,9 +17,10 @@ import {
   ImagePickerModal,
   type LibraryImage,
 } from "@/components/Modals/ImagePickerModal";
-import { AssetPickerModal } from "@/components/Modals/assetPickerModal";
+import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 import { mockLibraryImages } from "@/components/mocks/imageMocks";
 import { mockAssets } from "@/components/mocks/assetMocks";
+import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
 
 // Mock asset data
 const mockAllAssets = [
@@ -529,86 +530,15 @@ export function AdventureTitleEditor({
             </Card>
 
             {/* Related Assets */}
-            <Card variant="elevated">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold">Related Assets</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Key characters, creatures, locations, and items
-                    </p>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    leftIcon={Plus}
-                    onClick={() => setShowAssetPicker(true)}
-                  >
-                    Add Assets
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {selectedAssets.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedAssets.map((asset) => (
-                      <div
-                        key={asset.id}
-                        className="flex items-center gap-3 p-3 border border-border rounded-lg"
-                      >
-                        <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                          <img
-                            src={asset.imageUrl}
-                            alt={asset.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm truncate">
-                              {asset.name}
-                            </h4>
-                            <Badge
-                              variant={
-                                assetTypeColors[
-                                  asset.type as keyof typeof assetTypeColors
-                                ]
-                              }
-                              size="sm"
-                            >
-                              {asset.type}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {asset.description}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleAsset(asset.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      No assets selected yet
-                    </p>
-                    <Button
-                      variant="secondary"
-                      leftIcon={Plus}
-                      onClick={() => setShowAssetPicker(true)}
-                    >
-                      Add Your First Asset
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <AssetSelector
+              title="Related Assets"
+              description="Key characters, creatures, locations, and items"
+              selectedAssetIds={titleData.relatedAssets}
+              availableAssets={mockAssets}
+              onToggleAsset={handleToggleAsset}
+              emptyStateMessage="No assets selected yet"
+              emptyStateButtonText="Add Your First Asset"
+            />
           </div>
 
           {/* Preview Sidebar */}

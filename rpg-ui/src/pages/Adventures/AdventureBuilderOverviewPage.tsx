@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -38,7 +38,7 @@ interface AdventureData {
   description: string;
   playerCount: string;
   duration: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
+  suitability: "All" | "Teen" | "Adult";
   genres: string[];
   scenes: Scene[];
   hasTitle: boolean;
@@ -54,10 +54,10 @@ const genreOptions = [
   "modern",
 ];
 
-const difficultyColors = {
-  beginner: "green",
-  intermediate: "yellow",
-  advanced: "destructive",
+const suitabilityColours = {
+  All: "green",
+  Teen: "yellow",
+  Adult: "destructive",
 } as const;
 
 // Mock data for editing existing adventure
@@ -67,7 +67,7 @@ const mockExistingAdventure: AdventureData = {
   description: "A classic dungeon crawl adventure for brave heroes",
   playerCount: "3-5",
   duration: "4-6 hours",
-  difficulty: "intermediate",
+  suitability: "Teen",
   genres: ["fantasy"],
   hasTitle: true,
   hasEpilogue: true,
@@ -99,7 +99,7 @@ const createEmptyAdventure = (): AdventureData => ({
   description: "",
   playerCount: "3-5",
   duration: "2-4 hours",
-  difficulty: "beginner",
+  suitability: "All",
   genres: [],
   hasTitle: false,
   hasEpilogue: false,
@@ -360,21 +360,21 @@ export function AdventureBuilderOverviewPage({
 
                     <div>
                       <label className="block text-sm font-medium mb-2">
-                        Difficulty
+                        Suitability
                       </label>
                       <select
-                        value={adventure.difficulty}
+                        value={adventure.suitability}
                         onChange={(e) =>
                           setAdventure((prev) => ({
                             ...prev,
-                            difficulty: e.target.value as any,
+                            suitability: e.target.value as any,
                           }))
                         }
                         className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                       >
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
+                        <option value="All">All</option>
+                        <option value="Teen">Teen</option>
+                        <option value="Adult">Adult</option>
                       </select>
                     </div>
                   </div>
@@ -585,10 +585,10 @@ export function AdventureBuilderOverviewPage({
                       {adventure.duration}
                     </Badge>
                     <Badge
-                      variant={difficultyColors[adventure.difficulty]}
+                      variant={suitabilityColours[adventure.suitability]}
                       size="sm"
                     >
-                      {adventure.difficulty}
+                      {adventure.suitability}
                     </Badge>
                   </div>
 
@@ -616,37 +616,6 @@ export function AdventureBuilderOverviewPage({
                       <div>Epilogue: {adventure.hasEpilogue ? "✓" : "○"}</div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card variant="ghost" className="border border-border">
-              <CardContent className="p-4">
-                <h4 className="font-semibold mb-3">Quick Actions</h4>
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start"
-                  >
-                    Import from Template
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start"
-                  >
-                    Duplicate Adventure
-                  </Button>
-                  {isEditing && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-red-600"
-                    >
-                      Delete Adventure
-                    </Button>
-                  )}
                 </div>
               </CardContent>
             </Card>

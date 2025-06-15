@@ -5,87 +5,13 @@ import { AssetCard } from "@/components/AssetCard/AssetCard";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { assetService, type Asset } from "@/services/api";
+import {
+  AssetViewerModal,
+  type AssetViewerAsset,
+} from "@/components/Modals/AssetViewerModal";
 
 type AssetType = "character" | "creature" | "location" | "item";
 type ViewMode = "rpg-core" | "my-assets";
-
-// // Mock data - in real app this would come from your API
-// const mockAssets: Asset[] = [
-//   // Official RPG Core Assets
-//   {
-//     id: "1",
-//     name: "Sir Marcus Brightblade",
-//     description: "A young knight seeking to prove his honor in the realm.",
-//     type: "character",
-//     imageUrl: "https://i.redd.it/js4sf6gq2dc91.jpg",
-//     isOfficial: true,
-//     genres: ["fantasy"],
-//   },
-//   {
-//     id: "2",
-//     name: "Ancient Red Dragon",
-//     description: "A massive, ancient dragon with scales like molten metal.",
-//     type: "creature",
-//     imageUrl: "https://via.placeholder.com/768x1024/DC2626/FFFFFF?text=Dragon",
-//     isOfficial: true,
-//     genres: ["fantasy"],
-//   },
-//   {
-//     id: "3",
-//     name: "The Whispering Woods",
-//     description: "A mystical forest where the trees themselves seem to speak.",
-//     type: "location",
-//     imageUrl: "https://via.placeholder.com/768x1024/059669/FFFFFF?text=Forest",
-//     isOfficial: true,
-//     genres: ["fantasy"],
-//   },
-//   {
-//     id: "4",
-//     name: "Blade of Echoing Thunder",
-//     description: "A legendary sword that crackles with electrical energy.",
-//     type: "item",
-//     imageUrl: "https://via.placeholder.com/768x1024/D97706/FFFFFF?text=Sword",
-//     isOfficial: true,
-//     genres: ["fantasy"],
-//   },
-//   {
-//     id: "5",
-//     name: "Detective Sarah Chen",
-//     description: "A sharp-minded detective with an eye for detail.",
-//     type: "character",
-//     imageUrl:
-//       "https://via.placeholder.com/768x1024/7C3AED/FFFFFF?text=Detective",
-//     isOfficial: true,
-//     genres: ["modern", "mystery"],
-//   },
-//   {
-//     id: "6",
-//     name: "Abandoned Warehouse",
-//     description: "A crumbling industrial building with dark secrets.",
-//     type: "location",
-//     imageUrl:
-//       "https://via.placeholder.com/768x1024/6B7280/FFFFFF?text=Warehouse",
-//     isOfficial: true,
-//     genres: ["modern", "horror"],
-//   },
-//   // User's Custom Assets (only visible when logged in)
-//   {
-//     id: "7",
-//     name: "My Custom Hero",
-//     description: "A character I created for our campaign.",
-//     type: "character",
-//     imageUrl: "https://via.placeholder.com/768x1024/10B981/FFFFFF?text=Hero",
-//     isOfficial: false,
-//   },
-//   {
-//     id: "8",
-//     name: "The Lost Temple",
-//     description: "An ancient temple from our latest adventure.",
-//     type: "location",
-//     imageUrl: "https://via.placeholder.com/768x1024/F59E0B/FFFFFF?text=Temple",
-//     isOfficial: false,
-//   },
-// ];
 
 export function AssetsGalleryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("rpg-core");
@@ -94,8 +20,11 @@ export function AssetsGalleryPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<AssetViewerAsset | null>(
+    null
+  );
+  const [showAssetViewer, setShowAssetViewer] = useState(false);
 
-  // Mock auth state - will replace with real auth context later
   const isAuthenticated = true; // Change to false to test logged-out state
 
   useEffect(() => {
@@ -115,9 +44,6 @@ export function AssetsGalleryPage() {
   }, []);
 
   const filteredAssets = assets.filter((asset) => {
-    // For now, let's just show all assets since we don't have isOfficial field yet
-    // We can add user ownership logic later when we add auth
-
     // Filter by search term
     const matchesSearch =
       asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,6 +81,18 @@ export function AssetsGalleryPage() {
   const handleDuplicateAsset = (asset: Asset) => {
     console.log("Duplicating asset:", asset.name);
     alert(`Created a copy of "${asset.name}"!`);
+  };
+
+  const handleAssetClick = (asset: Asset) => {
+    setSelectedAsset({
+      id: asset.id.toString(),
+      name: asset.name,
+      type: asset.type,
+      description: asset.description,
+      imageUrl: asset.image_url,
+      genres: asset.genres,
+    });
+    setShowAssetViewer(true);
   };
 
   return (
@@ -300,19 +238,18 @@ export function AssetsGalleryPage() {
                     variant="primary"
                     size="sm"
                     leftIcon={Play}
-                    onClick={() => handleUseAsset(asset)}
+                    onClick={() => handleAssetClick(asset)}
                     className="flex-1"
                   >
-                    Use Asset
+                    View
                   </Button>
                 ) : (
-                  // Custom assets - edit/delete/duplicate
                   <>
                     <Button
                       variant="ghost"
                       size="sm"
                       leftIcon={Eye}
-                      onClick={() => handleDuplicateAsset(asset)}
+                      onClick={() => handleAssetClick(asset)}
                     >
                       View
                     </Button>
@@ -341,6 +278,11 @@ export function AssetsGalleryPage() {
           </div>
         )}
       </div>
+      <AssetViewerModal
+        isOpen={showAssetViewer}
+        onClose={() => setShowAssetViewer(false)}
+        asset={selectedAsset}
+      />
     </div>
   );
 }
