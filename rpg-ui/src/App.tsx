@@ -12,6 +12,7 @@ import { FAQPage } from "./pages/FAQPage/FAQPage";
 import { AdventureGalleryPage } from "./pages/Adventures/AdventureGalleryPage";
 import { AdventureBuilderOverviewPage } from "./pages/Adventures/AdventureBuilderOverviewPage";
 import { AdventureTitleEditor } from "./pages/Adventures/AdventureTitleEditorPage";
+import { AdventureSceneEditorPage } from "./pages/Adventures/AdventureSceneEditorPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -57,6 +58,12 @@ function App() {
             path="/adventures/builder/title/:adventureId"
             element={<AdventureTitleEditor />}
           />
+          <Route
+            path="/adventures/builder/scene/:adventureId"
+            element={<AdventureSceneEditorPage />}
+          />
+
+          {/* MISC pages */}
           <Route path="/rules" element={<RulesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/faq" element={<FAQPage />} />
