@@ -1,19 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/Badge/Badge";
-import { Button } from "@/components/Button/Button";
 import { cn } from "@/lib/utils";
-
-type AssetType = "character" | "creature" | "location" | "item";
-
-interface Asset {
-  id: string;
-  name: string;
-  description: string;
-  type: AssetType;
-  imageUrl: string;
-  isOfficial?: boolean;
-  genres?: string[];
-}
+import type { Asset } from "@/services/api";
 
 interface AssetCardProps {
   asset: Asset;
@@ -47,7 +35,7 @@ export function AssetCard({ asset, children, className }: AssetCardProps) {
       {/* Image */}
       <div className="aspect-[3/4] bg-muted overflow-hidden">
         <img
-          src={asset.imageUrl}
+          src={asset.image_url}
           alt={asset.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -80,7 +68,7 @@ export function AssetCard({ asset, children, className }: AssetCardProps) {
           {asset.description}
         </p>
 
-        {asset.isOfficial && asset.genres && (
+        {asset.is_official && asset.genres && (
           <div className="flex flex-wrap gap-1 mb-3">
             {asset.genres.map((genre) => (
               <Badge key={genre} variant="outline" size="sm">
