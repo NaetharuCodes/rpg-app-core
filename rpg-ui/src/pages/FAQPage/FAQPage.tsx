@@ -91,6 +91,11 @@ const faqData: FAQCategory[] = [
         answer:
           "Not yet. But I am looking into this feature soon. It requires I add moderation tools, which I need time to work on before I can go down this route. But I would love to allow user-created content sharing. It just needs to be done in a robust way that ensures this remain a fun space for everyone involved.",
       },
+      {
+        question: "Are your games suitable for all audiences?",
+        answer:
+          "No. We provide a suggested age rating for each of our games based on the themes and content. While there is nothing in any of the game assets that is itself adult in nature, some of the games have scary themes or draw on ideas and moral choices that are better suited to a more mature audience. Our games are all tagged, showing you the suitable audience maturity level.",
+      },
     ],
   },
 ];
