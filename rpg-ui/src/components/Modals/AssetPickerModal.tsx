@@ -70,7 +70,7 @@ export function AssetPickerModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-lg w-full max-w-4xl max-h-[80vh] overflow-hidden">
+      <div className="bg-card border border-border rounded-lg w-full max-w-6xl h-[80vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
             <h2 className="text-xl font-semibold">{title}</h2>
@@ -104,54 +104,60 @@ export function AssetPickerModal({
           </div>
 
           {/* Assets Grid */}
-          <div className="overflow-y-auto max-h-[50vh]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            className="overflow-y-auto"
+            style={{ height: "calc(80vh - 200px)" }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAssets.map((asset) => (
                 <div
                   key={asset.id}
                   onClick={() => handleAssetClick(asset.id)}
                   className={cn(
-                    "p-3 border rounded-lg cursor-pointer transition-all hover:bg-accent/5",
+                    "bg-card border rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-md group relative",
                     selectedAssets.includes(asset.id)
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "border-border hover:border-primary/50"
                   )}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                      <img
-                        src={asset.imageUrl}
-                        alt={asset.name}
-                        className="w-full h-full object-cover"
-                      />
+                  {/* Asset Image */}
+                  <div className="aspect-[4/3] bg-muted overflow-hidden">
+                    <img
+                      src={asset.imageUrl}
+                      alt={asset.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+
+                  {/* Selection Indicator */}
+                  <div className="absolute top-2 right-2">
+                    <div
+                      className={cn(
+                        "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
+                        selectedAssets.includes(asset.id)
+                          ? "border-primary bg-primary"
+                          : "border-white bg-white/80"
+                      )}
+                    >
+                      {selectedAssets.includes(asset.id) && (
+                        <div className="w-3 h-3 bg-primary-foreground rounded-full" />
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-sm truncate">
-                          {asset.name}
-                        </h4>
-                        <Badge variant={assetTypeColors[asset.type]} size="sm">
-                          {asset.type}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {asset.description}
-                      </p>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant={assetTypeColors[asset.type]} size="sm">
+                        {asset.type}
+                      </Badge>
                     </div>
-                    <div className="flex-shrink-0">
-                      <div
-                        className={cn(
-                          "w-5 h-5 rounded border-2 flex items-center justify-center",
-                          selectedAssets.includes(asset.id)
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground"
-                        )}
-                      >
-                        {selectedAssets.includes(asset.id) && (
-                          <div className="w-2 h-2 bg-primary-foreground rounded-sm" />
-                        )}
-                      </div>
-                    </div>
+                    <h4 className="font-semibold text-sm mb-2 line-clamp-1">
+                      {asset.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {asset.description}
+                    </p>
                   </div>
                 </div>
               ))}

@@ -13,6 +13,8 @@ import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { DiceRoller } from "@/components/DiceRoller/DiceRoller";
+import { SceneAssets } from "@/components/SceneAssets/SceneAssets";
+import { mockAssets } from "@/components/mocks/assetMocks";
 
 // Mock scene data with scene-specific assets
 const mockSceneData = {
@@ -32,101 +34,34 @@ const mockSceneData = {
   ],
   gmNotes: [
     {
-      type: "paragraph",
+      type: "paragraph" as const,
       content:
-        "Setting the Victory: Emphasize that this should be a moment of triumph. The characters have witnessed three years of brutal warfare, and victory seems finally at hand. Make them feel the relief and hope of the defenders before pulling it away:",
+        "Setting the Victory: Emphasize that this should be a moment of triumph...",
     },
     {
-      type: "list",
+      type: "list" as const,
       title: "Victory Indicators:",
       items: [
         "The enemy forces are in clear retreat across multiple fronts",
-        "King Aldric himself leads the final charge, his presence inspiring the troops",
-        "The fortress defenders are celebrating, some already talking about going home",
-        "Messages arrive reporting successful advances on all fronts",
+        // ... rest of items
       ],
     },
     {
-      type: "paragraph",
-      content:
-        "Character Interactions: Use this peaceful moment for characters to discuss their role in the war and what victory means to them, plans for after the war ends, observations about the tactical situation below, and relationships with NPCs like Captain Roderick and the fortress staff.",
+      type: "paragraph" as const,
+      content: "Character Interactions: Use this peaceful moment...",
     },
     {
-      type: "list",
+      type: "list" as const,
       title: "Simple D6 Checks:",
       items: [
         "Notice (Easy): The enemy retreat seems unusually organized",
-        "Military Tactics (Moderate): The converging retreat pattern is strategically purposeful",
-        "Magic Theory (Hard): The strange shimmer in the air around the obsidian tower",
-        "Intuition (Very Easy): Something feels terribly wrong despite the apparent victory",
+        // ... rest of items
       ],
     },
     {
-      type: "callout",
+      type: "callout" as const,
       title: "The Convergence",
-      content:
-        "As the scene progresses, make it clear that something ominous is happening. The obsidian tower that sprouted from the battlefield's heart pulses with dark energy, its surface crawling with runes that hurt to look at directly. The retreating enemy forces aren't fleeing - they're forming a vast circle around the tower, their movements precise and ritualistic.",
-    },
-  ],
-};
-
-// Mock asset data
-const mockAssets = {
-  sceneAssets: [
-    {
-      id: "captain-roderick",
-      name: "Captain Roderick",
-      type: "character",
-      description:
-        "Weathered fortress commander with decades of military experience",
-      imageUrl:
-        "https://via.placeholder.com/300x400/4F46E5/FFFFFF?text=Captain",
-    },
-    {
-      id: "fortress-valenhall",
-      name: "Fortress Valenhall",
-      type: "location",
-      description: "Ancient stronghold with protective magical wards",
-      imageUrl:
-        "https://via.placeholder.com/300x400/059669/FFFFFF?text=Fortress",
-    },
-    {
-      id: "king-aldric",
-      name: "King Aldric",
-      type: "character",
-      description: "Noble ruler leading the final charge against darkness",
-      imageUrl: "https://via.placeholder.com/300x400/DC2626/FFFFFF?text=King",
-    },
-    {
-      id: "thorndale-valley",
-      name: "Thorndale Valley",
-      type: "location",
-      description: "The battlefield where the final confrontation takes place",
-      imageUrl: "https://via.placeholder.com/300x400/D97706/FFFFFF?text=Valley",
-    },
-  ],
-  allAdventureAssets: [
-    // Scene assets plus additional ones
-    {
-      id: "sir-marcus-brightblade",
-      name: "Sir Marcus Brightblade",
-      type: "character",
-      description: "Young knight seeking to prove his honor",
-      imageUrl: "https://via.placeholder.com/300x400/7C3AED/FFFFFF?text=Knight",
-    },
-    {
-      id: "void-general",
-      name: "The Void General",
-      type: "creature",
-      description: "What King Aldric becomes when corrupted",
-      imageUrl: "https://via.placeholder.com/300x400/991B1B/FFFFFF?text=Void",
-    },
-    {
-      id: "ancient-wards",
-      name: "Ancient Protective Wards",
-      type: "item",
-      description: "Magical defenses built into Valenhall's foundations",
-      imageUrl: "https://via.placeholder.com/300x400/0369A1/FFFFFF?text=Wards",
+      content: "As the scene progresses, make it clear...",
     },
   ],
 };
@@ -300,12 +235,7 @@ function AllAssetsModal({
 
   if (!isOpen) return null;
 
-  const filteredAssets =
-    activeTab === "all"
-      ? mockAssets.allAdventureAssets
-      : mockAssets.allAdventureAssets.filter(
-          (asset) => asset.type === activeTab
-        );
+  const filteredAssets = mockAssets;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -365,7 +295,7 @@ export function AdventureScenePage({
 }: AdventureScenePageProps) {
   const [showAllAssets, setShowAllAssets] = useState(false);
 
-  const sceneAssets = mockAssets.sceneAssets.filter((asset) =>
+  const sceneAssets = mockAssets.filter((asset) =>
     sceneData.sceneAssets.includes(asset.id)
   );
 
@@ -480,39 +410,7 @@ export function AdventureScenePage({
           {/* Right Sidebar - Assets and Actions */}
           <div className="space-y-6">
             {/* Scene Assets */}
-            <Card variant="elevated">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-accent" />
-                    <h3 className="text-lg font-semibold">Scene Assets</h3>
-                  </div>
-                  <Badge variant="outline" size="sm">
-                    {sceneAssets.length}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Key assets for this scene
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {sceneAssets.map((asset) => (
-                    <AssetCard key={asset.id} asset={asset} size="small" />
-                  ))}
-                </div>
-                <div className="pt-4 border-t border-border mt-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => setShowAllAssets(true)}
-                  >
-                    View All Adventure Assets
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SceneAssets assets={sceneAssets} />
 
             {/* Quick Actions */}
             <Card variant="ghost" className="border border-border">
