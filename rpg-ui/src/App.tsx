@@ -38,6 +38,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/assets" element={<AssetsGalleryPage />} />
           <Route path="/assets/create" element={<AssetCreatorPage />} />
+
+          {/* ADVENTURE ROUTES */}
           <Route path="/adventures" element={<AdventureGalleryPage />} />
           <Route
             path="/adventures/:adventureId"
@@ -51,20 +53,26 @@ function App() {
             path="/adventures/:adventureId/epilogue"
             element={<AdventureEpiloguePage />}
           />
+
+          {/* ADVENTURE CREATOR ROUTES */}
           <Route
-            path="/adventures/builder"
+            path="/adventures/create"
             element={<AdventureBuilderOverviewPage />}
           />
           <Route
-            path="/adventures/builder/title/:adventureId"
+            path="/adventures/:id/edit"
+            element={<AdventureBuilderOverviewPage />}
+          />
+          <Route
+            path="/adventures/:id/edit/title"
             element={<AdventureTitleEditor />}
           />
           <Route
-            path="/adventures/builder/epilogue"
+            path="/adventures/:id/edit/epilogue"
             element={<AdventureEpilogueEditorPage />}
           />
           <Route
-            path="/adventures/builder/scene/:adventureId"
+            path="/adventures/:id/edit/scenes/:sceneId"
             element={<AdventureSceneEditorPage />}
           />
 

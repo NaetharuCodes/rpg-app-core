@@ -3,6 +3,7 @@ import { ArrowLeft, Save, Eye, Edit, Plus, Trash2, Trophy } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Mock Link component for artifact demo
 const Link = ({ to, className, children, ...props }: any) => (
@@ -119,9 +120,16 @@ export function AdventureEpilogueEditorPage({
   const [epilogueData, setEpilogueData] = useState<EpilogueData>(() =>
     adventureId ? mockExistingEpilogueData : defaultEpilogueData
   );
+
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditing = Boolean(id);
+
   const [previewMode, setPreviewMode] = useState(false);
 
-  const isEditing = Boolean(adventureId);
+  const handleBackToOverview = () => {
+    navigate(`/adventures/${id}/edit`);
+  };
 
   const handleSave = () => {
     onSave?.(epilogueData);
@@ -409,7 +417,11 @@ export function AdventureEpilogueEditorPage({
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" leftIcon={ArrowLeft} onClick={onBack}>
+              <Button
+                variant="ghost"
+                leftIcon={ArrowLeft}
+                onClick={handleBackToOverview}
+              >
                 Back to Overview
               </Button>
               <div>
