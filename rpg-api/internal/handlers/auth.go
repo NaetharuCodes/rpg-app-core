@@ -161,3 +161,62 @@ func (h *AuthHandler) VerifyToken(c *gin.Context) {
 		"valid": true,
 	})
 }
+
+// POST /auth/login
+func (h *AuthHandler) EmailLogin(c *gin.Context) {
+	var request struct {
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Find user by email
+	var user models.User
+	result := h.DB.Where("email = ? AND provider = ?", request.Email, "email").First(&user)
+
+	if result.Error == gorm.ErrRecordNotFound {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	} else if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// Check password
+	if !auth.CheckPassword(request.Password, user.PasswordHash) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	// Check if user is active and email verified
+	if !user.IsActive {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Account deactivated"})
+		return
+	}
+
+	if !user.EmailVerified {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please verify your email address"})
+		return
+	}
+
+	// Generate JWT
+	jwtToken, err := auth.GenerateJWT(&user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token": jwtToken,
+		"user": gin.H{
+			"id":     user.ID,
+			"email":  user.Email,
+			"name":   user.Name,
+			"avatar": user.Avatar,
+		},
+	})
+}

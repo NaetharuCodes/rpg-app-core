@@ -7,17 +7,20 @@ import (
 )
 
 type User struct {
-	ID         uint      `json:"id" gorm:"primaryKey"`
-	Email      string    `json:"email" gorm:"uniqueIndex;not null"`
-	Name       string    `json:"name" gorm:"not null"`
-	Avatar     string    `json:"avatar"`
-	Provider   string    `json:"provider" gorm:"not null"` // "google", "discord", "email"
-	ProviderID string    `json:"provider_id" gorm:"index"` // OAuth provider user ID
-	IsActive   bool      `json:"is_active" gorm:"default:true"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID            uint      `json:"id" gorm:"primaryKey"`
+	Email         string    `json:"email" gorm:"uniqueIndex;not null"`
+	Name          string    `json:"name" gorm:"not null"`
+	Avatar        string    `json:"avatar"`
+	Provider      string    `json:"provider" gorm:"not null"`      // "google", "email"
+	ProviderID    string    `json:"provider_id" gorm:"index"`      // OAuth provider user ID
+	PasswordHash  string    `json:"-" gorm:"column:password_hash"` // Hidden from JSON
+	EmailVerified bool      `json:"email_verified" gorm:"default:false"`
+	IsActive      bool      `json:"is_active" gorm:"default:true"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	IsAdmin       bool      `json:"is_admin" gorm:"default:false"`
 
-	// Relationships - user can own assets and adventures
+	// Relationships
 	Assets     []Asset     `json:"assets,omitempty" gorm:"foreignKey:UserID"`
 	Adventures []Adventure `json:"adventures,omitempty" gorm:"foreignKey:UserID"`
 }

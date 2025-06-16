@@ -31,6 +31,8 @@ func main() {
 		&models.Epilogue{},
 		&models.EpilogueOutcome{},
 		&models.FollowUpHook{},
+		&models.EmailVerificationToken{},
+		&models.PasswordResetToken{},
 	)
 
 	// Setup middleware
@@ -61,6 +63,7 @@ func main() {
 	r.GET("/auth/google", authHandler.GoogleLogin)
 	r.GET("/auth/google/callback", authHandler.GoogleCallback)
 	r.POST("/auth/verify", authHandler.VerifyToken)
+	r.POST("/auth/login", authHandler.EmailLogin)
 
 	// Upload routes (require auth)
 	api := r.Group("/api")

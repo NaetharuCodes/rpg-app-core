@@ -35,7 +35,7 @@ func (h *AssetHandler) CreateAsset(c *gin.Context) {
 
 	// Set user ownership and ensure it's not official
 	asset.UserID = &user.ID
-	asset.IsOfficial = false
+	asset.IsOfficial = user.IsAdmin
 
 	if err := h.DB.Create(&asset).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create asset"})
@@ -56,6 +56,13 @@ func (h *AssetHandler) GetAssets(c *gin.Context) {
 	if isAuthenticated {
 		// For authenticated users: show official assets + their own assets
 		query = query.Where("is_official = ? OR user_id = ?", true, user.ID)
+		if user.IsAdmin {
+			// Admins see official assets + ALL their own assets (official and personal)
+			query = query.Where("is_official = ? OR user_id = ?", true, user.ID)
+		} else {
+			// Regular users see official assets + their own personal assets
+			query = query.Where("is_official = ? OR user_id = ?", true, user.ID)
+		}
 	} else {
 		// For anonymous users: only show official assets
 		query = query.Where("is_official = ?", true)
