@@ -103,9 +103,22 @@ type TitlePage struct {
 	Assets    []Asset    `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
 }
 
-type Scene struct {
+type Episode struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	AdventureID uint      `json:"adventure_id"`
+	Order       int       `json:"order"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+
+	// Relationships
+	Adventure Adventure `json:"adventure" gorm:"foreignKey:AdventureID"`
+	Scenes    []Scene   `json:"scenes,omitempty" gorm:"foreignKey:EpisodeID"`
+}
+
+type Scene struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	EpisodeID   uint      `json:"episode_id"`
 	Order       int       `json:"order"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
@@ -115,8 +128,8 @@ type Scene struct {
 	CreatedAt   time.Time `json:"created_at"`
 
 	// Relationships
-	Adventure Adventure `json:"adventure" gorm:"foreignKey:AdventureID"`
-	Assets    []Asset   `json:"assets,omitempty" gorm:"many2many:scene_assets;"`
+	Episode Episode `json:"episode" gorm:"foreignKey:EpisodeID"`
+	Assets  []Asset `json:"assets,omitempty" gorm:"many2many:scene_assets;"`
 }
 
 type Epilogue struct {

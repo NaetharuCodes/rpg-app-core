@@ -1,22 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Plus,
   Edit,
   Trash2,
-  ChevronUp,
   ChevronDown,
   Save,
   Play,
   Users,
   Clock,
   BookOpen,
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
+import { EpisodeEditModal } from "@/components/Modals/EditEpisodeModal";
 import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from "react-router-dom";
+import { adventureService, type Adventure } from "@/services/api";
 
 // Mock Link component for artifact demo
 const Link = ({ to, className, children, ...props }: any) => (
@@ -32,6 +35,13 @@ interface Scene {
   status: "empty" | "draft" | "complete";
 }
 
+interface Episode {
+  id: string;
+  title: string;
+  description: string;
+  scenes: Scene[];
+}
+
 interface AdventureData {
   id?: string;
   title: string;
@@ -40,7 +50,7 @@ interface AdventureData {
   duration: string;
   suitability: "All" | "Teen" | "Adult";
   genres: string[];
-  scenes: Scene[];
+  episodes: Episode[];
   hasTitle: boolean;
   hasEpilogue: boolean;
 }
@@ -60,7 +70,7 @@ const suitabilityColours = {
   Adult: "destructive",
 } as const;
 
-// Mock data for editing existing adventure
+// Mock data for editing existing adventure with episodes
 const mockExistingAdventure: AdventureData = {
   id: "existing-adventure-1",
   title: "The Dragon's Lair",
@@ -71,24 +81,57 @@ const mockExistingAdventure: AdventureData = {
   genres: ["fantasy"],
   hasTitle: true,
   hasEpilogue: true,
-  scenes: [
+  episodes: [
     {
-      id: "scene-1",
-      title: "The Village Tavern",
-      description: "Heroes meet and receive the quest",
-      status: "complete",
+      id: "episode-1",
+      title: "Episode 1: The Call to Adventure",
+      description: "Heroes meet and receive their quest",
+      scenes: [
+        {
+          id: "scene-1-1",
+          title: "The Village Tavern",
+          description: "Heroes meet and receive the quest",
+          status: "complete",
+        },
+        {
+          id: "scene-1-2",
+          title: "Journey Begins",
+          description: "Setting out from the village",
+          status: "complete",
+        },
+      ],
     },
     {
-      id: "scene-2",
-      title: "Journey to the Lair",
-      description: "Travel through dangerous territory",
-      status: "complete",
+      id: "episode-2",
+      title: "Episode 2: Into the Depths",
+      description: "Exploring the dangerous dungeon",
+      scenes: [
+        {
+          id: "scene-2-1",
+          title: "The Dungeon Entrance",
+          description: "First glimpse of danger",
+          status: "draft",
+        },
+        {
+          id: "scene-2-2",
+          title: "The Trapped Chamber",
+          description: "A deadly puzzle to solve",
+          status: "empty",
+        },
+      ],
     },
     {
-      id: "scene-3",
-      title: "The Dragon's Chamber",
-      description: "Final confrontation",
-      status: "draft",
+      id: "episode-3",
+      title: "Episode 3: The Final Confrontation",
+      description: "Face the dragon in its lair",
+      scenes: [
+        {
+          id: "scene-3-1",
+          title: "The Dragon's Chamber",
+          description: "Final confrontation",
+          status: "empty",
+        },
+      ],
     },
   ],
 };
@@ -103,14 +146,20 @@ const createEmptyAdventure = (): AdventureData => ({
   genres: [],
   hasTitle: false,
   hasEpilogue: false,
-  scenes: [{ id: "scene-1", title: "", description: "", status: "empty" }],
+  episodes: [
+    {
+      id: "episode-1",
+      title: "Episode 1",
+      description: "",
+      scenes: [
+        { id: "scene-1-1", title: "", description: "", status: "empty" },
+      ],
+    },
+  ],
 });
 
 interface AdventureBuilderOverviewProps {
-  adventureId?: string; // If provided, we're editing existing
-  onNavigateToTitle?: () => void;
-  onNavigateToScene?: (sceneId: string) => void;
-  onNavigateToEpilogue?: () => void;
+  adventureId?: string;
   onSave?: (adventure: AdventureData) => void;
   onPreview?: () => void;
 }
@@ -124,9 +173,66 @@ export function AdventureBuilderOverviewPage({
     adventureId ? mockExistingAdventure : createEmptyAdventure()
   );
 
+  const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(
+    new Set(["episode-1"]) // First episode expanded by default
+  );
+
+  // Episode modal state
+  const [episodeModalOpen, setEpisodeModalOpen] = useState(false);
+  const [editingEpisode, setEditingEpisode] = useState<Episode | null>(null);
+  const [isCreatingEpisode, setIsCreatingEpisode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiAdventure, setApiAdventure] = useState<Adventure | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadAdventure = async (adventureId: number) => {
+    try {
+      setIsLoading(true);
+      const data = await adventureService.getById(adventureId);
+      setApiAdventure(data);
+      // Convert API data to component format
+      convertApiDataToComponent(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load adventure");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
+
+  useEffect(() => {
+    if (id) {
+      loadAdventure(parseInt(id));
+    } else {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  const convertApiDataToComponent = (apiData: Adventure) => {
+    // Convert API episodes to component format
+    const episodes: Episode[] = (apiData.episodes || []).map((ep) => ({
+      id: ep.id.toString(),
+      title: ep.title,
+      description: ep.description,
+      scenes: (ep.scenes || []).map((scene) => ({
+        id: scene.id.toString(),
+        title: scene.title,
+        description: scene.description,
+        status: scene.prose ? "complete" : scene.title ? "draft" : "empty",
+      })),
+    }));
+
+    setAdventure((prev) => ({
+      ...prev,
+      id: apiData.id.toString(),
+      title: apiData.title,
+      description: apiData.description,
+      episodes,
+    }));
+  };
 
   const handleNavigateToTitle = () => {
     navigate(`/adventures/${id}/edit/title`);
@@ -149,59 +255,235 @@ export function AdventureBuilderOverviewPage({
     }));
   };
 
-  const handleAddScene = () => {
-    const newScene: Scene = {
-      id: `scene-${adventure.scenes.length + 1}`,
-      title: "",
-      description: "",
-      status: "empty",
-    };
-    setAdventure((prev) => ({
-      ...prev,
-      scenes: [...prev.scenes, newScene],
-    }));
+  const toggleEpisode = (episodeId: string) => {
+    setExpandedEpisodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(episodeId)) {
+        newSet.delete(episodeId);
+      } else {
+        newSet.add(episodeId);
+      }
+      return newSet;
+    });
   };
 
-  const handleDeleteScene = (sceneId: string) => {
-    if (adventure.scenes.length <= 1) {
-      alert("An adventure must have at least one scene");
+  const handleAddEpisode = () => {
+    const newEpisode: Episode = {
+      id: `episode-${adventure.episodes.length + 1}`,
+      title: `Episode ${adventure.episodes.length + 1}`,
+      description: "",
+      scenes: [
+        {
+          id: `scene-${adventure.episodes.length + 1}-1`,
+          title: "",
+          description: "",
+          status: "empty",
+        },
+      ],
+    };
+
+    setEditingEpisode(newEpisode);
+    setIsCreatingEpisode(true);
+    setEpisodeModalOpen(true);
+  };
+
+  const handleEditEpisode = (episode: Episode) => {
+    setEditingEpisode(episode);
+    setIsCreatingEpisode(false);
+    setEpisodeModalOpen(true);
+  };
+
+  const handleSaveEpisode = async (updatedEpisode: Episode) => {
+    if (!apiAdventure) return;
+
+    try {
+      if (isCreatingEpisode) {
+        const newEpisode = await adventureService.episodes.create(
+          apiAdventure.id,
+          {
+            title: updatedEpisode.title,
+            description: updatedEpisode.description,
+          }
+        );
+        // Add to local state with converted format
+        setAdventure((prev) => ({
+          ...prev,
+          episodes: [
+            ...prev.episodes,
+            {
+              id: newEpisode.id.toString(),
+              title: newEpisode.title,
+              description: newEpisode.description,
+              scenes: [],
+            },
+          ],
+        }));
+      } else {
+        await adventureService.episodes.update(
+          apiAdventure.id,
+          parseInt(updatedEpisode.id),
+          {
+            title: updatedEpisode.title,
+            description: updatedEpisode.description,
+          }
+        );
+        // Update local state
+        setAdventure((prev) => ({
+          ...prev,
+          episodes: prev.episodes.map((ep) =>
+            ep.id === updatedEpisode.id ? updatedEpisode : ep
+          ),
+        }));
+      }
+    } catch (err) {
+      alert(
+        `Failed to save episode: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    }
+  };
+
+  const handleCloseEpisodeModal = () => {
+    setEpisodeModalOpen(false);
+    setEditingEpisode(null);
+    setIsCreatingEpisode(false);
+  };
+
+  const handleDeleteEpisode = async (episodeId: string) => {
+    if (!apiAdventure || adventure.episodes.length <= 1) {
+      alert("An adventure must have at least one episode");
+      return;
+    }
+
+    if (
+      confirm(
+        "Are you sure you want to delete this episode and all its scenes?"
+      )
+    ) {
+      try {
+        await adventureService.episodes.delete(
+          apiAdventure.id,
+          parseInt(episodeId)
+        );
+        setAdventure((prev) => ({
+          ...prev,
+          episodes: prev.episodes.filter((episode) => episode.id !== episodeId),
+        }));
+        setExpandedEpisodes((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(episodeId);
+          return newSet;
+        });
+      } catch (err) {
+        alert(
+          `Failed to delete episode: ${err instanceof Error ? err.message : "Unknown error"}`
+        );
+      }
+    }
+  };
+
+  const handleAddScene = async (episodeId: string) => {
+    if (!apiAdventure) return;
+
+    try {
+      const newScene = await adventureService.scenes.create(
+        apiAdventure.id,
+        parseInt(episodeId),
+        {
+          title: "",
+          description: "",
+        }
+      );
+
+      setAdventure((prev) => ({
+        ...prev,
+        episodes: prev.episodes.map((ep) =>
+          ep.id === episodeId
+            ? {
+                ...ep,
+                scenes: [
+                  ...ep.scenes,
+                  {
+                    id: newScene.id.toString(),
+                    title: newScene.title,
+                    description: newScene.description,
+                    status: "empty",
+                  },
+                ],
+              }
+            : ep
+        ),
+      }));
+    } catch (err) {
+      alert(
+        `Failed to add scene: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    }
+  };
+
+  const handleDeleteScene = async (episodeId: string, sceneId: string) => {
+    if (!apiAdventure) return;
+
+    const episode = adventure.episodes.find((e) => e.id === episodeId);
+    if (!episode || episode.scenes.length <= 1) {
+      alert("An episode must have at least one scene");
       return;
     }
 
     if (confirm("Are you sure you want to delete this scene?")) {
-      setAdventure((prev) => ({
-        ...prev,
-        scenes: prev.scenes.filter((scene) => scene.id !== sceneId),
-      }));
+      try {
+        await adventureService.scenes.delete(
+          apiAdventure.id,
+          parseInt(episodeId),
+          parseInt(sceneId)
+        );
+
+        setAdventure((prev) => ({
+          ...prev,
+          episodes: prev.episodes.map((ep) =>
+            ep.id === episodeId
+              ? {
+                  ...ep,
+                  scenes: ep.scenes.filter((scene) => scene.id !== sceneId),
+                }
+              : ep
+          ),
+        }));
+      } catch (err) {
+        alert(
+          `Failed to delete scene: ${err instanceof Error ? err.message : "Unknown error"}`
+        );
+      }
     }
   };
 
-  const handleMoveScene = (sceneId: string, direction: "up" | "down") => {
-    const currentIndex = adventure.scenes.findIndex((s) => s.id === sceneId);
-    if (currentIndex === -1) return;
-
-    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-    if (newIndex < 0 || newIndex >= adventure.scenes.length) return;
-
-    const newScenes = [...adventure.scenes];
-    [newScenes[currentIndex], newScenes[newIndex]] = [
-      newScenes[newIndex],
-      newScenes[currentIndex],
-    ];
-
-    setAdventure((prev) => ({
-      ...prev,
-      scenes: newScenes,
-    }));
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!adventure.title.trim()) {
       alert("Please enter an adventure title");
       return;
     }
-    onSave?.(adventure);
-    alert(isEditing ? "Adventure updated!" : "Adventure created!");
+
+    try {
+      if (isEditing && apiAdventure) {
+        const updated = await adventureService.update(apiAdventure.id, {
+          title: adventure.title,
+          description: adventure.description,
+        });
+        setApiAdventure(updated);
+        alert("Adventure updated!");
+      } else {
+        const created = await adventureService.create({
+          title: adventure.title,
+          description: adventure.description,
+        });
+        setApiAdventure(created);
+        navigate(`/adventures/${created.id}/edit`);
+        alert("Adventure created!");
+      }
+    } catch (err) {
+      alert(
+        `Failed to save adventure: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    }
   };
 
   const getStatusBadge = (status: Scene["status"]) => {
@@ -226,6 +508,24 @@ export function AdventureBuilderOverviewPage({
         );
     }
   };
+
+  const getTotalScenes = () => {
+    return adventure.episodes.reduce(
+      (total, episode) => total + episode.scenes.length,
+      0
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading adventure...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -264,7 +564,6 @@ export function AdventureBuilderOverviewPage({
           </div>
         </div>
       </div>
-
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Adventure Metadata */}
@@ -404,7 +703,7 @@ export function AdventureBuilderOverviewPage({
               </CardContent>
             </Card>
 
-            {/* Adventure Structure */}
+            {/* Adventure Structure - Episodes */}
             <Card variant="elevated">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -413,15 +712,15 @@ export function AdventureBuilderOverviewPage({
                       Adventure Structure
                     </h2>
                     <p className="text-muted-foreground">
-                      Organize your adventure's content
+                      Organize your adventure into episodes and scenes
                     </p>
                   </div>
                   <Button
                     variant="secondary"
                     leftIcon={Plus}
-                    onClick={handleAddScene}
+                    onClick={handleAddEpisode}
                   >
-                    Add Scene
+                    Add Episode
                   </Button>
                 </div>
               </CardHeader>
@@ -461,63 +760,129 @@ export function AdventureBuilderOverviewPage({
                     </div>
                   </div>
 
-                  {/* Scenes */}
-                  {adventure.scenes.map((scene, index) => (
-                    <div
-                      key={scene.id}
-                      className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors"
+                  {/* Episodes */}
+                  {adventure.episodes.map((episode, episodeIndex) => (
+                    <Card
+                      key={episode.id}
+                      variant="ghost"
+                      className="border border-border"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
-                          {index + 1}
+                      {/* Episode Header */}
+                      <div className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <button
+                              onClick={() => toggleEpisode(episode.id)}
+                              className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors"
+                            >
+                              <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
+                                {episodeIndex + 1}
+                              </div>
+                              <div className="text-left">
+                                <h3 className="font-medium">
+                                  {episode.title ||
+                                    `Episode ${episodeIndex + 1}`}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {episode.description || "No description yet"}{" "}
+                                  • {episode.scenes.length} scenes
+                                </p>
+                              </div>
+                              {expandedEpisodes.has(episode.id) ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              leftIcon={Edit}
+                              onClick={() => handleEditEpisode(episode)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              leftIcon={Trash2}
+                              onClick={() => handleDeleteEpisode(episode.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                              disabled={adventure.episodes.length <= 1}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium">
-                            {scene.title || `Scene ${index + 1}`}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {scene.description || "No description yet"}
-                          </p>
-                        </div>
+
+                        {/* Episode Content - Scenes */}
+                        {expandedEpisodes.has(episode.id) && (
+                          <div className="mt-6 space-y-3">
+                            {episode.scenes.map((scene, sceneIndex) => (
+                              <div
+                                key={scene.id}
+                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ml-12"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-6 h-6 rounded bg-background text-foreground flex items-center justify-center text-xs font-medium">
+                                    {sceneIndex + 1}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-sm">
+                                      {scene.title || `Scene ${sceneIndex + 1}`}
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground">
+                                      {scene.description ||
+                                        "No description yet"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {getStatusBadge(scene.status)}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    leftIcon={Edit}
+                                    onClick={() =>
+                                      handleNavigateToScene(scene.id)
+                                    }
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    leftIcon={Trash2}
+                                    onClick={() =>
+                                      handleDeleteScene(episode.id, scene.id)
+                                    }
+                                    className="text-red-600 hover:text-red-700"
+                                    disabled={episode.scenes.length <= 1}
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Add Scene Button */}
+                            <div className="ml-12">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                leftIcon={Plus}
+                                onClick={() => handleAddScene(episode.id)}
+                                className="w-full border-dashed"
+                              >
+                                Add Scene to This Episode
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(scene.status)}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMoveScene(scene.id, "up")}
-                          disabled={index === 0}
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMoveScene(scene.id, "down")}
-                          disabled={index === adventure.scenes.length - 1}
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={Edit}
-                          onClick={() => handleNavigateToScene(scene.id)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={Trash2}
-                          onClick={() => handleDeleteScene(scene.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                          disabled={adventure.scenes.length <= 1}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
+                    </Card>
                   ))}
 
                   {/* Epilogue */}
@@ -610,8 +975,12 @@ export function AdventureBuilderOverviewPage({
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div>Title Page: {adventure.hasTitle ? "✓" : "○"}</div>
                       <div>
-                        {adventure.scenes.length} Scene
-                        {adventure.scenes.length !== 1 ? "s" : ""}
+                        {adventure.episodes.length} Episode
+                        {adventure.episodes.length !== 1 ? "s" : ""}
+                      </div>
+                      <div>
+                        {getTotalScenes()} Total Scene
+                        {getTotalScenes() !== 1 ? "s" : ""}
                       </div>
                       <div>Epilogue: {adventure.hasEpilogue ? "✓" : "○"}</div>
                     </div>
@@ -622,6 +991,15 @@ export function AdventureBuilderOverviewPage({
           </div>
         </div>
       </div>
+
+      {/* Episode Edit Modal */}
+      <EpisodeEditModal
+        isOpen={episodeModalOpen}
+        onClose={handleCloseEpisodeModal}
+        episode={editingEpisode}
+        onSave={handleSaveEpisode}
+        isCreating={isCreatingEpisode}
+      />
     </div>
   );
 }

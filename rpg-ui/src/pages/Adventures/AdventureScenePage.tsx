@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,7 +6,6 @@ import {
   FileText,
   Users,
   Dice6,
-  Package,
   X,
 } from "lucide-react";
 import { Button } from "@/components/Button/Button";
@@ -291,7 +290,6 @@ export function AdventureScenePage({
   navigation = mockNavigation,
   onNextScene,
   onPrevScene,
-  onBackToTitle,
 }: AdventureScenePageProps) {
   const [showAllAssets, setShowAllAssets] = useState(false);
 
