@@ -1,5 +1,5 @@
 // rpg-ui/src/pages/AuthCallbackPage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -10,6 +10,8 @@ export function AuthCallbackPage() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
+
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -25,10 +27,16 @@ export function AuthCallbackPage() {
         const isValid = await verifyToken(token);
         if (isValid) {
           setStatus("success");
-          setTimeout(() => navigate("/"), 2000);
+          if (!hasNavigated.current) {
+            hasNavigated.current = true;
+            setTimeout(() => navigate("/"), 2000);
+          }
         } else {
           setStatus("error");
-          setTimeout(() => navigate("/"), 3000);
+          if (!hasNavigated.current) {
+            hasNavigated.current = true;
+            setTimeout(() => navigate("/"), 3000);
+          }
         }
       } catch (error) {
         console.error("Auth callback error:", error);

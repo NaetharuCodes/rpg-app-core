@@ -72,7 +72,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         if (data.valid && data.user) {
-          setUser(data.user);
+          // Only update user if it's different
+          setUser((prevUser) => {
+            if (!prevUser || prevUser.id !== data.user.id) {
+              return data.user;
+            }
+            return prevUser;
+          });
           localStorage.setItem("auth_token", token);
           return true;
         }
