@@ -20,7 +20,7 @@ func main() {
 	// Connect to database
 	db := connectDB()
 
-	// Auto-migrate tables (including the new User model)
+	// Auto-migrate tables (including the updated Asset model)
 	db.AutoMigrate(
 		&models.User{},
 		&models.Asset{},
@@ -36,6 +36,7 @@ func main() {
 	assetHandler := handlers.NewAssetHandler(db)
 	adventureHandler := handlers.NewAdventureHandler(db)
 	authHandler := handlers.NewAuthHandler(db)
+	uploadHandler := handlers.NewUploadHandler()
 
 	// Setup routes
 	r := gin.Default()
@@ -56,6 +57,12 @@ func main() {
 	r.GET("/auth/google", authHandler.GoogleLogin)
 	r.GET("/auth/google/callback", authHandler.GoogleCallback)
 	r.POST("/auth/verify", authHandler.VerifyToken)
+
+	// Upload routes
+	api := r.Group("/api")
+	{
+		api.POST("/upload/image", uploadHandler.UploadImage)
+	}
 
 	// Asset routes
 	r.POST("/assets", assetHandler.CreateAsset)

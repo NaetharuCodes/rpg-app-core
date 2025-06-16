@@ -24,18 +24,48 @@ type User struct {
 
 // Update existing models to include UserID foreign key
 type Asset struct {
-	ID          uint           `json:"id" gorm:"primaryKey"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Type        string         `json:"type"`
-	ImageURL    string         `json:"image_url"`
-	IsOfficial  bool           `json:"is_official" gorm:"default:false"`
-	Genres      pq.StringArray `json:"genres" gorm:"type:text[]"` // PostgreSQL string array
-	UserID      *uint          `json:"user_id" gorm:"index"`      // Foreign key to User (nullable for official assets)
-	CreatedAt   time.Time      `json:"created_at"`
+	ID          uint   `json:"id" gorm:"primaryKey"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+
+	// Cloudflare Images integration
+	ImageID  string `json:"image_id"`  // Cloudflare image ID
+	ImageURL string `json:"image_url"` // Main image URL (medium variant)
+
+	// Image variants for different use cases
+	ImageVariants ImageVariants `json:"image_variants" gorm:"embedded"`
+
+	IsOfficial bool           `json:"is_official" gorm:"default:false"`
+	Genres     pq.StringArray `json:"genres" gorm:"type:text[]"`
+	UserID     *uint          `json:"user_id" gorm:"index"`
+	CreatedAt  time.Time      `json:"created_at"`
 
 	// Relationship
 	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
+}
+
+type ImageVariants struct {
+	Thumbnail string `json:"thumbnail"` // 200px variant
+	Medium    string `json:"medium"`    // 800px variant
+	Large     string `json:"large"`     // 1200px variant
+	Original  string `json:"original"`  // Full size variant
+}
+
+func (a *Asset) GetImageURL(variant string) string {
+	switch variant {
+	case "thumbnail":
+		return a.ImageVariants.Thumbnail
+	case "medium":
+		return a.ImageVariants.Medium
+	case "large":
+		return a.ImageVariants.Large
+	case "original":
+		return a.ImageVariants.Original
+	default:
+		// Default to medium for backwards compatibility
+		return a.ImageURL
+	}
 }
 
 type Adventure struct {

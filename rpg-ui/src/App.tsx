@@ -16,6 +16,7 @@ import { AdventureSceneEditorPage } from "./pages/Adventures/AdventureSceneEdito
 import { AdventureEpilogueEditorPage } from "./pages/Adventures/AdventureEpilogueEditorPage";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthCallbackPage } from "./pages/Auth/AuthCallbackPage";
+import { ScrollHomePage } from "./pages/Cinematic/CinematicHomepage";
 
 // Placeholders
 const LoginPage = () => (
