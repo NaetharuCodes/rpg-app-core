@@ -5,7 +5,7 @@ import type { Asset } from "@/services/api";
 
 interface AssetCardProps {
   asset: Asset;
-  children: React.ReactNode; // For action buttons
+  children?: React.ReactNode; // For action buttons
   className?: string;
 }
 
