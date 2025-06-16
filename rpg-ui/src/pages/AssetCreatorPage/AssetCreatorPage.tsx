@@ -3,10 +3,11 @@ import { ArrowLeft, Upload, ImageIcon, Save, X } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { cn } from "@/lib/utils";
-import { assetService, imageService } from "@/services/api";
+import { assetService, imageService, type Asset } from "@/services/api";
 import { GenreInput } from "@/components/GenreInput/GenreInput";
 import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
 import { useAuth } from "@/contexts/AuthContext";
+import { AssetCreationSuccessModal } from "@/components/Modals/CreateAssetSuccessModal";
 
 const Link = ({ to, className, children, ...props }: any) => (
   <a href={to} className={className} {...props}>
@@ -102,7 +103,10 @@ const mockLibraryImages = {
 };
 
 export function AssetCreatorPage() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
+
+  const [createdAsset, setCreatedAsset] = useState<Asset | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(true);
 
   const [formData, setFormData] = useState<AssetFormData>({
     type: "character",
@@ -206,12 +210,11 @@ export function AssetCreatorPage() {
       };
 
       console.log("Creating asset with data:", assetData);
-      const createdAsset = await assetService.create(assetData);
+      const apiResponse = await assetService.create(assetData);
 
-      console.log("Asset created successfully:", createdAsset);
-      alert(
-        `${formData.type.charAt(0).toUpperCase() + formData.type.slice(1)} "${formData.name}" created successfully!`
-      );
+      console.log("Asset created successfully:", apiResponse);
+      setCreatedAsset(apiResponse);
+      setShowSuccessModal(true);
 
       // Reset form
       setFormData({
@@ -221,6 +224,7 @@ export function AssetCreatorPage() {
         image: null,
         genres: [],
       });
+      setUploadPreview(null);
       setUploadPreview(null);
     } catch (error) {
       console.error("Error creating asset:", error);
@@ -285,7 +289,6 @@ export function AssetCreatorPage() {
           </div>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[calc(100vh-200px)]">
           {/* Main Form */}
@@ -502,7 +505,6 @@ You can use Markdown formatting:
           </div>
         </div>
       </div>
-
       {/* Image Library Modal */}
       {showImageLibrary && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -553,6 +555,18 @@ You can use Markdown formatting:
           </div>
         </div>
       )}
+      <div className="fixed top-4 left-4 bg-red-500 text-white p-2 z-[9999]">
+        Debug: showSuccessModal={showSuccessModal.toString()}, hasAsset=
+        {createdAsset ? "yes" : "no"}
+      </div>
+      <AssetCreationSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setCreatedAsset(null);
+        }}
+        asset={createdAsset}
+      />
     </div>
   );
 }
