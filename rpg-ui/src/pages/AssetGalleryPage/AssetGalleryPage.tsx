@@ -9,6 +9,7 @@ import {
   AssetViewerModal,
   type AssetViewerAsset,
 } from "@/components/Modals/AssetViewerModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 type AssetType = "character" | "creature" | "location" | "item";
 type ViewMode = "rpg-core" | "my-assets";
@@ -25,7 +26,7 @@ export function AssetsGalleryPage() {
   );
   const [showAssetViewer, setShowAssetViewer] = useState(false);
 
-  const isAuthenticated = true; // Change to false to test logged-out state
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -44,15 +45,20 @@ export function AssetsGalleryPage() {
   }, []);
 
   const filteredAssets = assets.filter((asset) => {
-    // Filter by search term
+    // Filter by view mode first
+    const matchesViewMode =
+      viewMode === "rpg-core"
+        ? asset.is_official
+        : !asset.is_official && asset.user_id === user?.id;
+
+    // Then apply search and type filters
     const matchesSearch =
       asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filter by type
     const matchesType = filterType === "all" || asset.type === filterType;
 
-    return matchesSearch && matchesType;
+    return matchesViewMode && matchesSearch && matchesType;
   });
 
   if (loading) return <div className="p-6">Loading assets...</div>;
@@ -70,11 +76,17 @@ export function AssetsGalleryPage() {
     alert(`Editing "${asset.name}"`);
   };
 
-  const handleDeleteAsset = (asset: Asset) => {
-    // In real app, this would show confirmation and delete
-    console.log("Deleting asset:", asset.name);
+  const handleDeleteAsset = async (asset: Asset) => {
     if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
-      alert(`"${asset.name}" deleted!`);
+      try {
+        await assetService.delete(asset.id);
+        // Refresh the assets list
+        const updatedAssets = await assetService.getAll();
+        setAssets(updatedAssets);
+      } catch (error) {
+        console.error("Error deleting asset:", error);
+        alert("Failed to delete asset. Please try again.");
+      }
     }
   };
 

@@ -3,9 +3,10 @@ import { ArrowLeft, Upload, ImageIcon, Save, X } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { cn } from "@/lib/utils";
-import { assetService } from "@/services/api";
+import { assetService, imageService } from "@/services/api";
 import { GenreInput } from "@/components/GenreInput/GenreInput";
 import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Link = ({ to, className, children, ...props }: any) => (
   <a href={to} className={className} {...props}>
@@ -101,6 +102,8 @@ const mockLibraryImages = {
 };
 
 export function AssetCreatorPage() {
+  const { isAuthenticated, user } = useAuth();
+
   const [formData, setFormData] = useState<AssetFormData>({
     type: "character",
     name: "",
@@ -155,6 +158,11 @@ export function AssetCreatorPage() {
   };
 
   const handleSave = async () => {
+    if (!isAuthenticated) {
+      alert("Please sign in to create assets");
+      return;
+    }
+
     if (!formData.name.trim()) {
       alert("Please enter a name for your asset");
       return;
@@ -168,7 +176,7 @@ export function AssetCreatorPage() {
       // Handle image upload if user uploaded a file
       if (formData.image instanceof File) {
         console.log("Uploading image...");
-        const uploadResult = await assetService.uploadImage(formData.image);
+        const uploadResult = await imageService.uploadImage(formData.image);
         imageUrl = uploadResult.urls.medium; // Use medium variant for the asset
       } else if (typeof formData.image === "string") {
         // User selected from library

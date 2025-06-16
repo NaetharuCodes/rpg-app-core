@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/naetharu/rpg-api/internal/handlers"
+	"github.com/naetharu/rpg-api/internal/middleware"
 	"github.com/naetharu/rpg-api/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,6 +33,9 @@ func main() {
 		&models.FollowUpHook{},
 	)
 
+	// Setup middleware
+	authMiddleware := middleware.NewAuthMiddleware(db)
+
 	// Setup handlers
 	assetHandler := handlers.NewAssetHandler(db)
 	adventureHandler := handlers.NewAdventureHandler(db)
@@ -53,28 +57,33 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Auth routes
+	// Auth routes (no auth required)
 	r.GET("/auth/google", authHandler.GoogleLogin)
 	r.GET("/auth/google/callback", authHandler.GoogleCallback)
 	r.POST("/auth/verify", authHandler.VerifyToken)
 
-	// Upload routes
+	// Upload routes (require auth)
 	api := r.Group("/api")
+	api.Use(authMiddleware.RequireAuth())
 	{
 		api.POST("/upload/image", uploadHandler.UploadImage)
 	}
 
 	// Asset routes
-	r.POST("/assets", assetHandler.CreateAsset)
-	r.GET("/assets", assetHandler.GetAssets)
-	r.GET("/assets/:id", assetHandler.GetAsset)
-	r.PATCH("/assets/:id", assetHandler.UpdateAsset)
+	// GET endpoints use optional auth (show different content based on auth status)
+	r.GET("/assets", authMiddleware.OptionalAuth(), assetHandler.GetAssets)
+	r.GET("/assets/:id", authMiddleware.OptionalAuth(), assetHandler.GetAsset)
 
-	// Adventure routes
-	r.POST("/adventures", adventureHandler.CreateAdventure)
-	r.GET("/adventures", adventureHandler.GetAdventures)
-	r.GET("/adventures/:id", adventureHandler.GetAdventure)
-	r.PATCH("/adventures/:id", adventureHandler.UpdateAdventure)
+	// POST/PATCH/DELETE endpoints require auth
+	r.POST("/assets", authMiddleware.RequireAuth(), assetHandler.CreateAsset)
+	r.PATCH("/assets/:id", authMiddleware.RequireAuth(), assetHandler.UpdateAsset)
+	r.DELETE("/assets/:id", authMiddleware.RequireAuth(), assetHandler.DeleteAsset)
+
+	// Adventure routes (similar pattern)
+	r.GET("/adventures", authMiddleware.OptionalAuth(), adventureHandler.GetAdventures)
+	r.GET("/adventures/:id", authMiddleware.OptionalAuth(), adventureHandler.GetAdventure)
+	r.POST("/adventures", authMiddleware.RequireAuth(), adventureHandler.CreateAdventure)
+	r.PATCH("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.UpdateAdventure)
 
 	// Start server
 	port := os.Getenv("PORT")
