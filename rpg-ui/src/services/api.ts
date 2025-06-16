@@ -11,7 +11,34 @@ export interface Asset {
   created_at: string;
 }
 
+interface ImageUploadResponse {
+  image_id: string;
+  filename: string;
+  urls: {
+    thumbnail: string;
+    medium: string;
+    large: string;
+    original: string;
+  };
+}
+
 export const assetService = {
+  async uploadImage(file: File): Promise<ImageUploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE}/api/upload/image`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload image");
+    }
+
+    return response.json();
+  },
+
   async getAll(): Promise<Asset[]> {
     const response = await fetch(`${API_BASE}/assets`);
     if (!response.ok) throw new Error("Failed to fetch assets");

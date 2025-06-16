@@ -154,12 +154,6 @@ export function AssetCreatorPage() {
     }
   };
 
-  const handleLibraryImageSelect = (imageUrl: string) => {
-    setFormData({ ...formData, image: imageUrl });
-    setShowImageLibrary(false);
-    setUploadPreview(null);
-  };
-
   const handleSave = async () => {
     if (!formData.name.trim()) {
       alert("Please enter a name for your asset");
@@ -169,31 +163,41 @@ export function AssetCreatorPage() {
     setIsSubmitting(true);
 
     try {
-      // Generate placeholder image URL based on type
-      const getPlaceholderImageUrl = (type: AssetType): string => {
-        const colors = {
-          character: "4F46E5",
-          creature: "B91C1C",
-          location: "0369A1",
-          item: "D97706",
-        };
-        return `https://via.placeholder.com/768x1024/${colors[type]}/FFFFFF?text=${encodeURIComponent(formData.name)}`;
-      };
+      let imageUrl = "";
 
-      // Map form data to API format
+      // Handle image upload if user uploaded a file
+      if (formData.image instanceof File) {
+        console.log("Uploading image...");
+        const uploadResult = await assetService.uploadImage(formData.image);
+        imageUrl = uploadResult.urls.medium; // Use medium variant for the asset
+      } else if (typeof formData.image === "string") {
+        // User selected from library
+        imageUrl = formData.image;
+      } else {
+        // No image selected - use placeholder
+        const getPlaceholderImageUrl = (type: AssetType): string => {
+          const colors = {
+            character: "4F46E5",
+            creature: "B91C1C",
+            location: "0369A1",
+            item: "D97706",
+          };
+          return `https://via.placeholder.com/768x1024/${colors[type]}/FFFFFF?text=${encodeURIComponent(formData.name)}`;
+        };
+        imageUrl = getPlaceholderImageUrl(formData.type);
+      }
+
+      // Create the asset with the uploaded image URL
       const assetData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         type: formData.type,
-        image_url:
-          typeof formData.image === "string"
-            ? formData.image
-            : getPlaceholderImageUrl(formData.type),
+        image_url: imageUrl,
         is_official: false,
         genres: formData.genres,
       };
 
-      // Call the API
+      console.log("Creating asset with data:", assetData);
       const createdAsset = await assetService.create(assetData);
 
       console.log("Asset created successfully:", createdAsset);
@@ -216,6 +220,12 @@ export function AssetCreatorPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleLibraryImageSelect = (imageUrl: string) => {
+    setFormData({ ...formData, image: imageUrl });
+    setShowImageLibrary(false);
+    setUploadPreview(null);
   };
 
   const handleGenresChange = (newGenres: string[]) => {
