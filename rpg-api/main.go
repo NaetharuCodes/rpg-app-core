@@ -88,6 +88,16 @@ func main() {
 	r.POST("/adventures", authMiddleware.RequireAuth(), adventureHandler.CreateAdventure)
 	r.PATCH("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.UpdateAdventure)
 
+	r.GET("/adventures/:id/episodes", adventureHandler.GetEpisodes)
+	r.POST("/adventures/:id/episodes", adventureHandler.CreateEpisode)
+	r.PATCH("/adventures/:id/episodes/:episodeId", adventureHandler.UpdateEpisode)
+	r.DELETE("/adventures/:id/episodes/:episodeId", adventureHandler.DeleteEpisode)
+
+	r.GET("/adventures/:id/episodes/:episodeId/scenes", adventureHandler.GetScenes)
+	r.POST("/adventures/:id/episodes/:episodeId/scenes", adventureHandler.CreateScene)
+	r.PATCH("/adventures/:id/episodes/:episodeId/scenes/:sceneId", adventureHandler.UpdateScene)
+	r.DELETE("/adventures/:id/episodes/:episodeId/scenes/:sceneId", adventureHandler.DeleteScene)
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {

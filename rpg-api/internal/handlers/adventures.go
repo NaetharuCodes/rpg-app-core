@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/naetharu/rpg-api/internal/middleware"
 	"github.com/naetharu/rpg-api/internal/models"
 	"gorm.io/gorm"
 )
@@ -17,28 +18,60 @@ func NewAdventureHandler(db *gorm.DB) *AdventureHandler {
 	return &AdventureHandler{DB: db}
 }
 
-// POST /adventures
+// POST /adventures - requires authentication
 func (h *AdventureHandler) CreateAdventure(c *gin.Context) {
-	var adventure models.Adventure
+	user, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
 
+	var adventure models.Adventure
 	if err := c.ShouldBindJSON(&adventure); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Set user ownership
+	adventure.UserID = &user.ID
+
+	// Create adventure
 	if err := h.DB.Create(&adventure).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create adventure"})
 		return
 	}
 
+	// Auto-create default first episode
+	defaultEpisode := models.Episode{
+		AdventureID: adventure.ID,
+		Order:       1,
+		Title:       "Episode 1",
+		Description: "",
+	}
+	if err := h.DB.Create(&defaultEpisode).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create default episode"})
+		return
+	}
+
+	// Return adventure with episodes
+	h.DB.Preload("Episodes").First(&adventure, adventure.ID)
 	c.JSON(http.StatusCreated, adventure)
 }
 
 // GET /adventures
 func (h *AdventureHandler) GetAdventures(c *gin.Context) {
 	var adventures []models.Adventure
+	query := h.DB.Preload("Episodes")
 
-	if err := h.DB.Find(&adventures).Error; err != nil {
+	user, isAuthenticated := middleware.GetCurrentUser(c)
+	if isAuthenticated {
+		query = query.Where("user_id = ?", user.ID)
+	} else {
+		// For non-authenticated users, only show official adventures
+		query = query.Where("user_id IS NULL")
+	}
+
+	if err := query.Find(&adventures).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch adventures"})
 		return
 	}
@@ -55,7 +88,16 @@ func (h *AdventureHandler) GetAdventure(c *gin.Context) {
 	}
 
 	var adventure models.Adventure
-	if err := h.DB.First(&adventure, id).Error; err != nil {
+	query := h.DB.Preload("Episodes.Scenes").Preload("TitlePage").Preload("Epilogue")
+
+	user, isAuthenticated := middleware.GetCurrentUser(c)
+	if isAuthenticated {
+		query = query.Where("(user_id = ? OR user_id IS NULL) AND id = ?", user.ID, id)
+	} else {
+		query = query.Where("user_id IS NULL AND id = ?", id)
+	}
+
+	if err := query.First(&adventure).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found"})
 		return
 	}
@@ -71,9 +113,15 @@ func (h *AdventureHandler) UpdateAdventure(c *gin.Context) {
 		return
 	}
 
+	user, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
 	var adventure models.Adventure
-	if err := h.DB.First(&adventure, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found"})
+	if err := h.DB.Where("user_id = ? AND id = ?", user.ID, id).First(&adventure).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
 		return
 	}
 
@@ -82,10 +130,414 @@ func (h *AdventureHandler) UpdateAdventure(c *gin.Context) {
 		return
 	}
 
+	// Ensure ownership doesn't change
+	adventure.UserID = &user.ID
+
 	if err := h.DB.Save(&adventure).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update adventure"})
 		return
 	}
 
 	c.JSON(http.StatusOK, adventure)
+}
+
+// EPISODE ENDPOINTS
+
+// GET /adventures/:id/episodes
+func (h *AdventureHandler) GetEpisodes(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	// Verify user has access to this adventure
+	if !h.hasAdventureAccess(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var episodes []models.Episode
+	if err := h.DB.Where("adventure_id = ?", adventureID).Order("order ASC").Find(&episodes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch episodes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, episodes)
+}
+
+// POST /adventures/:id/episodes
+func (h *AdventureHandler) CreateEpisode(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var episode models.Episode
+	if err := c.ShouldBindJSON(&episode); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get next order number
+	var maxOrder int
+	h.DB.Model(&models.Episode{}).Where("adventure_id = ?", adventureID).Select("COALESCE(MAX(order), 0)").Scan(&maxOrder)
+
+	episode.AdventureID = uint(adventureID)
+	episode.Order = maxOrder + 1
+
+	if err := h.DB.Create(&episode).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create episode"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, episode)
+}
+
+// PATCH /adventures/:id/episodes/:episodeId
+func (h *AdventureHandler) UpdateEpisode(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	episodeID, err := strconv.Atoi(c.Param("episodeId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var episode models.Episode
+	if err := h.DB.Where("id = ? AND adventure_id = ?", episodeID, adventureID).First(&episode).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Episode not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&episode); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Don't allow changing adventure_id or order through update
+	episode.AdventureID = uint(adventureID)
+
+	if err := h.DB.Save(&episode).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update episode"})
+		return
+	}
+
+	c.JSON(http.StatusOK, episode)
+}
+
+// DELETE /adventures/:id/episodes/:episodeId
+func (h *AdventureHandler) DeleteEpisode(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	episodeID, err := strconv.Atoi(c.Param("episodeId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	// Check if this is the last episode
+	var episodeCount int64
+	h.DB.Model(&models.Episode{}).Where("adventure_id = ?", adventureID).Count(&episodeCount)
+	if episodeCount <= 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete the last episode"})
+		return
+	}
+
+	// Get the episode to delete
+	var episode models.Episode
+	if err := h.DB.Where("id = ? AND adventure_id = ?", episodeID, adventureID).First(&episode).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Episode not found"})
+		return
+	}
+
+	// Delete episode (scenes will be cascade deleted by foreign key constraint)
+	if err := h.DB.Delete(&episode).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete episode"})
+		return
+	}
+
+	// Reorder remaining episodes
+	h.DB.Model(&models.Episode{}).Where("adventure_id = ? AND order > ?", adventureID, episode.Order).
+		Update("order", gorm.Expr("order - 1"))
+
+	c.JSON(http.StatusOK, gin.H{"message": "Episode deleted successfully"})
+}
+
+// SCENE ENDPOINTS
+
+// GET /adventures/:id/episodes/:episodeId/scenes
+func (h *AdventureHandler) GetScenes(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	episodeID, err := strconv.Atoi(c.Param("episodeId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
+		return
+	}
+
+	// Verify user has access to this adventure
+	if !h.hasAdventureAccess(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	// Verify episode belongs to adventure
+	var episode models.Episode
+	if err := h.DB.Where("id = ? AND adventure_id = ?", episodeID, adventureID).First(&episode).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Episode not found"})
+		return
+	}
+
+	var scenes []models.Scene
+	if err := h.DB.Where("episode_id = ?", episodeID).Order("order ASC").Find(&scenes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch scenes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, scenes)
+}
+
+// POST /adventures/:id/episodes/:episodeId/scenes
+func (h *AdventureHandler) CreateScene(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	episodeID, err := strconv.Atoi(c.Param("episodeId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure and episode exists
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var episode models.Episode
+	if err := h.DB.Where("id = ? AND adventure_id = ?", episodeID, adventureID).First(&episode).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Episode not found"})
+		return
+	}
+
+	var scene models.Scene
+	if err := c.ShouldBindJSON(&scene); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get next order number within this episode
+	var maxOrder int
+	h.DB.Model(&models.Scene{}).Where("episode_id = ?", episodeID).Select("COALESCE(MAX(order), 0)").Scan(&maxOrder)
+
+	scene.EpisodeID = uint(episodeID)
+	scene.Order = maxOrder + 1
+
+	if err := h.DB.Create(&scene).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create scene"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, scene)
+}
+
+// PATCH /adventures/:id/episodes/:episodeId/scenes/:sceneId
+func (h *AdventureHandler) UpdateScene(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	episodeID, err := strconv.Atoi(c.Param("episodeId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
+		return
+	}
+
+	sceneID, err := strconv.Atoi(c.Param("sceneId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid scene ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	// Find scene and verify it belongs to the episode
+	var scene models.Scene
+	if err := h.DB.Joins("JOIN episodes ON scenes.episode_id = episodes.id").
+		Where("scenes.id = ? AND scenes.episode_id = ? AND episodes.adventure_id = ?", sceneID, episodeID, adventureID).
+		First(&scene).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Scene not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&scene); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Don't allow changing episode_id or order through update
+	scene.EpisodeID = uint(episodeID)
+
+	if err := h.DB.Save(&scene).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update scene"})
+		return
+	}
+
+	c.JSON(http.StatusOK, scene)
+}
+
+// DELETE /adventures/:id/episodes/:episodeId/scenes/:sceneId
+func (h *AdventureHandler) DeleteScene(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	episodeID, err := strconv.Atoi(c.Param("episodeId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
+		return
+	}
+
+	sceneID, err := strconv.Atoi(c.Param("sceneId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid scene ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	// Find scene and verify it belongs to the episode
+	var scene models.Scene
+	if err := h.DB.Joins("JOIN episodes ON scenes.episode_id = episodes.id").
+		Where("scenes.id = ? AND scenes.episode_id = ? AND episodes.adventure_id = ?", sceneID, episodeID, adventureID).
+		First(&scene).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Scene not found"})
+		return
+	}
+
+	// Delete scene
+	if err := h.DB.Delete(&scene).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete scene"})
+		return
+	}
+
+	// Reorder remaining scenes in the episode
+	h.DB.Model(&models.Scene{}).Where("episode_id = ? AND order > ?", episodeID, scene.Order).
+		Update("order", gorm.Expr("order - 1"))
+
+	c.JSON(http.StatusOK, gin.H{"message": "Scene deleted successfully"})
+}
+
+// HELPER METHODS
+
+// Check if user has access to view adventure (owns it or it's official)
+func (h *AdventureHandler) hasAdventureAccess(c *gin.Context, adventureID uint) bool {
+	user, isAuthenticated := middleware.GetCurrentUser(c)
+
+	var count int64
+	query := h.DB.Model(&models.Adventure{}).Where("id = ?", adventureID)
+
+	if isAuthenticated {
+		query = query.Where("user_id = ? OR user_id IS NULL", user.ID)
+	} else {
+		query = query.Where("user_id IS NULL")
+	}
+
+	query.Count(&count)
+	return count > 0
+}
+
+// Check if user owns the adventure (for modification operations)
+func (h *AdventureHandler) ownsAdventure(c *gin.Context, adventureID uint) bool {
+	user, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		return false
+	}
+
+	var count int64
+	h.DB.Model(&models.Adventure{}).Where("id = ? AND user_id = ?", adventureID, user.ID).Count(&count)
+	return count > 0
 }

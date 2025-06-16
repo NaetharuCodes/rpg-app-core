@@ -1,15 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ImageIcon,
   Save,
   Eye,
   Edit,
-  X,
-  Package,
-  Plus,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
@@ -19,6 +17,8 @@ import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 import { mockLibraryImages } from "@/components/mocks/imageMocks";
 import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
+import { adventureService, type Scene as APIScene } from "@/services/api";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface SceneData {
   title: string;
@@ -134,17 +134,23 @@ interface AdventureSceneEditorProps {
 }
 
 export function AdventureSceneEditorPage({
-  sceneId,
   sceneNumber = 1,
   totalScenes = 12,
-  onSave,
   onBack,
   onNextScene,
   onPrevScene,
 }: AdventureSceneEditorProps) {
+  const { id: adventureId, episodeId, sceneId } = useParams();
+  const navigate = useNavigate();
+
   const [sceneData, setSceneData] = useState<SceneData>(() =>
     sceneId ? mockExistingSceneData : defaultSceneData
   );
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiScene, setApiScene] = useState<APIScene | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
@@ -154,15 +160,70 @@ export function AdventureSceneEditorPage({
   const hasNext = sceneNumber < totalScenes;
   const hasPrev = sceneNumber > 1;
 
-  const handleSave = () => {
-    if (!sceneData.title.trim()) {
+  useEffect(() => {
+    if (adventureId && episodeId && sceneId) {
+      loadScene();
+    } else {
+      setIsLoading(false);
+    }
+  }, [adventureId, episodeId, sceneId]);
+
+  const loadScene = async () => {
+    try {
+      setIsLoading(true);
+      // We find the scene we need from the Episodes that pulled back from the api
+      const scenes = await adventureService.scenes.getAll(
+        parseInt(adventureId!),
+        parseInt(episodeId!)
+      );
+      const scene = scenes.find((s) => s.id === parseInt(sceneId!));
+      if (!scene) {
+        throw new Error("Scene not found");
+      }
+      setApiScene(scene);
+      // Convert to component format
+      setSceneData({
+        title: scene.title,
+        description: scene.description,
+        image: scene.image_url || null,
+        prose: scene.prose || "",
+        gmNotes: scene.gm_notes || "",
+        sceneAssets: [], // TODO: Handle assets when implemented
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load scene");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!sceneData.title.trim() || !apiScene) {
       alert("Please enter a scene title");
       return;
     }
-    onSave?.(sceneData);
-    alert("Scene saved!");
-  };
 
+    try {
+      const updated = await adventureService.scenes.update(
+        parseInt(adventureId!),
+        parseInt(episodeId!),
+        apiScene.id,
+        {
+          title: sceneData.title,
+          description: sceneData.description,
+          image_url: sceneData.image || undefined,
+          prose: sceneData.prose,
+          gm_notes: sceneData.gmNotes,
+        }
+      );
+      setApiScene(updated);
+      alert("Scene saved!");
+    } catch (err) {
+      alert(
+        `Failed to save scene: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    }
+  };
   const handleToggleAsset = (assetId: string) => {
     setSceneData((prev) => ({
       ...prev,
@@ -172,9 +233,32 @@ export function AdventureSceneEditorPage({
     }));
   };
 
+  const handleNextScene = () => {
+    // TODO: Implement next scene logic with episode awareness
+  };
+
+  const handlePrevScene = () => {
+    // TODO: Implement prev scene logic with episode awareness
+  };
+
+  const handleBackToOverview = () => {
+    navigate(`/adventures/${adventureId}/edit`);
+  };
+
   const selectedAssets = mockAssets.filter((asset) =>
     sceneData.sceneAssets.includes(asset.id)
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading scene...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (previewMode) {
     // Preview Mode - Shows how the scene will look to GMs

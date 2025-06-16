@@ -1,5 +1,6 @@
 const API_BASE = "http://localhost:8080";
 
+// Existing Asset interface (keeping for reference)
 export interface Asset {
   id: number;
   name: string;
@@ -9,6 +10,41 @@ export interface Asset {
   is_official: boolean;
   genres: string[];
   user_id?: number;
+  created_at: string;
+}
+
+// New Adventure-related interfaces
+export interface Adventure {
+  id: number;
+  title: string;
+  description: string;
+  banner_image_url?: string;
+  user_id?: number;
+  created_at: string;
+  episodes?: Episode[];
+  title_page?: any; // TODO: Define TitlePage interface
+  epilogue?: any; // TODO: Define Epilogue interface
+}
+
+export interface Episode {
+  id: number;
+  adventure_id: number;
+  order: number;
+  title: string;
+  description: string;
+  created_at: string;
+  scenes?: Scene[];
+}
+
+export interface Scene {
+  id: number;
+  episode_id: number;
+  order: number;
+  title: string;
+  description: string;
+  image_url?: string;
+  prose?: string;
+  gm_notes?: string;
   created_at: string;
 }
 
@@ -42,15 +78,18 @@ async function authenticatedFetch(url: string, options: RequestInit = {}) {
       localStorage.removeItem("auth_token");
       throw new Error("Authentication required");
     }
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error || `HTTP error! status: ${response.status}`
+    );
   }
 
   return response;
 }
 
+// Existing Asset service (keeping for reference)
 export const assetService = {
   async getAll(): Promise<Asset[]> {
-    // This endpoint supports optional auth - will return different content based on auth status
     const response = await authenticatedFetch(`${API_BASE}/assets`);
     return response.json();
   },
@@ -138,5 +177,150 @@ export const imageService = {
     }
 
     return response.json();
+  },
+};
+
+// Adventure service with nested episode and scene management
+export const adventureService = {
+  // Adventure CRUD operations
+  async getAll(): Promise<Adventure[]> {
+    const response = await authenticatedFetch(`${API_BASE}/adventures`);
+    return response.json();
+  },
+
+  async getById(id: number): Promise<Adventure> {
+    const response = await authenticatedFetch(`${API_BASE}/adventures/${id}`);
+    return response.json();
+  },
+
+  async create(
+    adventure: Omit<Adventure, "id" | "created_at" | "user_id">
+  ): Promise<Adventure> {
+    const response = await authenticatedFetch(`${API_BASE}/adventures`, {
+      method: "POST",
+      body: JSON.stringify(adventure),
+    });
+    return response.json();
+  },
+
+  async update(
+    id: number,
+    adventure: Partial<Omit<Adventure, "id" | "created_at" | "user_id">>
+  ): Promise<Adventure> {
+    const response = await authenticatedFetch(`${API_BASE}/adventures/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(adventure),
+    });
+    return response.json();
+  },
+
+  async delete(id: number): Promise<void> {
+    await authenticatedFetch(`${API_BASE}/adventures/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // Episode management - nested under adventures
+  episodes: {
+    async getAll(adventureId: number): Promise<Episode[]> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes`
+      );
+      return response.json();
+    },
+
+    async create(
+      adventureId: number,
+      episode: Omit<Episode, "id" | "adventure_id" | "order" | "created_at">
+    ): Promise<Episode> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes`,
+        {
+          method: "POST",
+          body: JSON.stringify(episode),
+        }
+      );
+      return response.json();
+    },
+
+    async update(
+      adventureId: number,
+      episodeId: number,
+      episode: Partial<
+        Omit<Episode, "id" | "adventure_id" | "order" | "created_at">
+      >
+    ): Promise<Episode> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(episode),
+        }
+      );
+      return response.json();
+    },
+
+    async delete(adventureId: number, episodeId: number): Promise<void> {
+      await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}`,
+        {
+          method: "DELETE",
+        }
+      );
+    },
+  },
+
+  // Scene management - nested under adventures and episodes
+  scenes: {
+    async getAll(adventureId: number, episodeId: number): Promise<Scene[]> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}/scenes`
+      );
+      return response.json();
+    },
+
+    async create(
+      adventureId: number,
+      episodeId: number,
+      scene: Omit<Scene, "id" | "episode_id" | "order" | "created_at">
+    ): Promise<Scene> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}/scenes`,
+        {
+          method: "POST",
+          body: JSON.stringify(scene),
+        }
+      );
+      return response.json();
+    },
+
+    async update(
+      adventureId: number,
+      episodeId: number,
+      sceneId: number,
+      scene: Partial<Omit<Scene, "id" | "episode_id" | "order" | "created_at">>
+    ): Promise<Scene> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}/scenes/${sceneId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(scene),
+        }
+      );
+      return response.json();
+    },
+
+    async delete(
+      adventureId: number,
+      episodeId: number,
+      sceneId: number
+    ): Promise<void> {
+      await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}/scenes/${sceneId}`,
+        {
+          method: "DELETE",
+        }
+      );
+    },
   },
 };
