@@ -16,6 +16,7 @@ import { AdventureSceneEditorPage } from "./pages/Adventures/AdventureSceneEdito
 import { AdventureEpilogueEditorPage } from "./pages/Adventures/AdventureEpilogueEditorPage";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthCallbackPage } from "./pages/Auth/AuthCallbackPage";
+import { EpisodeTitlePage } from "./pages/Adventures/AdventureEpisodeTitlePage";
 
 // Placeholders
 const LoginPage = () => (
@@ -49,6 +50,10 @@ function App() {
             <Route
               path="/adventures/:adventureId"
               element={<AdventureTitlePage />}
+            />
+            <Route
+              path="/adventures/:adventureId/episodes/:episodeId"
+              element={<EpisodeTitlePage />}
             />
             <Route
               path="/adventures/:adventureId/episodes/:episodeId/scenes/:sceneNumber"

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,70 +15,12 @@ import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { DiceRoller } from "@/components/DiceRoller/DiceRoller";
 import { SceneAssets } from "@/components/SceneAssets/SceneAssets";
 import { mockAssets } from "@/components/mocks/assetMocks";
-
-// Mock scene data with scene-specific assets
-const mockSceneData = {
-  id: "scene-1-1",
-  adventureId: "fortress-on-edge-of-doom",
-  episodeId: "episode-1",
-  title: "The Battle Observed",
-  image:
-    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=500&fit=crop",
-  prose:
-    "From the ancient stones of Valenhall's battlements, the final battle spreads before you like a living tapestry of heroism and horror. Three years of war have led to this moment - King Aldric's forces, their silver banners gleaming in the afternoon sun, pressing forward in disciplined formations across the Thorndale Valley. The enemy's crimson standards fall back in retreat, their lines breaking under the sustained assault of the kingdom's finest warriors.\n\nCaptain Roderick stands beside you at the battlements, his weathered face showing the first signs of hope you've seen in months. \"Look there,\" he points toward the valley floor, where the king's golden standard advances steadily. \"Malthraxus is finally beaten. Three years of hell, but we've broken them at last.\"\n\nThe sounds of battle drift up from below - the clash of steel, the war cries of charging cavalry, the thunderous impact of magical artillery. But something feels wrong. The enemy retreat is too organized, too purposeful. They're not fleeing in panic - they're converging.",
-  sceneAssets: [
-    "captain-roderick",
-    "fortress-valenhall",
-    "king-aldric",
-    "thorndale-valley",
-  ],
-  gmNotes: [
-    {
-      type: "paragraph" as const,
-      content:
-        "Setting the Victory: Emphasize that this should be a moment of triumph...",
-    },
-    {
-      type: "list" as const,
-      title: "Victory Indicators:",
-      items: [
-        "The enemy forces are in clear retreat across multiple fronts",
-        // ... rest of items
-      ],
-    },
-    {
-      type: "paragraph" as const,
-      content: "Character Interactions: Use this peaceful moment...",
-    },
-    {
-      type: "list" as const,
-      title: "Simple D6 Checks:",
-      items: [
-        "Notice (Easy): The enemy retreat seems unusually organized",
-        // ... rest of items
-      ],
-    },
-    {
-      type: "callout" as const,
-      title: "The Convergence",
-      content: "As the scene progresses, make it clear...",
-    },
-  ],
-};
-
-// Mock navigation context
-const mockNavigation = {
-  currentScene: 1,
-  totalScenes: 12,
-  episode: {
-    id: "episode-1",
-    title: "The Final Battle",
-    sceneNumber: 1,
-    totalInEpisode: 4,
-  },
-  hasNext: true,
-  hasPrev: false,
-};
+import {
+  adventureService,
+  type Scene,
+  type Episode,
+  type Adventure,
+} from "@/services/api";
 
 const assetTypeColors = {
   character: "fantasy",
@@ -101,20 +44,21 @@ interface Asset {
   imageUrl: string;
 }
 
-interface SceneData {
-  id: string;
-  adventureId: string;
-  episodeId: string;
-  title: string;
-  image?: string;
-  prose: string;
-  sceneAssets: string[];
-  gmNotes: GMNote[];
+interface NavigationContext {
+  currentScene: number;
+  totalScenes: number;
+  episode: {
+    id: number;
+    title: string;
+    sceneNumber: number;
+    totalInEpisode: number;
+  };
+  hasNext: boolean;
+  hasPrev: boolean;
+  nextAction: "scene" | "episode" | "epilogue";
 }
 
 interface AdventureScenePageProps {
-  sceneData?: SceneData;
-  navigation?: typeof mockNavigation;
   onNextScene?: () => void;
   onPrevScene?: () => void;
   onBackToTitle?: () => void;
@@ -285,19 +229,219 @@ function AllAssetsModal({
   );
 }
 
+// Helper function to parse GM notes from string
+function parseGMNotes(gmNotesString: string): GMNote[] {
+  if (!gmNotesString || gmNotesString.trim() === "") {
+    return [
+      {
+        type: "paragraph",
+        content: "No additional GM notes for this scene.",
+      },
+    ];
+  }
+
+  // For now, just return as a single paragraph
+  // You can enhance this later to parse markdown or structured format
+  return [
+    {
+      type: "paragraph",
+      content: gmNotesString,
+    },
+  ];
+}
+
 export function AdventureScenePage({
-  sceneData = mockSceneData,
-  navigation = mockNavigation,
   onNextScene,
   onPrevScene,
 }: AdventureScenePageProps) {
-  const [showAllAssets, setShowAllAssets] = useState(false);
+  const { adventureId, episodeId, sceneNumber } = useParams();
+  const navigate = useNavigate();
 
-  const sceneAssets = mockAssets.filter((asset) =>
-    sceneData.sceneAssets.includes(asset.id)
+  const [scene, setScene] = useState<Scene | null>(null);
+  const [episode, setEpisode] = useState<Episode | null>(null);
+  const [adventure, setAdventure] = useState<Adventure | null>(null);
+  const [navigation, setNavigation] = useState<NavigationContext | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [showAllAssets, setShowAllAssets] = useState(false);
+  const [showDiceRoller, setShowDiceRoller] = useState(false);
+
+  useEffect(() => {
+    const loadSceneData = async () => {
+      if (!adventureId || !episodeId || !sceneNumber) return;
+
+      try {
+        setIsLoading(true);
+
+        // Fetch adventure data
+        const adventureData = await adventureService.getById(
+          parseInt(adventureId)
+        );
+        setAdventure(adventureData);
+
+        // Fetch episode data
+        const episodes = await adventureService.episodes.getAll(
+          parseInt(adventureId)
+        );
+        const currentEpisode = episodes.find(
+          (ep) => ep.id === parseInt(episodeId)
+        );
+        if (!currentEpisode) {
+          throw new Error("Episode not found");
+        }
+        setEpisode(currentEpisode);
+
+        // Fetch scenes for this episode
+        const scenes = await adventureService.scenes.getAll(
+          parseInt(adventureId),
+          parseInt(episodeId)
+        );
+        const sortedScenes = scenes.sort((a, b) => a.order - b.order);
+
+        // Find current scene by scene number (1-indexed)
+        const currentScene = sortedScenes[parseInt(sceneNumber) - 1];
+        if (!currentScene) {
+          throw new Error("Scene not found");
+        }
+        setScene(currentScene);
+
+        // Calculate navigation context
+        const currentSceneIndex = parseInt(sceneNumber) - 1;
+        const totalScenesInEpisode = sortedScenes.length;
+
+        // Calculate total scenes across all episodes
+        const totalScenes =
+          adventureData.episodes?.reduce(
+            (total, ep) => total + (ep.scenes?.length || 0),
+            0
+          ) || 0;
+
+        // Find current episode index
+        const sortedEpisodes = episodes.sort((a, b) => a.order - b.order);
+        const currentEpisodeIndex = sortedEpisodes.findIndex(
+          (ep) => ep.id === parseInt(episodeId)
+        );
+
+        // Determine what happens on "next"
+        let nextAction: "scene" | "episode" | "epilogue" = "scene";
+        if (currentSceneIndex === totalScenesInEpisode - 1) {
+          // Last scene in episode
+          if (currentEpisodeIndex === sortedEpisodes.length - 1) {
+            // Last episode - go to epilogue
+            nextAction = "epilogue";
+          } else {
+            // Go to next episode
+            nextAction = "episode";
+          }
+        }
+
+        setNavigation({
+          currentScene: parseInt(sceneNumber),
+          totalScenes: totalScenesInEpisode,
+          episode: {
+            id: currentEpisode.id,
+            title: currentEpisode.title,
+            sceneNumber: parseInt(sceneNumber),
+            totalInEpisode: totalScenesInEpisode,
+          },
+          hasNext:
+            currentSceneIndex < totalScenesInEpisode - 1 ||
+            currentEpisodeIndex < sortedEpisodes.length - 1 ||
+            (currentSceneIndex === totalScenesInEpisode - 1 &&
+              currentEpisodeIndex === sortedEpisodes.length - 1 &&
+              nextAction === "epilogue"),
+          hasPrev: currentSceneIndex > 0 || currentEpisodeIndex > 0,
+          nextAction,
+        });
+      } catch (err) {
+        console.error("Error loading scene:", err);
+        setError(err instanceof Error ? err.message : "Failed to load scene");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSceneData();
+  }, [adventureId, episodeId, sceneNumber]);
+
+  const handleNextScene = () => {
+    if (onNextScene) {
+      onNextScene();
+      return;
+    }
+
+    if (!navigation || !adventureId || !episodeId) return;
+
+    if (navigation.nextAction === "scene") {
+      // Go to next scene in same episode
+      const nextSceneNumber = navigation.currentScene + 1;
+      navigate(
+        `/adventures/${adventureId}/episodes/${episodeId}/scenes/${nextSceneNumber}`
+      );
+    } else if (navigation.nextAction === "episode") {
+      // Go to next episode title page
+      const nextEpisodeId = parseInt(episodeId) + 1; // This is simplified - you might need to fetch episodes to get the actual next episode ID
+      navigate(`/adventures/${adventureId}/episodes/${nextEpisodeId}`);
+    } else if (navigation.nextAction === "epilogue") {
+      // Go to epilogue
+      navigate(`/adventures/${adventureId}/epilogue`);
+    }
+  };
+
+  const handlePrevScene = () => {
+    if (onPrevScene) {
+      onPrevScene();
+      return;
+    }
+
+    if (!navigation || !adventureId || !episodeId) return;
+
+    if (navigation.currentScene > 1) {
+      // Go to previous scene in same episode
+      const prevSceneNumber = navigation.currentScene - 1;
+      navigate(
+        `/adventures/${adventureId}/episodes/${episodeId}/scenes/${prevSceneNumber}`
+      );
+    } else {
+      // Go back to episode title or previous episode's last scene
+      // For now, just go back to episode title
+      navigate(`/adventures/${adventureId}/episodes/${episodeId}`);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading scene...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !scene || !episode || !navigation) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">{error || "Scene not found"}</p>
+          <Button
+            onClick={() => navigate(`/adventures/${adventureId}`)}
+            variant="secondary"
+          >
+            Back to Adventure
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const sceneAssets = mockAssets.filter(
+    (asset) => scene.title.toLowerCase().includes(asset.name.toLowerCase()) // Simple matching for now
   );
 
-  const [showDiceRoller, setShowDiceRoller] = useState(false);
+  const gmNotes = parseGMNotes(scene.gm_notes || "");
 
   return (
     <div className="min-h-screen bg-background">
@@ -308,13 +452,13 @@ export function AdventureScenePage({
           <div className="mb-4">
             <div className="flex items-center gap-3 mb-2">
               <Badge variant="fantasy" size="sm">
-                Episode {navigation.episode.sceneNumber}
+                Episode {episode.order}
               </Badge>
               <span className="text-sm text-muted-foreground">
-                {navigation.episode.title}
+                {episode.title}
               </span>
             </div>
-            <h1 className="text-2xl font-bold">{sceneData.title}</h1>
+            <h1 className="text-2xl font-bold">{scene.title}</h1>
             <p className="text-sm text-muted-foreground">
               Scene {navigation.currentScene} of {navigation.totalScenes}
             </p>
@@ -327,7 +471,7 @@ export function AdventureScenePage({
                 variant="secondary"
                 size="sm"
                 leftIcon={ChevronLeft}
-                onClick={onPrevScene}
+                onClick={handlePrevScene}
                 disabled={!navigation.hasPrev}
               >
                 Previous
@@ -336,7 +480,7 @@ export function AdventureScenePage({
                 variant="secondary"
                 size="sm"
                 rightIcon={ChevronRight}
-                onClick={onNextScene}
+                onClick={handleNextScene}
                 disabled={!navigation.hasNext}
               >
                 Next
@@ -349,11 +493,11 @@ export function AdventureScenePage({
       {/* Scene Content */}
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {/* Scene Image */}
-        {sceneData.image && (
+        {scene.image_url && (
           <div className="h-32 rounded-lg overflow-hidden bg-muted">
             <img
-              src={sceneData.image}
-              alt={sceneData.title}
+              src={scene.image_url}
+              alt={scene.title}
               className="w-full h-full object-cover"
             />
           </div>
@@ -372,11 +516,16 @@ export function AdventureScenePage({
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none">
-              {sceneData.prose.split("\n").map((paragraph, index) => (
-                <p key={index} className="mb-4 text-foreground leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
+              {(scene.prose || "No scene description available.")
+                .split("\n")
+                .map((paragraph, index) => (
+                  <p
+                    key={index}
+                    className="mb-4 text-foreground leading-relaxed"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
             </div>
           </CardContent>
         </Card>
@@ -397,7 +546,7 @@ export function AdventureScenePage({
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {sceneData.gmNotes.map((note, index) => (
+                  {gmNotes.map((note, index) => (
                     <GMNoteItem key={index} note={note} />
                   ))}
                 </div>
@@ -449,7 +598,7 @@ export function AdventureScenePage({
             <Button
               variant="secondary"
               leftIcon={ChevronLeft}
-              onClick={onPrevScene}
+              onClick={handlePrevScene}
               disabled={!navigation.hasPrev}
             >
               Previous Scene
@@ -457,10 +606,12 @@ export function AdventureScenePage({
             <Button
               variant="primary"
               rightIcon={ChevronRight}
-              onClick={onNextScene}
+              onClick={handleNextScene}
               disabled={!navigation.hasNext}
             >
-              {navigation.hasNext ? "Next Scene" : "Epilogue"}
+              {navigation.nextAction === "scene" && "Next Scene"}
+              {navigation.nextAction === "episode" && "Next Episode"}
+              {navigation.nextAction === "epilogue" && "Epilogue"}
             </Button>
           </div>
         </div>

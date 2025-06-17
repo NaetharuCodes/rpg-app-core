@@ -63,6 +63,40 @@ export interface Scene {
   created_at: string;
 }
 
+export interface Epilogue {
+  id: number;
+  adventure_id: number;
+  title: string;
+  content: string;
+  outcomes: EpilogueOutcome[];
+  designer_notes: string;
+  follow_up_hooks: FollowUpHook[];
+  credits: {
+    designer: string;
+    system: string;
+    version: string;
+    year: string;
+  };
+  created_at: string;
+}
+
+export interface EpilogueOutcome {
+  id: number;
+  epilogue_id: number;
+  title: string;
+  description: string;
+  details: string;
+  order: number;
+}
+
+export interface FollowUpHook {
+  id: number;
+  epilogue_id: number;
+  title: string;
+  description: string;
+  order: number;
+}
+
 // Helper function to get auth headers
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("auth_token");
@@ -386,8 +420,7 @@ export const adventureService = {
     },
   },
   epilogue: {
-    async get(adventureId: number): Promise<any> {
-      // TODO: Create proper Epilogue interface
+    async get(adventureId: number): Promise<Epilogue> {
       const response = await authenticatedFetch(
         `${API_BASE}/adventures/${adventureId}/epilogue`
       );
@@ -396,8 +429,8 @@ export const adventureService = {
 
     async create(
       adventureId: number,
-      epilogue: any // TODO: Create proper interface
-    ): Promise<any> {
+      epilogue: Omit<Epilogue, "id" | "adventure_id" | "created_at">
+    ): Promise<Epilogue> {
       const response = await authenticatedFetch(
         `${API_BASE}/adventures/${adventureId}/epilogue`,
         {

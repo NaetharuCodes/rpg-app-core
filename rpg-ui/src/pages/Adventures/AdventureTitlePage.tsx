@@ -4,76 +4,165 @@ import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { SceneAssets } from "@/components/SceneAssets/SceneAssets";
 import { mockAssets } from "@/components/mocks/assetMocks";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  adventureService,
+  type Adventure,
+  type TitlePage,
+} from "@/services/api";
 
-// Mock data based on your PDF adventure
-const mockTitleData = {
-  id: "title-page",
-  adventureId: "fortress-on-edge-of-doom",
-  title: "Fortress on the Edge of Doom",
-  subtitle: "A Simple D6 RPG Adventure for 3-5 Players",
-  bannerImage:
-    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=400&fit=crop",
-  introduction:
-    "Fortress on the Edge of Doom is an epic high fantasy adventure that focuses on heroism in the face of impossible odds, magical catastrophe, and the desperate defense of reality itself. The Simple D6 system provides quick resolution for action sequences when needed, but the heart of this adventure lies in dramatic storytelling, tactical cooperation, and the mounting tension of a final stand against cosmic horror.",
-  background:
-    "The Kingdom of Aldenwrath has been locked in a generations-long war against the Dark Lord Malthraxus and his armies of corrupted creatures. For three years, the final campaign has raged across the Thorndale Valley, with King Aldric's forces slowly pushing back the darkness. The ancient fortress of Valenhall, perched on a strategic outcrop overlooking the battlefield, has served as a crucial stronghold and observation post.\n\nWhat neither side anticipated was the Dark Lord's final, desperate gambit. Faced with inevitable defeat, Malthraxus has turned to forbidden void magic - sorcery that tears at the very fabric of reality itself. His plan is catastrophically simple: if he cannot rule the world, he will unmake it entirely, opening a rift to the hungry void that lies between dimensions.",
-  prologue:
-    "The camera sweeps across a vast battlefield stretching between two mountain ranges. Banners of silver and gold clash against crimson and black as thousands of warriors fight in the valley below. The sun hangs low on the horizon, casting long shadows across a landscape scarred by three years of magical warfare.\n\nAtop a rocky outcrop, the ancient fortress of Valenhall stands sentinel, its weathered gray stones bearing witness to the final battle between Light and Dark. From its battlements, you can see the tide of war clearly - King Aldric's forces, their armor gleaming in the dying light, pressing forward against the Dark Lord's army of twisted creatures and corrupted men.\n\nThunder rolls across the sky, but there are no clouds. The very air crackles with magical energy as powerful sorcerers on both sides weave spells that shake the earth itself. Victory seems at hand for the forces of Light - the Dark Lord's army is in retreat, his banners falling one by one.\n\nBut something is wrong. The retreating enemy forces are converging on a single point in the valley, where a massive obsidian tower has risen from the earth. Dark lightning plays around its peak, and the very air seems to bend and twist around it. The tower pulses with malevolent energy, and with each pulse, the sky grows a little darker...",
-  relatedAssets: [
-    {
-      id: "sir-marcus-brightblade",
-      type: "character",
-      name: "Sir Marcus Brightblade",
-      description: "A young knight seeking to prove his honor",
-    },
-    {
-      id: "captain-roderick",
-      type: "character",
-      name: "Captain Roderick",
-      description: "Weathered fortress commander",
-    },
-    {
-      id: "void-general",
-      type: "creature",
-      name: "The Void General",
-      description: "What King Aldric became",
-    },
-    {
-      id: "fortress-valenhall",
-      type: "location",
-      name: "Fortress Valenhall",
-      description: "Ancient stronghold with protective wards",
-    },
-  ],
-};
-
-const mockStructure = {
-  totalScenes: 12,
-  episodes: [
-    { id: "episode-1", title: "The Final Battle", sceneCount: 4 },
-    { id: "episode-2", title: "Holding the Line", sceneCount: 5 },
-    { id: "episode-3", title: "Race Against Darkness", sceneCount: 4 },
-  ],
-};
+interface AdventureStructure {
+  totalScenes: number;
+  episodes: Array<{
+    id: number;
+    title: string;
+    sceneCount: number;
+  }>;
+}
 
 interface AdventureTitlePageProps {
-  titleData?: typeof mockTitleData;
-  structure?: typeof mockStructure;
   onStartAdventure?: () => void;
 }
 
 export function AdventureTitlePage({
-  titleData = mockTitleData,
-  structure = mockStructure,
   onStartAdventure,
 }: AdventureTitlePageProps) {
+  const { adventureId } = useParams();
+  const navigate = useNavigate();
+
+  const [adventure, setAdventure] = useState<Adventure | null>(null);
+  const [titleData, setTitleData] = useState<TitlePage | null>(null);
+  const [structure, setStructure] = useState<AdventureStructure | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!adventureId) return;
+
+      try {
+        setIsLoading(true);
+
+        // Fetch adventure
+        const adventureData = await adventureService.getById(
+          parseInt(adventureId)
+        );
+        setAdventure(adventureData);
+
+        // Try to fetch title page data (optional)
+        try {
+          const titlePageData = await adventureService.titlePage.get(
+            parseInt(adventureId)
+          );
+          setTitleData(titlePageData);
+        } catch {
+          // Use adventure data as fallback
+          setTitleData({
+            id: 0,
+            adventure_id: parseInt(adventureId),
+            title: adventureData.title,
+            subtitle:
+              adventureData.description || "An exciting adventure awaits",
+            banner_image_url: adventureData.banner_image_url || "",
+            introduction:
+              adventureData.description ||
+              "Embark on an epic adventure filled with danger, mystery, and heroic deeds.",
+            background:
+              "Prepare yourself for an unforgettable journey that will test your courage and wit.",
+            prologue:
+              "Your adventure begins here. The path ahead is uncertain, but glory awaits those brave enough to take the first step.",
+            created_at: new Date().toISOString(),
+          });
+        }
+
+        // Build structure from episodes
+        setStructure({
+          totalScenes:
+            adventureData.episodes?.reduce(
+              (total, ep) => total + (ep.scenes?.length || 0),
+              0
+            ) || 0,
+          episodes:
+            adventureData.episodes?.map((ep) => ({
+              id: ep.id,
+              title: ep.title,
+              sceneCount: ep.scenes?.length || 0,
+            })) || [],
+        });
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load adventure"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [adventureId]);
+
+  const handleStartAdventure = () => {
+    if (onStartAdventure) {
+      onStartAdventure();
+    } else {
+      // Navigate to first episode
+      if (structure && structure.episodes.length > 0) {
+        navigate(
+          `/adventures/${adventureId}/episodes/${structure.episodes[0].id}`
+        );
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading adventure...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">Error: {error}</p>
+          <Button onClick={() => navigate("/adventures")} variant="secondary">
+            Back to Adventures
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!titleData || !structure) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">No adventure data found</p>
+          <Button onClick={() => navigate("/adventures")} variant="secondary">
+            Back to Adventures
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Banner Image and Title */}
       <div className="relative">
         <div
           className="h-80 bg-cover bg-center bg-muted"
-          style={{ backgroundImage: `url(${titleData.bannerImage})` }}
+          style={{
+            backgroundImage: titleData.banner_image_url
+              ? `url(${titleData.banner_image_url})`
+              : undefined,
+          }}
         >
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute inset-0 flex items-end">
@@ -164,8 +253,9 @@ export function AdventureTitlePage({
                 <Button
                   variant="primary"
                   rightIcon={ArrowRight}
-                  onClick={onStartAdventure}
+                  onClick={handleStartAdventure}
                   className="w-full"
+                  disabled={!structure.episodes.length}
                 >
                   Start Adventure
                 </Button>

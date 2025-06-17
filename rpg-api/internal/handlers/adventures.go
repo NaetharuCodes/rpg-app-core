@@ -304,7 +304,7 @@ func (h *AdventureHandler) GetEpisodes(c *gin.Context) {
 	}
 
 	var episodes []models.Episode
-	if err := h.DB.Where("adventure_id = ?", adventureID).Order("order ASC").Find(&episodes).Error; err != nil {
+	if err := h.DB.Where("adventure_id = ?", adventureID).Order("\"order\" ASC").Find(&episodes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch episodes"})
 		return
 	}
