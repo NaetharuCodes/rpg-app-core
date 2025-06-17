@@ -90,7 +90,7 @@ func main() {
 	r.PATCH("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.UpdateAdventure)
 
 	// Title Page routes
-	r.GET("/adventures/:id/title-page", adventureHandler.GetTitlePage)
+	r.GET("/adventures/:id/title-page", authMiddleware.OptionalAuth(), adventureHandler.GetTitlePage)
 	r.POST("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.CreateTitlePage)
 	r.PATCH("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.UpdateTitlePage)
 	r.DELETE("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.DeleteTitlePage)

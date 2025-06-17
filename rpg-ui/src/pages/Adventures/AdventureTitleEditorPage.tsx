@@ -153,6 +153,7 @@ export function AdventureTitleEditor({
       }
 
       alert("Title page saved!");
+      navigate(`/adventures/${id}/edit`);
     } catch (err) {
       alert(
         `Failed to save title page: ${err instanceof Error ? err.message : "Unknown error"}`

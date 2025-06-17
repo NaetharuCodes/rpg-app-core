@@ -53,6 +53,7 @@ interface AdventureData {
   episodes: Episode[];
   hasTitle: boolean;
   hasEpilogue: boolean;
+  titlePageData?: any;
 }
 
 const genreOptions = [
@@ -99,12 +100,10 @@ interface AdventureBuilderOverviewProps {
 }
 
 export function AdventureBuilderOverviewPage({
-  adventureId,
-  onSave,
   onPreview,
 }: AdventureBuilderOverviewProps) {
   const [adventure, setAdventure] = useState<AdventureData>(() =>
-    adventureId ? mockExistingAdventure : createEmptyAdventure()
+    createEmptyAdventure()
   );
 
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(
@@ -124,8 +123,8 @@ export function AdventureBuilderOverviewPage({
       setIsLoading(true);
       const data = await adventureService.getById(adventureId);
       setApiAdventure(data);
-      // Convert API data to component format
-      convertApiDataToComponent(data);
+      // Convert API data to component format - now awaiting since it's async
+      await convertApiDataToComponent(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load adventure");
     } finally {
@@ -145,8 +144,7 @@ export function AdventureBuilderOverviewPage({
     }
   }, [id]);
 
-  const convertApiDataToComponent = (apiData: Adventure) => {
-    // Convert API episodes to component format
+  const convertApiDataToComponent = async (apiData: Adventure) => {
     const episodes: Episode[] = (apiData.episodes || []).map((ep) => ({
       id: ep.id.toString(),
       title: ep.title,
@@ -159,12 +157,24 @@ export function AdventureBuilderOverviewPage({
       })),
     }));
 
+    let hasTitle = false;
+    let titlePageData = null;
+    try {
+      titlePageData = await adventureService.titlePage.get(apiData.id);
+      hasTitle = true;
+    } catch (err) {
+      // Title page doesn't exist
+      hasTitle = false;
+    }
+
     setAdventure((prev) => ({
       ...prev,
       id: apiData.id.toString(),
       title: apiData.title,
       description: apiData.description,
       episodes,
+      hasTitle,
+      titlePageData, // Add this new field
     }));
   };
 
@@ -667,9 +677,12 @@ export function AdventureBuilderOverviewPage({
                         T
                       </div>
                       <div>
-                        <h3 className="font-medium">Title Page</h3>
+                        <h3 className="font-medium">
+                          {adventure.titlePageData?.title || "Title Page"}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Adventure introduction and setup
+                          {adventure.titlePageData?.subtitle ||
+                            "Adventure introduction and setup"}
                         </p>
                       </div>
                     </div>
