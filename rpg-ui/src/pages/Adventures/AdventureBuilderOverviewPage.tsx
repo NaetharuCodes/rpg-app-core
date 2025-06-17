@@ -614,11 +614,6 @@ export function AdventureBuilderOverviewPage({
               </div>
             </div>
             <div className="flex gap-3">
-              {isEditing && (
-                <Button variant="secondary" leftIcon={Play} onClick={onPreview}>
-                  Preview
-                </Button>
-              )}
               <Button onClick={handleSave} leftIcon={Save}>
                 {isEditing ? "Save Changes" : "Create Adventure"}
               </Button>
