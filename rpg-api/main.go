@@ -26,6 +26,7 @@ func main() {
 		&models.User{},
 		&models.Asset{},
 		&models.Adventure{},
+		&models.Episode{},
 		&models.Scene{},
 		&models.TitlePage{},
 		&models.Epilogue{},
@@ -88,15 +89,17 @@ func main() {
 	r.POST("/adventures", authMiddleware.RequireAuth(), adventureHandler.CreateAdventure)
 	r.PATCH("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.UpdateAdventure)
 
+	// Episode routes - ADD authMiddleware.RequireAuth() to POST/PATCH/DELETE
 	r.GET("/adventures/:id/episodes", adventureHandler.GetEpisodes)
-	r.POST("/adventures/:id/episodes", adventureHandler.CreateEpisode)
-	r.PATCH("/adventures/:id/episodes/:episodeId", adventureHandler.UpdateEpisode)
-	r.DELETE("/adventures/:id/episodes/:episodeId", adventureHandler.DeleteEpisode)
+	r.POST("/adventures/:id/episodes", authMiddleware.RequireAuth(), adventureHandler.CreateEpisode)
+	r.PATCH("/adventures/:id/episodes/:episodeId", authMiddleware.RequireAuth(), adventureHandler.UpdateEpisode)
+	r.DELETE("/adventures/:id/episodes/:episodeId", authMiddleware.RequireAuth(), adventureHandler.DeleteEpisode)
 
+	// Scene routes - ADD authMiddleware.RequireAuth() to POST/PATCH/DELETE
 	r.GET("/adventures/:id/episodes/:episodeId/scenes", adventureHandler.GetScenes)
-	r.POST("/adventures/:id/episodes/:episodeId/scenes", adventureHandler.CreateScene)
-	r.PATCH("/adventures/:id/episodes/:episodeId/scenes/:sceneId", adventureHandler.UpdateScene)
-	r.DELETE("/adventures/:id/episodes/:episodeId/scenes/:sceneId", adventureHandler.DeleteScene)
+	r.POST("/adventures/:id/episodes/:episodeId/scenes", authMiddleware.RequireAuth(), adventureHandler.CreateScene)
+	r.PATCH("/adventures/:id/episodes/:episodeId/scenes/:sceneId", authMiddleware.RequireAuth(), adventureHandler.UpdateScene)
+	r.DELETE("/adventures/:id/episodes/:episodeId/scenes/:sceneId", authMiddleware.RequireAuth(), adventureHandler.DeleteScene)
 
 	// Start server
 	port := os.Getenv("PORT")
