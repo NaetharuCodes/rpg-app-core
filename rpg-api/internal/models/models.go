@@ -72,12 +72,15 @@ func (a *Asset) GetImageURL(variant string) string {
 }
 
 type Adventure struct {
-	ID             uint      `json:"id" gorm:"primaryKey"`
-	Title          string    `json:"title"`
-	Description    string    `json:"description"`
-	BannerImageURL string    `json:"banner_image_url"`
-	UserID         *uint     `json:"user_id" gorm:"index"` // Foreign key to User (nullable for official adventures)
-	CreatedAt      time.Time `json:"created_at"`
+	ID             uint           `json:"id" gorm:"primaryKey"`
+	Title          string         `json:"title"`
+	Description    string         `json:"description"`
+	BannerImageURL string         `json:"banner_image_url"`
+	Genres         pq.StringArray `json:"genres" gorm:"type:text[]"`
+	IsOfficial     bool           `json:"is_official" gorm:"default:false"`
+	AgeRating      string         `json:"age_rating" gorm:"default:'For Everyone'"`
+	UserID         *uint          `json:"user_id" gorm:"index"` // Foreign key to User (nullable for official adventures)
+	CreatedAt      time.Time      `json:"created_at"`
 
 	// Relationships
 	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`

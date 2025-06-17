@@ -1,127 +1,13 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Search, Filter, Edit, Play } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { AdventureCard } from "@/components/AdventureCard/AdventureCard";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { adventureService, type Adventure } from "@/services/api";
 
 type ViewMode = "rpg-core" | "my-adventures";
 type AgeRating = "For Everyone" | "Teen" | "Adult";
-
-interface Adventure {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  isOfficial: boolean;
-  genres: string[];
-  estimatedTime: string;
-  sceneCount: number;
-  ageRating: AgeRating;
-  difficulty?: "Beginner" | "Intermediate" | "Advanced";
-}
-
-// Mock data - in real app this would come from your API
-const mockAdventures: Adventure[] = [
-  // Official RPG Core Adventures
-  {
-    id: "fortress-on-edge-of-doom",
-    title: "Fortress on the Edge of Doom",
-    description:
-      "An epic high fantasy adventure that focuses on heroism in the face of impossible odds, magical catastrophe, and the desperate defense of reality itself.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=500&fit=crop",
-    isOfficial: true,
-    genres: ["fantasy", "horror"],
-    estimatedTime: "3-4 hours",
-    sceneCount: 12,
-    ageRating: "Teen",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "mystery-of-willowbrook",
-    title: "The Mystery of Willowbrook",
-    description:
-      "A charming small-town mystery perfect for introducing young players to RPGs. Solve the case of the missing festival decorations!",
-    imageUrl:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=500&fit=crop",
-    isOfficial: true,
-    genres: ["mystery", "modern"],
-    estimatedTime: "2-3 hours",
-    sceneCount: 8,
-    ageRating: "For Everyone",
-    difficulty: "Beginner",
-  },
-  {
-    id: "shadows-over-salem",
-    title: "Shadows Over Salem",
-    description:
-      "A dark horror adventure set in colonial America. Uncover the truth behind the witch trials, but beware what lurks in the shadows.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800&h=500&fit=crop",
-    isOfficial: true,
-    genres: ["horror", "historical"],
-    estimatedTime: "4-5 hours",
-    sceneCount: 15,
-    ageRating: "Adult",
-    difficulty: "Advanced",
-  },
-  {
-    id: "cyberpunk-heist",
-    title: "The Data Heist",
-    description:
-      "Break into the most secure corporate server in Neo-Tokyo. A high-tech thriller with moral choices and explosive action.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=500&fit=crop",
-    isOfficial: true,
-    genres: ["scifi", "modern"],
-    estimatedTime: "3-4 hours",
-    sceneCount: 10,
-    ageRating: "Teen",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "pirates-treasure",
-    title: "The Pirate's Lost Treasure",
-    description:
-      "Ahoy mateys! A swashbuckling adventure on the high seas. Perfect for families and new players who want excitement without complexity.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=500&fit=crop",
-    isOfficial: true,
-    genres: ["historical", "fantasy"],
-    estimatedTime: "2-3 hours",
-    sceneCount: 9,
-    ageRating: "For Everyone",
-    difficulty: "Beginner",
-  },
-  // User's Custom Adventures (only visible when logged in)
-  {
-    id: "user-custom-1",
-    title: "My Homebrew Campaign",
-    description: "A custom adventure I created for my weekly group.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1551775538-ca3ec7f49a60?w=800&h=500&fit=crop",
-    isOfficial: false,
-    genres: ["fantasy"],
-    estimatedTime: "4-6 hours",
-    sceneCount: 18,
-    ageRating: "Teen",
-    difficulty: "Advanced",
-  },
-  {
-    id: "user-custom-2",
-    title: "Space Station Alpha",
-    description: "A sci-fi adventure set on a mysterious space station.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=800&h=500&fit=crop",
-    isOfficial: false,
-    genres: ["scifi"],
-    estimatedTime: "3-4 hours",
-    sceneCount: 11,
-    ageRating: "Teen",
-    difficulty: "Intermediate",
-  },
-];
 
 export function AdventureGalleryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("rpg-core");
@@ -130,30 +16,80 @@ export function AdventureGalleryPage() {
   const [filterAgeRating, setFilterAgeRating] = useState<AgeRating | "all">(
     "all"
   );
+  const [adventures, setAdventures] = useState<Adventure[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAdventures = async () => {
+      try {
+        setIsLoading(true);
+        const data = await adventureService.getAll();
+
+        // Transform API data to match your display format
+        const transformedAdventures = data.map((adventure) => ({
+          ...adventure,
+          isOfficial: !adventure.user_id, // Official adventures have no user_id
+          genres: adventure || [],
+          // Add default values for display properties
+          estimatedTime: "2-4 hours", // You can calculate this from scenes later
+          sceneCount:
+            adventure.episodes?.reduce(
+              (total, ep) => total + (ep.scenes?.length || 0),
+              0
+            ) || 0,
+          ageRating: "For Everyone" as AgeRating, // Default, you can enhance this later
+        }));
+
+        setAdventures(transformedAdventures);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load adventures"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAdventures();
+  }, []);
 
   // Mock auth state - will replace with real auth context later
   const isAuthenticated = true;
 
-  const filteredAdventures = mockAdventures.filter((adventure) => {
-    // Filter by official/custom based on view mode
-    const matchesViewMode =
-      viewMode === "rpg-core" ? adventure.isOfficial : !adventure.isOfficial;
+  useEffect(() => {
+    const fetchAdventures = async () => {
+      try {
+        setIsLoading(true);
+        const data = await adventureService.getAll();
 
-    // Filter by search term
-    const matchesSearch =
-      adventure.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      adventure.description.toLowerCase().includes(searchTerm.toLowerCase());
+        // Transform API data to match your display format
+        const transformedAdventures = data.map((adventure) => ({
+          ...adventure,
+          isOfficial: !adventure.user_id, // Official adventures have no user_id
+          genres: adventure.genres || [],
+          // Add default values for display properties
+          estimatedTime: "2-4 hours", // You can calculate this from scenes later
+          sceneCount:
+            adventure.episodes?.reduce(
+              (total, ep) => total + (ep.scenes?.length || 0),
+              0
+            ) || 0,
+          ageRating: "For Everyone" as AgeRating, // Default, you can enhance this later
+        }));
 
-    // Filter by genre
-    const matchesGenre =
-      filterGenre === "all" || adventure.genres.includes(filterGenre);
+        setAdventures(transformedAdventures);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load adventures"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Filter by age rating
-    const matchesAgeRating =
-      filterAgeRating === "all" || adventure.ageRating === filterAgeRating;
-
-    return matchesViewMode && matchesSearch && matchesGenre && matchesAgeRating;
-  });
+    fetchAdventures();
+  }, []);
 
   const handlePlayAdventure = (adventure: Adventure) => {
     // Navigate to adventure title page
@@ -165,14 +101,34 @@ export function AdventureGalleryPage() {
     window.location.href = `/adventures/${adventure.id}/edit`;
   };
 
-  // Get unique genres for filter dropdown
-  const allGenres = Array.from(
-    new Set(
-      mockAdventures
-        .filter((a) => (viewMode === "rpg-core" ? a.isOfficial : !a.isOfficial))
-        .flatMap((a) => a.genres)
-    )
-  );
+  const filteredAdventures = adventures.filter((adventure) => {
+    // Filter by official/custom based on view mode
+    const matchesViewMode =
+      viewMode === "rpg-core" ? adventure.is_official : !adventure.is_official;
+
+    // Rest of your existing filter logic stays the same...
+    const matchesSearch =
+      adventure.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      adventure.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesGenre =
+      filterGenre === "all" || adventure.genres.includes(filterGenre);
+
+    const matchesAgeRating =
+      filterAgeRating === "all" || adventure.age_rating === filterAgeRating;
+
+    return matchesViewMode && matchesSearch && matchesGenre && matchesAgeRating;
+  });
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">Loading adventures...</div>
+    );
+  }
+
+  if (error) {
+    return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -263,7 +219,7 @@ export function AdventureGalleryPage() {
             </div>
 
             {/* Genre Filter */}
-            <select
+            {/* <select
               value={filterGenre}
               onChange={(e) => setFilterGenre(e.target.value)}
               className="px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
@@ -274,7 +230,7 @@ export function AdventureGalleryPage() {
                   {genre.charAt(0).toUpperCase() + genre.slice(1)}
                 </option>
               ))}
-            </select>
+            </select> */}
 
             {/* Age Rating Filter */}
             <select

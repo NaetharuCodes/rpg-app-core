@@ -1,21 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/Badge/Badge";
-import { Button } from "@/components/Button/Button";
-import { Clock, Map, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Adventure {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  isOfficial: boolean;
-  genres: string[];
-  estimatedTime: string;
-  sceneCount: number;
-  ageRating: "For Everyone" | "Teen" | "Adult";
-  difficulty?: "Beginner" | "Intermediate" | "Advanced";
-}
+import type { Adventure } from "@/services/api";
 
 interface AdventureCardProps {
   adventure: Adventure;
@@ -27,12 +13,6 @@ const ageRatingColors = {
   "For Everyone": "green",
   Teen: "yellow",
   Adult: "destructive",
-} as const;
-
-const difficultyColors = {
-  Beginner: "green",
-  Intermediate: "yellow",
-  Advanced: "destructive",
 } as const;
 
 const genreColors = {
@@ -59,18 +39,18 @@ export function AdventureCard({
       {/* Image */}
       <div className="aspect-[16/9] bg-muted overflow-hidden relative">
         <img
-          src={adventure.imageUrl}
+          src={adventure.banner_image_url}
           alt={adventure.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {/* Age Rating Badge - positioned over image */}
         <div className="absolute top-3 right-3">
           <Badge
-            variant={ageRatingColors[adventure.ageRating]}
+            variant={ageRatingColors[adventure.age_rating]}
             size="sm"
             className="font-semibold"
           >
-            {adventure.ageRating}
+            {adventure.age_rating}
           </Badge>
         </div>
       </div>
@@ -86,18 +66,6 @@ export function AdventureCard({
         <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
           {adventure.description}
         </p>
-
-        {/* Adventure Stats */}
-        <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            <span>{adventure.estimatedTime}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Map className="h-4 w-4" />
-            <span>{adventure.sceneCount} scenes</span>
-          </div>
-        </div>
 
         {/* Genres and Difficulty */}
         <div className="flex flex-wrap gap-2 mb-4">
@@ -115,11 +83,6 @@ export function AdventureCard({
           {adventure.genres.length > 2 && (
             <Badge variant="outline" size="sm">
               +{adventure.genres.length - 2}
-            </Badge>
-          )}
-          {adventure.difficulty && (
-            <Badge variant={difficultyColors[adventure.difficulty]} size="sm">
-              {adventure.difficulty}
             </Badge>
           )}
         </div>
