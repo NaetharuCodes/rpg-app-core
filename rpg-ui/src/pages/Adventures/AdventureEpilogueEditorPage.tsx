@@ -1,17 +1,11 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Save, Eye, Edit, Plus, Trash2, Trophy } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
 import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
-
-// Mock Link component for artifact demo
-const Link = ({ to, className, children, ...props }: any) => (
-  <a href={to} className={className} {...props}>
-    {children}
-  </a>
-);
+import { adventureService } from "@/services/api";
 
 interface Outcome {
   id: string;
@@ -58,69 +52,18 @@ const defaultEpilogueData: EpilogueData = {
   },
 };
 
-// Mock existing data
-const mockExistingEpilogueData: EpilogueData = {
-  content:
-    "The aftermath of the Fortress on the Edge of Doom depends greatly on the choices made during the final confrontation and the specific outcome of the heroes' actions. The kingdom's fate now rests on the foundation built by their courage, sacrifice, and determination in the face of cosmic horror.",
-  outcomes: [
-    {
-      id: "outcome-1",
-      title: "Complete Victory",
-      description:
-        "If the characters managed to destroy or redeem the void general while escaping through the portal:",
-      details:
-        "The void crack in the sky above the Thorndale Valley slowly begins to close over the following weeks. Without the void general's intelligence to coordinate them, the corrupted creatures become disorganized and eventually fade back into nothingness.",
-    },
-    {
-      id: "outcome-2",
-      title: "Strategic Withdrawal",
-      description:
-        "If the characters escaped while the void general remained active:",
-      details:
-        "The void corruption continues to spread from the Thorndale Valley, though slowly and without the organized direction that would make it immediately catastrophic.",
-    },
-  ],
-  designerNotes: {
-    title: "Designer's Notes",
-    content:
-      "Fortress on the Edge of Doom was designed to showcase the Simple D6 system's ability to handle epic, high-stakes fantasy while maintaining focus on character development and heroic storytelling.",
-  },
-  followUpHooks: [
-    {
-      id: "hook-1",
-      title: "The Void's Legacy",
-      description:
-        "Investigate other locations where void magic might have taken hold",
-    },
-    {
-      id: "hook-2",
-      title: "Rebuilding the Kingdom",
-      description:
-        "Help establish new defenses and train the next generation of heroes",
-    },
-  ],
-  credits: {
-    designer: "Your RPG Design Team",
-    system: "Simple D6 RPG System",
-    version: "1.0",
-    year: "2025",
-  },
-};
-
 interface AdventureEpilogueEditorProps {
   adventureId?: string;
   onSave?: (epilogueData: EpilogueData) => void;
   onBack?: () => void;
 }
 
-export function AdventureEpilogueEditorPage({
-  adventureId,
-  onSave,
-  onBack,
-}: AdventureEpilogueEditorProps) {
-  const [epilogueData, setEpilogueData] = useState<EpilogueData>(() =>
-    adventureId ? mockExistingEpilogueData : defaultEpilogueData
-  );
+export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
+  const [epilogueData, setEpilogueData] =
+    useState<EpilogueData>(defaultEpilogueData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiEpilogue, setApiEpilogue] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -128,13 +71,83 @@ export function AdventureEpilogueEditorPage({
 
   const [previewMode, setPreviewMode] = useState(false);
 
+  useEffect(() => {
+    if (id) {
+      loadEpilogue();
+    } else {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  const loadEpilogue = async () => {
+    try {
+      setIsLoading(true);
+      const epilogue = await adventureService.epilogue.get(parseInt(id!));
+      setApiEpilogue(epilogue);
+
+      // Convert API data to component format
+      setEpilogueData({
+        content: epilogue.content || "",
+        outcomes: epilogue.outcomes || [],
+        followUpHooks: epilogue.follow_up_hooks || [],
+        designerNotes: {
+          title: "Designer's Notes",
+          content: epilogue.designer_notes || "",
+        },
+        credits: epilogue.credits || {
+          designer: "",
+          system: "",
+          version: "",
+          year: "",
+        },
+      });
+      setIsLoading(false);
+    } catch (err) {
+      // Epilogue doesn't exist yet - that's okay
+      setIsLoading(false);
+    }
+  };
+
   const handleBackToOverview = () => {
     navigate(`/adventures/${id}/edit`);
   };
 
-  const handleSave = () => {
-    onSave?.(epilogueData);
-    alert("Epilogue saved!");
+  const handleSave = async () => {
+    try {
+      const epilogueToSave = {
+        content: epilogueData.content,
+        designer_notes: epilogueData.designerNotes.content,
+        credits: epilogueData.credits,
+        // Filter and clean up outcomes - remove client-side IDs for new items
+        outcomes: epilogueData.outcomes.map((outcome) => ({
+          ...(typeof outcome.id === "number" ? { id: outcome.id } : {}), // Only include ID if it's a real database ID
+          title: outcome.title,
+          description: outcome.description,
+          details: outcome.details,
+        })),
+        // Same for follow-up hooks
+        follow_up_hooks: epilogueData.followUpHooks.map((hook) => ({
+          ...(typeof hook.id === "number" ? { id: hook.id } : {}), // Only include ID if it's a real database ID
+          title: hook.title,
+          description: hook.description,
+        })),
+      };
+
+      if (apiEpilogue) {
+        await adventureService.epilogue.update(parseInt(id!), epilogueToSave);
+      } else {
+        const created = await adventureService.epilogue.create(
+          parseInt(id!),
+          epilogueToSave
+        );
+        setApiEpilogue(created);
+      }
+      alert("Epilogue saved!");
+    } catch (err) {
+      alert(
+        `Failed to save epilogue: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    }
   };
 
   const addOutcome = () => {

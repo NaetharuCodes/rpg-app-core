@@ -235,7 +235,7 @@ export const adventureService = {
     });
   },
 
-  // Episode management - nested under adventures
+  // Episode management
   episodes: {
     async getAll(adventureId: number): Promise<Episode[]> {
       const response = await authenticatedFetch(
@@ -285,7 +285,7 @@ export const adventureService = {
     },
   },
 
-  // Scene management - nested under adventures and episodes
+  // Scene management
   scenes: {
     async getAll(adventureId: number, episodeId: number): Promise<Scene[]> {
       const response = await authenticatedFetch(
@@ -339,7 +339,7 @@ export const adventureService = {
     },
   },
 
-  // Title Page management - nested under adventures
+  // Title Page management
   titlePage: {
     async get(adventureId: number): Promise<TitlePage> {
       const response = await authenticatedFetch(
@@ -379,6 +379,52 @@ export const adventureService = {
     async delete(adventureId: number): Promise<void> {
       await authenticatedFetch(
         `${API_BASE}/adventures/${adventureId}/title-page`,
+        {
+          method: "DELETE",
+        }
+      );
+    },
+  },
+  epilogue: {
+    async get(adventureId: number): Promise<any> {
+      // TODO: Create proper Epilogue interface
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/epilogue`
+      );
+      return response.json();
+    },
+
+    async create(
+      adventureId: number,
+      epilogue: any // TODO: Create proper interface
+    ): Promise<any> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/epilogue`,
+        {
+          method: "POST",
+          body: JSON.stringify(epilogue),
+        }
+      );
+      return response.json();
+    },
+
+    async update(
+      adventureId: number,
+      epilogue: any // TODO: Create proper interface
+    ): Promise<any> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/epilogue`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(epilogue),
+        }
+      );
+      return response.json();
+    },
+
+    async delete(adventureId: number): Promise<void> {
+      await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/epilogue`,
         {
           method: "DELETE",
         }

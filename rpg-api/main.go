@@ -107,6 +107,12 @@ func main() {
 	r.PATCH("/adventures/:id/episodes/:episodeId/scenes/:sceneId", authMiddleware.RequireAuth(), adventureHandler.UpdateScene)
 	r.DELETE("/adventures/:id/episodes/:episodeId/scenes/:sceneId", authMiddleware.RequireAuth(), adventureHandler.DeleteScene)
 
+	// Epilogue routes
+	r.GET("/adventures/:id/epilogue", authMiddleware.OptionalAuth(), adventureHandler.GetEpilogue)
+	r.POST("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.CreateEpilogue)
+	r.PATCH("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.UpdateEpilogue)
+	r.DELETE("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.DeleteEpilogue)
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {

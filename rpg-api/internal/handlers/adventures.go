@@ -657,6 +657,152 @@ func (h *AdventureHandler) DeleteScene(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Scene deleted successfully"})
 }
 
+// EPILOGUE ENDPOINTS
+
+// GET /adventures/:id/epilogue
+func (h *AdventureHandler) GetEpilogue(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	// Verify user has access to this adventure
+	if !h.hasAdventureAccess(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var epilogue models.Epilogue
+	if err := h.DB.Preload("Outcomes").Preload("FollowUpHooks").Where("adventure_id = ?", adventureID).First(&epilogue).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Epilogue not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, epilogue)
+}
+
+// POST /adventures/:id/epilogue
+func (h *AdventureHandler) CreateEpilogue(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	// Check if epilogue already exists
+	var existingCount int64
+	h.DB.Model(&models.Epilogue{}).Where("adventure_id = ?", adventureID).Count(&existingCount)
+	if existingCount > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Epilogue already exists"})
+		return
+	}
+
+	var epilogue models.Epilogue
+	if err := c.ShouldBindJSON(&epilogue); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	epilogue.AdventureID = uint(adventureID)
+
+	if err := h.DB.Create(&epilogue).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create epilogue"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, epilogue)
+}
+
+// PATCH /adventures/:id/epilogue
+func (h *AdventureHandler) UpdateEpilogue(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var epilogue models.Epilogue
+	if err := h.DB.Where("adventure_id = ?", adventureID).First(&epilogue).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Epilogue not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&epilogue); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Don't allow changing adventure_id
+	epilogue.AdventureID = uint(adventureID)
+
+	if err := h.DB.Save(&epilogue).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update epilogue"})
+		return
+	}
+
+	c.JSON(http.StatusOK, epilogue)
+}
+
+// DELETE /adventures/:id/epilogue
+func (h *AdventureHandler) DeleteEpilogue(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var epilogue models.Epilogue
+	if err := h.DB.Where("adventure_id = ?", adventureID).First(&epilogue).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Epilogue not found"})
+		return
+	}
+
+	// Delete epilogue (outcomes and hooks will be cascade deleted by foreign key constraint)
+	if err := h.DB.Delete(&epilogue).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete epilogue"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Epilogue deleted successfully"})
+}
+
 // HELPER METHODS
 
 // Check if user has access to view adventure (owns it or it's official)

@@ -129,12 +129,19 @@ type Scene struct {
 	Assets  []Asset `json:"assets,omitempty" gorm:"many2many:scene_assets;"`
 }
 
+type Credits struct {
+	Designer string `json:"designer"`
+	System   string `json:"system"`
+	Version  string `json:"version"`
+	Year     string `json:"year"`
+}
+
 type Epilogue struct {
 	ID            uint      `json:"id" gorm:"primaryKey"`
 	AdventureID   uint      `json:"adventure_id"`
 	Content       string    `json:"content" gorm:"type:text"`
 	DesignerNotes string    `json:"designer_notes" gorm:"type:text"`
-	Credits       string    `json:"credits" gorm:"type:text"` // JSON string for credits object
+	Credits       Credits   `json:"credits" gorm:"embedded;embeddedPrefix:credits_"`
 	CreatedAt     time.Time `json:"created_at"`
 
 	// Relationship
