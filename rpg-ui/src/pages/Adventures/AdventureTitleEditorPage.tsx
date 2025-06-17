@@ -1,65 +1,15 @@
-import { useState } from "react";
-import {
-  ArrowLeft,
-  ImageIcon,
-  Save,
-  Eye,
-  Edit,
-  X,
-  Package,
-  Plus,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ImageIcon, Save, Eye, Edit } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ImagePickerModal,
-  type LibraryImage,
-} from "@/components/Modals/ImagePickerModal";
+import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 import { mockLibraryImages } from "@/components/mocks/imageMocks";
 import { mockAssets } from "@/components/mocks/assetMocks";
 import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
-
-// Mock asset data
-const mockAllAssets = [
-  {
-    id: "sir-marcus-brightblade",
-    name: "Sir Marcus Brightblade",
-    type: "character",
-    description: "A young knight seeking to prove his honor",
-    imageUrl: "https://via.placeholder.com/300x400/4F46E5/FFFFFF?text=Knight",
-  },
-  {
-    id: "captain-roderick",
-    name: "Captain Roderick",
-    type: "character",
-    description: "Weathered fortress commander",
-    imageUrl: "https://via.placeholder.com/300x400/7C3AED/FFFFFF?text=Captain",
-  },
-  {
-    id: "void-general",
-    name: "The Void General",
-    type: "creature",
-    description: "What King Aldric becomes when corrupted",
-    imageUrl: "https://via.placeholder.com/300x400/DC2626/FFFFFF?text=Void",
-  },
-  {
-    id: "fortress-valenhall",
-    name: "Fortress Valenhall",
-    type: "location",
-    description: "Ancient stronghold with protective wards",
-    imageUrl: "https://via.placeholder.com/300x400/059669/FFFFFF?text=Fortress",
-  },
-  {
-    id: "ancient-sword",
-    name: "Ancient Runeblade",
-    type: "item",
-    description: "A mystical weapon of great power",
-    imageUrl: "https://via.placeholder.com/300x400/D97706/FFFFFF?text=Sword",
-  },
-];
+import { adventureService, assetService, type Asset } from "@/services/api";
 
 interface TitleData {
   title: string;
@@ -81,26 +31,6 @@ const defaultTitleData: TitleData = {
   relatedAssets: [],
 };
 
-// Mock existing data
-const mockExistingTitleData: TitleData = {
-  title: "Fortress on the Edge of Doom",
-  subtitle: "A Simple D6 RPG Adventure for 3-5 Players",
-  bannerImage:
-    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=400&fit=crop",
-  introduction:
-    "Fortress on the Edge of Doom is an epic high fantasy adventure that focuses on heroism in the face of impossible odds, magical catastrophe, and the desperate defense of reality itself. The Simple D6 system provides quick resolution for action sequences when needed, but the heart of this adventure lies in dramatic storytelling, tactical cooperation, and the mounting tension of a final stand against cosmic horror.",
-  background:
-    "The Kingdom of Aldenwrath has been locked in a generations-long war against the Dark Lord Malthraxus and his armies of corrupted creatures. For three years, the final campaign has raged across the Thorndale Valley, with King Aldric's forces slowly pushing back the darkness.\n\nWhat neither side anticipated was the Dark Lord's final, desperate gambit. Faced with inevitable defeat, Malthraxus has turned to forbidden void magic - sorcery that tears at the very fabric of reality itself.",
-  prologue:
-    "The camera sweeps across a vast battlefield stretching between two mountain ranges. Banners of silver and gold clash against crimson and black as thousands of warriors fight in the valley below.\n\nAtop a rocky outcrop, the ancient fortress of Valenhall stands sentinel, its weathered gray stones bearing witness to the final battle between Light and Dark.",
-  relatedAssets: [
-    "sir-marcus-brightblade",
-    "captain-roderick",
-    "void-general",
-    "fortress-valenhall",
-  ],
-};
-
 const assetTypeColors = {
   character: "fantasy",
   creature: "horror",
@@ -116,31 +46,118 @@ interface AdventureTitleEditorProps {
 
 export function AdventureTitleEditor({
   adventureId,
-  onSave,
-  onBack,
 }: AdventureTitleEditorProps) {
-  const [titleData, setTitleData] = useState<TitleData>(() =>
-    adventureId ? mockExistingTitleData : defaultTitleData
-  );
+  const [titleData, setTitleData] = useState<TitleData>({
+    title: "",
+    subtitle: "",
+    bannerImage: null,
+    introduction: "",
+    background: "",
+    prologue: "",
+    relatedAssets: [],
+  });
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [allAssets, setAllAssets] = useState<Asset[]>([]);
 
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
 
+  useEffect(() => {
+    if (adventureId || id) {
+      loadTitlePage();
+    } else {
+      setIsLoading(false);
+    }
+  }, [adventureId, id]);
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        const assets = await assetService.getAll();
+        setAllAssets(assets);
+      } catch (err) {
+        console.error("Failed to load assets:", err);
+      }
+    };
+    loadAssets();
+  }, []);
+
+  const loadTitlePage = async () => {
+    try {
+      setIsLoading(true);
+      const titlePage = await adventureService.titlePage.get(parseInt(id!));
+
+      // Convert API data to component format
+      setTitleData({
+        title: titlePage.title,
+        subtitle: titlePage.subtitle,
+        bannerImage: titlePage.banner_image_url || null,
+        introduction: titlePage.introduction,
+        background: titlePage.background,
+        prologue: titlePage.prologue,
+        relatedAssets: [], // TODO: Handle assets when implemented
+      });
+    } catch (err) {
+      // If title page doesn't exist, that's fine - show empty form
+      if (err instanceof Error && err.message.includes("not found")) {
+        // Keep default empty titleData
+        console.log("No title page found, showing empty form");
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Failed to load title page"
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBackToOverview = () => {
     navigate(`/adventures/${id}/edit`);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!titleData.title.trim()) {
       alert("Please enter an adventure title");
       return;
     }
-    onSave?.(titleData);
-    alert("Title page saved!");
+
+    try {
+      const titlePageData = {
+        title: titleData.title,
+        subtitle: titleData.subtitle,
+        banner_image_url: titleData.bannerImage || "",
+        introduction: titleData.introduction,
+        background: titleData.background,
+        prologue: titleData.prologue,
+      };
+
+      // Try to update first, if it fails (404), then create
+      try {
+        await adventureService.titlePage.update(parseInt(id!), titlePageData);
+      } catch (updateErr) {
+        if (
+          updateErr instanceof Error &&
+          updateErr.message.includes("not found")
+        ) {
+          // Title page doesn't exist, create it
+          await adventureService.titlePage.create(parseInt(id!), titlePageData);
+        } else {
+          throw updateErr;
+        }
+      }
+
+      alert("Title page saved!");
+    } catch (err) {
+      alert(
+        `Failed to save title page: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    }
   };
 
   const handleToggleAsset = (assetId: string) => {
@@ -152,8 +169,8 @@ export function AdventureTitleEditor({
     }));
   };
 
-  const selectedAssets = mockAllAssets.filter((asset) =>
-    titleData.relatedAssets.includes(asset.id)
+  const selectedAssets = allAssets.filter((asset) =>
+    titleData.relatedAssets.includes(asset.id.toString())
   );
 
   if (previewMode) {

@@ -141,6 +141,152 @@ func (h *AdventureHandler) UpdateAdventure(c *gin.Context) {
 	c.JSON(http.StatusOK, adventure)
 }
 
+// TITLE PAGE ENDPOINTS
+
+// GET /adventures/:id/title-page
+func (h *AdventureHandler) GetTitlePage(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	// Verify user has access to this adventure
+	if !h.hasAdventureAccess(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var titlePage models.TitlePage
+	if err := h.DB.Where("adventure_id = ?", adventureID).First(&titlePage).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Title page not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, titlePage)
+}
+
+// POST /adventures/:id/title-page
+func (h *AdventureHandler) CreateTitlePage(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	// Check if title page already exists
+	var existingCount int64
+	h.DB.Model(&models.TitlePage{}).Where("adventure_id = ?", adventureID).Count(&existingCount)
+	if existingCount > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Title page already exists"})
+		return
+	}
+
+	var titlePage models.TitlePage
+	if err := c.ShouldBindJSON(&titlePage); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	titlePage.AdventureID = uint(adventureID)
+
+	if err := h.DB.Create(&titlePage).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create title page"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, titlePage)
+}
+
+// PATCH /adventures/:id/title-page
+func (h *AdventureHandler) UpdateTitlePage(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var titlePage models.TitlePage
+	if err := h.DB.Where("adventure_id = ?", adventureID).First(&titlePage).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Title page not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&titlePage); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Don't allow changing adventure_id
+	titlePage.AdventureID = uint(adventureID)
+
+	if err := h.DB.Save(&titlePage).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update title page"})
+		return
+	}
+
+	c.JSON(http.StatusOK, titlePage)
+}
+
+// DELETE /adventures/:id/title-page
+func (h *AdventureHandler) DeleteTitlePage(c *gin.Context) {
+	adventureID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
+		return
+	}
+
+	_, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Verify user owns this adventure
+	if !h.ownsAdventure(c, uint(adventureID)) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
+		return
+	}
+
+	var titlePage models.TitlePage
+	if err := h.DB.Where("adventure_id = ?", adventureID).First(&titlePage).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Title page not found"})
+		return
+	}
+
+	// Delete title page
+	if err := h.DB.Delete(&titlePage).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete title page"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Title page deleted successfully"})
+}
+
 // EPISODE ENDPOINTS
 
 // GET /adventures/:id/episodes

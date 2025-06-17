@@ -98,12 +98,6 @@ type TitlePage struct {
 	Background     string    `json:"background" gorm:"type:text"`
 	Prologue       string    `json:"prologue" gorm:"type:text"`
 	CreatedAt      time.Time `json:"created_at"`
-
-	// Relationships
-	TitlePage *TitlePage `json:"title_page,omitempty" gorm:"foreignKey:AdventureID"`
-	Scenes    []Scene    `json:"scenes,omitempty" gorm:"foreignKey:AdventureID"`
-	Epilogue  *Epilogue  `json:"epilogue,omitempty" gorm:"foreignKey:AdventureID"`
-	Assets    []Asset    `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
 }
 
 type Episode struct {

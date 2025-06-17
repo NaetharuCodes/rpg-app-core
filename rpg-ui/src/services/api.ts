@@ -29,6 +29,18 @@ export interface Adventure {
   epilogue?: any; // TODO: Define Epilogue interface
 }
 
+export interface TitlePage {
+  id: number;
+  adventure_id: number;
+  title: string;
+  subtitle: string;
+  banner_image_url: string;
+  introduction: string;
+  background: string;
+  prologue: string;
+  created_at: string;
+}
+
 export interface Episode {
   id: number;
   adventure_id: number;
@@ -320,6 +332,53 @@ export const adventureService = {
     ): Promise<void> {
       await authenticatedFetch(
         `${API_BASE}/adventures/${adventureId}/episodes/${episodeId}/scenes/${sceneId}`,
+        {
+          method: "DELETE",
+        }
+      );
+    },
+  },
+
+  // Title Page management - nested under adventures
+  titlePage: {
+    async get(adventureId: number): Promise<TitlePage> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/title-page`
+      );
+      return response.json();
+    },
+
+    async create(
+      adventureId: number,
+      titlePage: Omit<TitlePage, "id" | "adventure_id" | "created_at">
+    ): Promise<TitlePage> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/title-page`,
+        {
+          method: "POST",
+          body: JSON.stringify(titlePage),
+        }
+      );
+      return response.json();
+    },
+
+    async update(
+      adventureId: number,
+      titlePage: Partial<Omit<TitlePage, "id" | "adventure_id" | "created_at">>
+    ): Promise<TitlePage> {
+      const response = await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/title-page`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(titlePage),
+        }
+      );
+      return response.json();
+    },
+
+    async delete(adventureId: number): Promise<void> {
+      await authenticatedFetch(
+        `${API_BASE}/adventures/${adventureId}/title-page`,
         {
           method: "DELETE",
         }

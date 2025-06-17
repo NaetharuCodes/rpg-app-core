@@ -89,6 +89,12 @@ func main() {
 	r.POST("/adventures", authMiddleware.RequireAuth(), adventureHandler.CreateAdventure)
 	r.PATCH("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.UpdateAdventure)
 
+	// Title Page routes
+	r.GET("/adventures/:id/title-page", adventureHandler.GetTitlePage)
+	r.POST("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.CreateTitlePage)
+	r.PATCH("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.UpdateTitlePage)
+	r.DELETE("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.DeleteTitlePage)
+
 	// Episode routes - ADD authMiddleware.RequireAuth() to POST/PATCH/DELETE
 	r.GET("/adventures/:id/episodes", adventureHandler.GetEpisodes)
 	r.POST("/adventures/:id/episodes", authMiddleware.RequireAuth(), adventureHandler.CreateEpisode)

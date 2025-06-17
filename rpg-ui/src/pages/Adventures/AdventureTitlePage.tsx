@@ -1,4 +1,3 @@
-import React from "react";
 import { ArrowRight, Users, Clock, BookOpen } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
@@ -56,13 +55,6 @@ const mockStructure = {
     { id: "episode-3", title: "Race Against Darkness", sceneCount: 4 },
   ],
 };
-
-const assetTypeColors = {
-  character: "fantasy",
-  creature: "horror",
-  location: "scifi",
-  item: "mystery",
-} as const;
 
 interface AdventureTitlePageProps {
   titleData?: typeof mockTitleData;
