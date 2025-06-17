@@ -464,11 +464,11 @@ export function AdventureBuilderOverviewPage({
 
     try {
       if (isEditing && apiAdventure) {
-        const updated = await adventureService.update(apiAdventure.id, {
+        await adventureService.update(apiAdventure.id, {
           title: adventure.title,
           description: adventure.description,
         });
-        setApiAdventure(updated);
+        await loadAdventure(apiAdventure.id);
         alert("Adventure updated!");
       } else {
         const created = await adventureService.create({

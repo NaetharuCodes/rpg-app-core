@@ -88,7 +88,7 @@ func (h *AdventureHandler) GetAdventure(c *gin.Context) {
 	}
 
 	var adventure models.Adventure
-	query := h.DB.Preload("Episodes.Scenes").Preload("TitlePage").Preload("Epilogue")
+	query := h.DB.Preload("Episodes.Scenes")
 
 	user, isAuthenticated := middleware.GetCurrentUser(c)
 	if isAuthenticated {
@@ -194,7 +194,7 @@ func (h *AdventureHandler) CreateEpisode(c *gin.Context) {
 
 	// Get next order number
 	var maxOrder int
-	h.DB.Model(&models.Episode{}).Where("adventure_id = ?", adventureID).Select("COALESCE(MAX(order), 0)").Scan(&maxOrder)
+	h.DB.Model(&models.Episode{}).Where("adventure_id = ?", adventureID).Select(`COALESCE(MAX("order"), 0)`).Scan(&maxOrder)
 
 	episode.AdventureID = uint(adventureID)
 	episode.Order = maxOrder + 1
@@ -387,7 +387,7 @@ func (h *AdventureHandler) CreateScene(c *gin.Context) {
 
 	// Get next order number within this episode
 	var maxOrder int
-	h.DB.Model(&models.Scene{}).Where("episode_id = ?", episodeID).Select("COALESCE(MAX(order), 0)").Scan(&maxOrder)
+	h.DB.Model(&models.Scene{}).Where("episode_id = ?", episodeID).Select(`COALESCE(MAX("order"), 0)`).Scan(&maxOrder)
 
 	scene.EpisodeID = uint(episodeID)
 	scene.Order = maxOrder + 1

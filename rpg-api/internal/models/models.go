@@ -80,9 +80,9 @@ type Adventure struct {
 	CreatedAt      time.Time `json:"created_at"`
 
 	// Relationships
-	User   *User   `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Scenes []Scene `json:"scenes,omitempty" gorm:"foreignKey:AdventureID"`
-	Assets []Asset `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
+	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Episodes []Episode `json:"episodes,omitempty" gorm:"foreignKey:AdventureID"`
+	Assets   []Asset   `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
 }
 
 type TitlePage struct {
