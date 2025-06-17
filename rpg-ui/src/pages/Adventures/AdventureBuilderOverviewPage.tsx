@@ -221,7 +221,7 @@ export function AdventureBuilderOverviewPage({
 
   const handleAddEpisode = () => {
     const newEpisode: Episode = {
-      id: `episode-${adventure.episodes.length + 1}`,
+      id: `episode-${adventure.episodes.length + 1}`, // This is just a temp ID for the modal
       title: `Episode ${adventure.episodes.length + 1}`,
       description: "",
       scenes: [
@@ -264,7 +264,18 @@ export function AdventureBuilderOverviewPage({
           }
         );
         console.log("New episode created:", newEpisode);
-        // ... rest of creation logic
+        setAdventure((prev) => ({
+          ...prev,
+          episodes: [
+            ...prev.episodes,
+            {
+              id: newEpisode.id.toString(),
+              title: newEpisode.title,
+              description: newEpisode.description,
+              scenes: [], // New episodes start with no scenes
+            },
+          ],
+        }));
       } else {
         console.log(
           "Updating existing episode...",
@@ -328,8 +339,11 @@ export function AdventureBuilderOverviewPage({
   };
 
   const handleAddScene = async (episodeId: string) => {
+    console.log("adding a scene");
+
     if (!apiAdventure) return;
 
+    console.log("adding a scene and working");
     try {
       const newScene = await adventureService.scenes.create(
         apiAdventure.id,
@@ -539,8 +553,8 @@ export function AdventureBuilderOverviewPage({
                   Preview
                 </Button>
               )}
-              <Button variant="primary" leftIcon={Save} onClick={handleSave}>
-                {isEditing ? "Save Changes" : "Save Adventure"}
+              <Button onClick={handleSave} leftIcon={Save}>
+                {isEditing ? "Save Changes" : "Create Adventure"}
               </Button>
             </div>
           </div>
@@ -686,228 +700,243 @@ export function AdventureBuilderOverviewPage({
             </Card>
 
             {/* Adventure Structure - Episodes */}
-            <Card variant="elevated">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-semibold">
-                      Adventure Structure
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Organize your adventure into episodes and scenes
-                    </p>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    leftIcon={Plus}
-                    onClick={handleAddEpisode}
-                  >
-                    Add Episode
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Title Page */}
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                        T
-                      </div>
-                      <div>
-                        <h3 className="font-medium">
-                          {adventure.titlePageData?.title || "Title Page"}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {adventure.titlePageData?.subtitle ||
-                            "Adventure introduction and setup"}
-                        </p>
-                      </div>
+            {!apiAdventure && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-blue-800 text-sm">
+                  Save your adventure details above to start adding episodes and
+                  scenes.
+                </p>
+              </div>
+            )}
+            <Card
+              variant="elevated"
+              className={cn(!apiAdventure && "opacity-50 pointer-events-none")}
+            >
+              <Card variant="elevated">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-semibold">
+                        Adventure Structure
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Organize your adventure into episodes and scenes
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {adventure.hasTitle ? (
-                        <Badge variant="green" size="sm">
-                          Complete
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" size="sm">
-                          Empty
-                        </Badge>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        leftIcon={Edit}
-                        onClick={handleNavigateToTitle}
-                      >
-                        Edit
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Episodes */}
-                  {adventure.episodes.map((episode, episodeIndex) => (
-                    <Card
-                      key={episode.id}
-                      variant="ghost"
-                      className="border border-border"
+                    <Button
+                      variant="secondary"
+                      leftIcon={Plus}
+                      onClick={handleAddEpisode}
                     >
-                      {/* Episode Header */}
-                      <div className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <button
-                              onClick={() => toggleEpisode(episode.id)}
-                              className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors"
-                            >
-                              <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
-                                {episodeIndex + 1}
-                              </div>
-                              <div className="text-left">
-                                <h3 className="font-medium">
-                                  {episode.title ||
-                                    `Episode ${episodeIndex + 1}`}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {episode.description || "No description yet"}{" "}
-                                  • {episode.scenes.length} scenes
-                                </p>
-                              </div>
-                              {expandedEpisodes.has(episode.id) ? (
-                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              leftIcon={Edit}
-                              onClick={() => handleEditEpisode(episode)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              leftIcon={Trash2}
-                              onClick={() => handleDeleteEpisode(episode.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                              disabled={adventure.episodes.length <= 1}
-                            >
-                              Delete
-                            </Button>
-                          </div>
+                      Add Episode
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Title Page */}
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                          T
                         </div>
+                        <div>
+                          <h3 className="font-medium">
+                            {adventure.titlePageData?.title || "Title Page"}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {adventure.titlePageData?.subtitle ||
+                              "Adventure introduction and setup"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {adventure.hasTitle ? (
+                          <Badge variant="green" size="sm">
+                            Complete
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" size="sm">
+                            Empty
+                          </Badge>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={Edit}
+                          onClick={handleNavigateToTitle}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
 
-                        {/* Episode Content - Scenes */}
-                        {expandedEpisodes.has(episode.id) && (
-                          <div className="mt-6 space-y-3">
-                            {episode.scenes.map((scene, sceneIndex) => (
-                              <div
-                                key={scene.id}
-                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ml-12"
+                    {/* Episodes */}
+                    {adventure.episodes.map((episode, episodeIndex) => (
+                      <Card
+                        key={episode.id}
+                        variant="ghost"
+                        className="border border-border"
+                      >
+                        {/* Episode Header */}
+                        <div className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <button
+                                onClick={() => toggleEpisode(episode.id)}
+                                className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors"
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-6 h-6 rounded bg-background text-foreground flex items-center justify-center text-xs font-medium">
-                                    {sceneIndex + 1}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-sm">
-                                      {scene.title || `Scene ${sceneIndex + 1}`}
-                                    </h4>
-                                    <p className="text-xs text-muted-foreground">
-                                      {scene.description ||
-                                        "No description yet"}
-                                    </p>
-                                  </div>
+                                <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
+                                  {episodeIndex + 1}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {getStatusBadge(scene.status)}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    leftIcon={Edit}
-                                    onClick={() =>
-                                      handleNavigateToScene(
-                                        scene.id,
-                                        episode.id
-                                      )
-                                    }
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    leftIcon={Trash2}
-                                    onClick={() =>
-                                      handleDeleteScene(episode.id, scene.id)
-                                    }
-                                    className="text-red-600 hover:text-red-700"
-                                    disabled={episode.scenes.length <= 1}
-                                  >
-                                    Delete
-                                  </Button>
+                                <div className="text-left">
+                                  <h3 className="font-medium">
+                                    {episode.title ||
+                                      `Episode ${episodeIndex + 1}`}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    {episode.description ||
+                                      "No description yet"}{" "}
+                                    • {episode.scenes.length} scenes
+                                  </p>
                                 </div>
-                              </div>
-                            ))}
-
-                            {/* Add Scene Button */}
-                            <div className="ml-12">
+                                {expandedEpisodes.has(episode.id) ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2">
                               <Button
-                                variant="secondary"
+                                variant="ghost"
                                 size="sm"
-                                leftIcon={Plus}
-                                onClick={() => handleAddScene(episode.id)}
-                                className="w-full border-dashed"
+                                leftIcon={Edit}
+                                onClick={() => handleEditEpisode(episode)}
                               >
-                                Add Scene to This Episode
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                leftIcon={Trash2}
+                                onClick={() => handleDeleteEpisode(episode.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                disabled={adventure.episodes.length <= 1}
+                              >
+                                Delete
                               </Button>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </Card>
-                  ))}
 
-                  {/* Epilogue */}
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-sm font-medium">
-                        E
+                          {/* Episode Content - Scenes */}
+                          {expandedEpisodes.has(episode.id) && (
+                            <div className="mt-6 space-y-3">
+                              {episode.scenes.map((scene, sceneIndex) => (
+                                <div
+                                  key={scene.id}
+                                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ml-12"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-6 h-6 rounded bg-background text-foreground flex items-center justify-center text-xs font-medium">
+                                      {sceneIndex + 1}
+                                    </div>
+                                    <div>
+                                      <h4 className="font-medium text-sm">
+                                        {scene.title ||
+                                          `Scene ${sceneIndex + 1}`}
+                                      </h4>
+                                      <p className="text-xs text-muted-foreground">
+                                        {scene.description ||
+                                          "No description yet"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {getStatusBadge(scene.status)}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      leftIcon={Edit}
+                                      onClick={() =>
+                                        handleNavigateToScene(
+                                          scene.id,
+                                          episode.id
+                                        )
+                                      }
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      leftIcon={Trash2}
+                                      onClick={() =>
+                                        handleDeleteScene(episode.id, scene.id)
+                                      }
+                                      className="text-red-600 hover:text-red-700"
+                                      disabled={episode.scenes.length <= 1}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+
+                              {/* Add Scene Button */}
+                              <div className="ml-12">
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  leftIcon={Plus}
+                                  onClick={() => handleAddScene(episode.id)}
+                                  className="w-full border-dashed"
+                                >
+                                  Add Scene to This Episode
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+
+                    {/* Epilogue */}
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-sm font-medium">
+                          E
+                        </div>
+                        <div>
+                          <h3 className="font-medium">Epilogue</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Adventure conclusion and outcomes
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium">Epilogue</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Adventure conclusion and outcomes
-                        </p>
+                      <div className="flex items-center gap-2">
+                        {adventure.hasEpilogue ? (
+                          <Badge variant="green" size="sm">
+                            Complete
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" size="sm">
+                            Empty
+                          </Badge>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={Edit}
+                          onClick={handleNavigateToEpilogue}
+                        >
+                          Edit
+                        </Button>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {adventure.hasEpilogue ? (
-                        <Badge variant="green" size="sm">
-                          Complete
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" size="sm">
-                          Empty
-                        </Badge>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        leftIcon={Edit}
-                        onClick={handleNavigateToEpilogue}
-                      >
-                        Edit
-                      </Button>
                     </div>
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              </Card>
             </Card>
           </div>
 
