@@ -182,8 +182,8 @@ export function AdventureBuilderOverviewPage({
     navigate(`/adventures/${id}/edit/title`);
   };
 
-  const handleNavigateToScene = (sceneID: string) => {
-    navigate(`/adventures/${id}/edit/scenes/${sceneID}`);
+  const handleNavigateToScene = (sceneID: string, episodeID: string) => {
+    navigate(`/adventures/${id}/edit/episodes/${episodeID}/scenes/${sceneID}`);
   };
 
   const handleNavigateToEpilogue = () => {
@@ -415,13 +415,49 @@ export function AdventureBuilderOverviewPage({
         await loadAdventure(apiAdventure.id);
         alert("Adventure updated!");
       } else {
+        // Create the adventure with all required fields
         const created = await adventureService.create({
           title: adventure.title,
           description: adventure.description,
+          banner_image_url: "",
+          genres: adventure.genres || [], // Use selected genres or empty array
+          is_official: false,
+          age_rating:
+            adventure.suitability === "All"
+              ? "For Everyone"
+              : adventure.suitability,
         });
+
+        // Auto-create title page
+        await adventureService.titlePage.create(created.id, {
+          title: adventure.title,
+          subtitle: "",
+          banner_image_url: "",
+          introduction: "",
+          background: "",
+          prologue: "",
+        });
+
+        // Auto-create first episode
+        const firstEpisode = await adventureService.episodes.create(
+          created.id,
+          {
+            title: "Episode 1",
+            description: "",
+          }
+        );
+
+        // Auto-create first scene in the episode
+        await adventureService.scenes.create(created.id, firstEpisode.id, {
+          title: "Scene 1",
+          description: "",
+          prose: "",
+          gm_notes: "",
+        });
+
         setApiAdventure(created);
         navigate(`/adventures/${created.id}/edit`);
-        alert("Adventure created!");
+        alert("Adventure created with basic structure!");
       }
     } catch (err) {
       alert(
@@ -793,7 +829,10 @@ export function AdventureBuilderOverviewPage({
                                     size="sm"
                                     leftIcon={Edit}
                                     onClick={() =>
-                                      handleNavigateToScene(scene.id)
+                                      handleNavigateToScene(
+                                        scene.id,
+                                        episode.id
+                                      )
                                     }
                                   >
                                     Edit

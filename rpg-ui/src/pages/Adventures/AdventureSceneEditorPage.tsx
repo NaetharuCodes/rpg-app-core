@@ -12,10 +12,6 @@ import {
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
-import { mockAssets } from "@/components/mocks/assetMocks";
-import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
-import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
-import { mockLibraryImages } from "@/components/mocks/imageMocks";
 import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
 import { adventureService, type Scene as APIScene } from "@/services/api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -36,18 +32,6 @@ const defaultSceneData: SceneData = {
   prose: "",
   gmNotes: "",
   sceneAssets: [],
-};
-
-const mockExistingSceneData: SceneData = {
-  title: "The Battle Observed",
-  description: "Heroes witness the final battle from the fortress battlements",
-  image:
-    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=500&fit=crop",
-  prose:
-    "From the ancient stones of Valenhall's battlements, the final battle spreads before you like a living tapestry of heroism and horror. Three years of war have led to this moment - King Aldric's forces, their silver banners gleaming in the afternoon sun, pressing forward in disciplined formations across the Thorndale Valley.\n\nCaptain Roderick stands beside you at the battlements, his weathered face showing the first signs of hope you've seen in months. \"Look there,\" he points toward the valley floor, where the king's golden standard advances steadily. \"Malthraxus is finally beaten. Three years of hell, but we've broken them at last.\"",
-  gmNotes:
-    "## Setting the Victory\nEmphasize that this should be a moment of triumph. The characters have witnessed three years of brutal warfare, and victory seems finally at hand.\n\n### Victory Indicators:\n- The enemy forces are in clear retreat across multiple fronts\n- King Aldric himself leads the final charge\n- The fortress defenders are celebrating\n\n### Simple D6 Checks:\n- **Notice (Easy)**: The enemy retreat seems unusually organized\n- **Military Tactics (Moderate)**: The converging retreat pattern is strategically purposeful\n- **Magic Theory (Hard)**: The strange shimmer in the air around the obsidian tower\n\n> **The Convergence**: As the scene progresses, make it clear that something ominous is happening.",
-  sceneAssets: ["captain-roderick", "fortress-valenhall"],
 };
 
 const assetTypeColors = {
@@ -143,9 +127,7 @@ export function AdventureSceneEditorPage({
   const { id: adventureId, episodeId, sceneId } = useParams();
   const navigate = useNavigate();
 
-  const [sceneData, setSceneData] = useState<SceneData>(() =>
-    sceneId ? mockExistingSceneData : defaultSceneData
-  );
+  const [sceneData, setSceneData] = useState<SceneData>(defaultSceneData);
 
   const [isLoading, setIsLoading] = useState(true);
   const [apiScene, setApiScene] = useState<APIScene | null>(null);
@@ -198,32 +180,53 @@ export function AdventureSceneEditorPage({
   };
 
   const handleSave = async () => {
-    if (!sceneData.title.trim() || !apiScene) {
+    if (!sceneData.title.trim()) {
       alert("Please enter a scene title");
       return;
     }
 
     try {
-      const updated = await adventureService.scenes.update(
-        parseInt(adventureId!),
-        parseInt(episodeId!),
-        apiScene.id,
-        {
-          title: sceneData.title,
-          description: sceneData.description,
-          image_url: sceneData.image || undefined,
-          prose: sceneData.prose,
-          gm_notes: sceneData.gmNotes,
-        }
-      );
-      setApiScene(updated);
-      alert("Scene saved!");
+      if (apiScene) {
+        // Updating existing scene
+        const updated = await adventureService.scenes.update(
+          parseInt(adventureId!),
+          parseInt(episodeId!),
+          apiScene.id,
+          {
+            title: sceneData.title,
+            description: sceneData.description,
+            image_url: sceneData.image || undefined,
+            prose: sceneData.prose,
+            gm_notes: sceneData.gmNotes,
+          }
+        );
+        setApiScene(updated);
+        alert("Scene saved!");
+      } else {
+        // Creating new scene
+        const created = await adventureService.scenes.create(
+          parseInt(adventureId!),
+          parseInt(episodeId!),
+          {
+            title: sceneData.title,
+            description: sceneData.description,
+            image_url: sceneData.image || undefined,
+            prose: sceneData.prose,
+            gm_notes: sceneData.gmNotes,
+          }
+        );
+        setApiScene(created);
+        alert("Scene created!");
+        // Optionally navigate to the edit URL for the newly created scene
+        // navigate(`/adventures/${adventureId}/edit/scenes/${created.id}`);
+      }
     } catch (err) {
       alert(
         `Failed to save scene: ${err instanceof Error ? err.message : "Unknown error"}`
       );
     }
   };
+
   const handleToggleAsset = (assetId: string) => {
     setSceneData((prev) => ({
       ...prev,
@@ -245,9 +248,7 @@ export function AdventureSceneEditorPage({
     navigate(`/adventures/${adventureId}/edit`);
   };
 
-  const selectedAssets = mockAssets.filter((asset) =>
-    sceneData.sceneAssets.includes(asset.id)
-  );
+  const selectedAssets: any[] = [];
 
   if (isLoading) {
     return (
@@ -616,7 +617,7 @@ export function AdventureSceneEditorPage({
               title="Scene Assets"
               description="Characters, creatures, locations, and items in this scene"
               selectedAssetIds={sceneData.sceneAssets}
-              availableAssets={mockAssets}
+              availableAssets={[]}
               onToggleAsset={handleToggleAsset}
               emptyStateMessage="No assets selected yet"
               emptyStateButtonText="Add Your First Asset"
@@ -780,23 +781,23 @@ export function AdventureSceneEditorPage({
       </div>
 
       {/* Image Picker Modal */}
-      <ImagePickerModal
+      {/* <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
         onSelectImage={(imageUrl) =>
           setTitleData((prev) => ({ ...prev, bannerImage: imageUrl }))
         }
         images={mockLibraryImages.banner}
-      />
+      /> */}
 
       {/* Asset Picker Modal */}
-      <AssetPickerModal
+      {/* <AssetPickerModal
         isOpen={showAssetPicker}
         onClose={() => setShowAssetPicker(false)}
         selectedAssets={titleData}
         onToggleAsset={handleToggleAsset}
         assets={mockAssets}
-      />
+      /> */}
     </div>
   );
 }

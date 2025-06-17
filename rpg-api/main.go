@@ -96,13 +96,13 @@ func main() {
 	r.DELETE("/adventures/:id/title-page", authMiddleware.RequireAuth(), adventureHandler.DeleteTitlePage)
 
 	// Episode routes - ADD authMiddleware.RequireAuth() to POST/PATCH/DELETE
-	r.GET("/adventures/:id/episodes", adventureHandler.GetEpisodes)
+	r.GET("/adventures/:id/episodes", authMiddleware.RequireAuth(), adventureHandler.GetEpisodes)
 	r.POST("/adventures/:id/episodes", authMiddleware.RequireAuth(), adventureHandler.CreateEpisode)
 	r.PATCH("/adventures/:id/episodes/:episodeId", authMiddleware.RequireAuth(), adventureHandler.UpdateEpisode)
 	r.DELETE("/adventures/:id/episodes/:episodeId", authMiddleware.RequireAuth(), adventureHandler.DeleteEpisode)
 
 	// Scene routes - ADD authMiddleware.RequireAuth() to POST/PATCH/DELETE
-	r.GET("/adventures/:id/episodes/:episodeId/scenes", adventureHandler.GetScenes)
+	r.GET("/adventures/:id/episodes/:episodeId/scenes", authMiddleware.RequireAuth(), adventureHandler.GetScenes)
 	r.POST("/adventures/:id/episodes/:episodeId/scenes", authMiddleware.RequireAuth(), adventureHandler.CreateScene)
 	r.PATCH("/adventures/:id/episodes/:episodeId/scenes/:sceneId", authMiddleware.RequireAuth(), adventureHandler.UpdateScene)
 	r.DELETE("/adventures/:id/episodes/:episodeId/scenes/:sceneId", authMiddleware.RequireAuth(), adventureHandler.DeleteScene)
