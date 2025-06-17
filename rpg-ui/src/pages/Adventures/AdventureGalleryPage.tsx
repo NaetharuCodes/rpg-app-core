@@ -25,7 +25,7 @@ export function AdventureGalleryPage() {
       try {
         setIsLoading(true);
         const data = await adventureService.getAll();
-
+        console.log("API Response:", data);
         // Transform API data to match your display format
         const transformedAdventures = data.map((adventure) => ({
           ...adventure,

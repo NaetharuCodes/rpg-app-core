@@ -19,6 +19,7 @@ export interface Adventure {
   title: string;
   description: string;
   banner_image_url?: string;
+  card_image_url?: string;
   genres: string[];
   is_official: boolean;
   age_rating: "For Everyone" | "Teen" | "Adult";

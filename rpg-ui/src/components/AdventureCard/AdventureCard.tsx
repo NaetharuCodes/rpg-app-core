@@ -15,15 +15,6 @@ const ageRatingColors = {
   Adult: "destructive",
 } as const;
 
-const genreColors = {
-  fantasy: "fantasy",
-  horror: "horror",
-  scifi: "scifi",
-  mystery: "mystery",
-  historical: "historical",
-  modern: "modern",
-} as const;
-
 export function AdventureCard({
   adventure,
   children,
@@ -38,11 +29,23 @@ export function AdventureCard({
     >
       {/* Image */}
       <div className="aspect-[16/9] bg-muted overflow-hidden relative">
-        <img
-          src={adventure.banner_image_url}
-          alt={adventure.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {adventure.card_image_url ? (
+          <img
+            src={adventure.card_image_url}
+            alt={adventure.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-2">🎲</div>
+              <div className="text-sm text-muted-foreground font-medium">
+                Adventure
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Age Rating Badge - positioned over image */}
         <div className="absolute top-3 right-3">
           <Badge

@@ -76,6 +76,7 @@ type Adventure struct {
 	Title          string         `json:"title"`
 	Description    string         `json:"description"`
 	BannerImageURL string         `json:"banner_image_url"`
+	CardImageURL   string         `json:"card_image_url"`
 	Genres         pq.StringArray `json:"genres" gorm:"type:text[]"`
 	IsOfficial     bool           `json:"is_official" gorm:"default:false"`
 	AgeRating      string         `json:"age_rating" gorm:"default:'For Everyone'"`
