@@ -145,6 +145,7 @@ export function AdventureBuilderOverviewPage({
   }, [id]);
 
   const convertApiDataToComponent = async (apiData: Adventure) => {
+    console.log("All episodes from API:", apiData.episodes);
     const episodes: Episode[] = (apiData.episodes || []).map((ep) => ({
       id: ep.id.toString(),
       title: ep.title,
@@ -156,6 +157,8 @@ export function AdventureBuilderOverviewPage({
         status: scene.prose ? "complete" : scene.title ? "draft" : "empty",
       })),
     }));
+
+    console.log("Converted episodes:", episodes);
 
     let hasTitle = false;
     let titlePageData = null;
@@ -183,6 +186,11 @@ export function AdventureBuilderOverviewPage({
   };
 
   const handleNavigateToScene = (sceneID: string, episodeID: string) => {
+    console.log("Navigation called with:", {
+      sceneID,
+      episodeID,
+      adventureId: id,
+    });
     navigate(`/adventures/${id}/edit/episodes/${episodeID}/scenes/${sceneID}`);
   };
 
@@ -238,10 +246,16 @@ export function AdventureBuilderOverviewPage({
   };
 
   const handleSaveEpisode = async (updatedEpisode: Episode) => {
-    if (!apiAdventure) return;
+    console.log("handleSaveEpisode called with:", updatedEpisode);
+
+    if (!apiAdventure) {
+      console.log("No apiAdventure found");
+      return;
+    }
 
     try {
       if (isCreatingEpisode) {
+        console.log("Creating new episode...");
         const newEpisode = await adventureService.episodes.create(
           apiAdventure.id,
           {
@@ -249,21 +263,15 @@ export function AdventureBuilderOverviewPage({
             description: updatedEpisode.description,
           }
         );
-        // Add to local state with converted format
-        setAdventure((prev) => ({
-          ...prev,
-          episodes: [
-            ...prev.episodes,
-            {
-              id: newEpisode.id.toString(),
-              title: newEpisode.title,
-              description: newEpisode.description,
-              scenes: [],
-            },
-          ],
-        }));
+        console.log("New episode created:", newEpisode);
+        // ... rest of creation logic
       } else {
-        await adventureService.episodes.update(
+        console.log(
+          "Updating existing episode...",
+          apiAdventure.id,
+          updatedEpisode.id
+        );
+        const result = await adventureService.episodes.update(
           apiAdventure.id,
           parseInt(updatedEpisode.id),
           {
@@ -271,18 +279,12 @@ export function AdventureBuilderOverviewPage({
             description: updatedEpisode.description,
           }
         );
-        // Update local state
-        setAdventure((prev) => ({
-          ...prev,
-          episodes: prev.episodes.map((ep) =>
-            ep.id === updatedEpisode.id ? updatedEpisode : ep
-          ),
-        }));
+        console.log("Update result:", result);
+        // ... rest of update logic
       }
     } catch (err) {
-      alert(
-        `Failed to save episode: ${err instanceof Error ? err.message : "Unknown error"}`
-      );
+      console.error("Error in handleSaveEpisode:", err);
+      // ... existing error handling
     }
   };
 

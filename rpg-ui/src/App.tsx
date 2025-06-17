@@ -52,7 +52,7 @@ function App() {
               element={<AdventureTitlePage />}
             />
             <Route
-              path="/adventures/:adventureId/scenes/:sceneNumber"
+              path="/adventures/:adventureId/episodes/:episodeId/scenes/:sceneNumber"
               element={<AdventureScenePage />}
             />
             <Route
@@ -78,7 +78,7 @@ function App() {
               element={<AdventureEpilogueEditorPage />}
             />
             <Route
-              path="/adventures/:id/edit/scenes/:sceneId"
+              path="/adventures/:id/edit/episodes/:episodeId/scenes/:sceneId"
               element={<AdventureSceneEditorPage />}
             />
 

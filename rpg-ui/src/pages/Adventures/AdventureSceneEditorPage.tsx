@@ -153,26 +153,45 @@ export function AdventureSceneEditorPage({
   const loadScene = async () => {
     try {
       setIsLoading(true);
+      console.log("Loading scene with params:", {
+        adventureId,
+        episodeId,
+        sceneId,
+      });
+
+      console.log("Loading adventure id: ", adventureId);
+      console.log("Loading scene id: ", sceneId);
+
       // We find the scene we need from the Episodes that pulled back from the api
       const scenes = await adventureService.scenes.getAll(
         parseInt(adventureId!),
         parseInt(episodeId!)
       );
+      console.log("All scenes loaded:", scenes);
+      console.log("Loading adventure id: ", adventureId);
+      console.log("Loading scene id: ", sceneId);
+
       const scene = scenes.find((s) => s.id === parseInt(sceneId!));
+      console.log("Found scene:", scene);
+
       if (!scene) {
         throw new Error("Scene not found");
       }
+
       setApiScene(scene);
       // Convert to component format
-      setSceneData({
+      const convertedData = {
         title: scene.title,
         description: scene.description,
         image: scene.image_url || null,
         prose: scene.prose || "",
         gmNotes: scene.gm_notes || "",
         sceneAssets: [], // TODO: Handle assets when implemented
-      });
+      };
+      console.log("Converted scene data:", convertedData);
+      setSceneData(convertedData);
     } catch (err) {
+      console.error("Error in loadScene:", err);
       setError(err instanceof Error ? err.message : "Failed to load scene");
     } finally {
       setIsLoading(false);
