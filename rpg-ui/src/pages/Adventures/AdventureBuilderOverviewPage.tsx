@@ -146,19 +146,25 @@ export function AdventureBuilderOverviewPage({
 
   const convertApiDataToComponent = async (apiData: Adventure) => {
     console.log("All episodes from API:", apiData.episodes);
-    const episodes: Episode[] = (apiData.episodes || []).map((ep) => ({
+
+    // Sort episodes by order field before mapping
+    const sortedEpisodes = (apiData.episodes || []).sort(
+      (a, b) => a.order - b.order
+    );
+
+    const episodes: Episode[] = sortedEpisodes.map((ep) => ({
       id: ep.id.toString(),
       title: ep.title,
       description: ep.description,
-      scenes: (ep.scenes || []).map((scene) => ({
-        id: scene.id.toString(),
-        title: scene.title,
-        description: scene.description,
-        status: scene.prose ? "complete" : scene.title ? "draft" : "empty",
-      })),
+      scenes: (ep.scenes || [])
+        .sort((a, b) => a.order - b.order) // Add this line to sort scenes
+        .map((scene) => ({
+          id: scene.id.toString(),
+          title: scene.title,
+          description: scene.description,
+          status: scene.prose ? "complete" : scene.title ? "draft" : "empty",
+        })),
     }));
-
-    console.log("Converted episodes:", episodes);
 
     let hasTitle = false;
     let titlePageData = null;
@@ -291,7 +297,18 @@ export function AdventureBuilderOverviewPage({
           }
         );
         console.log("Update result:", result);
-        // ... rest of update logic
+        setAdventure((prev) => ({
+          ...prev,
+          episodes: prev.episodes.map((ep) =>
+            ep.id === updatedEpisode.id
+              ? {
+                  ...ep,
+                  title: updatedEpisode.title,
+                  description: updatedEpisode.description,
+                }
+              : ep
+          ),
+        }));
       }
     } catch (err) {
       console.error("Error in handleSaveEpisode:", err);

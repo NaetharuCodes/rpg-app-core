@@ -485,7 +485,7 @@ func (h *AdventureHandler) GetScenes(c *gin.Context) {
 	}
 
 	var scenes []models.Scene
-	if err := h.DB.Where("episode_id = ?", episodeID).Order("order ASC").Find(&scenes).Error; err != nil {
+	if err := h.DB.Where("episode_id = ?", episodeID).Order("\"order\" ASC").Find(&scenes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch scenes"})
 		return
 	}

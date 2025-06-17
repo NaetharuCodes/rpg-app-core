@@ -67,26 +67,6 @@ export function AdventureCard({
           {adventure.description}
         </p>
 
-        {/* Genres and Difficulty */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {adventure.genres.slice(0, 2).map((genre) => (
-            <Badge
-              key={genre}
-              variant={
-                genreColors[genre as keyof typeof genreColors] || "outline"
-              }
-              size="sm"
-            >
-              {genre}
-            </Badge>
-          ))}
-          {adventure.genres.length > 2 && (
-            <Badge variant="outline" size="sm">
-              +{adventure.genres.length - 2}
-            </Badge>
-          )}
-        </div>
-
         {/* Action Buttons */}
         {children && <div className="flex gap-2">{children}</div>}
       </div>
