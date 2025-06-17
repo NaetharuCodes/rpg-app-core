@@ -555,10 +555,6 @@ You can use Markdown formatting:
           </div>
         </div>
       )}
-      <div className="fixed top-4 left-4 bg-red-500 text-white p-2 z-[9999]">
-        Debug: showSuccessModal={showSuccessModal.toString()}, hasAsset=
-        {createdAsset ? "yes" : "no"}
-      </div>
       <AssetCreationSuccessModal
         isOpen={showSuccessModal}
         onClose={() => {
