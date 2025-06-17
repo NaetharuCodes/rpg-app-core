@@ -88,6 +88,7 @@ func main() {
 	r.GET("/adventures/:id", authMiddleware.OptionalAuth(), adventureHandler.GetAdventure)
 	r.POST("/adventures", authMiddleware.RequireAuth(), adventureHandler.CreateAdventure)
 	r.PATCH("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.UpdateAdventure)
+	r.DELETE("/adventures/:id", authMiddleware.RequireAuth(), adventureHandler.DeleteAdventure)
 
 	// Title Page routes
 	r.GET("/adventures/:id/title-page", authMiddleware.OptionalAuth(), adventureHandler.GetTitlePage)

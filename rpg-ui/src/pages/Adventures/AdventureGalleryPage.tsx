@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Search, Filter, Edit, Play } from "lucide-react";
+import { Plus, Search, Filter, Edit, Play, Trash } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { AdventureCard } from "@/components/AdventureCard/AdventureCard";
 import { cn } from "@/lib/utils";
@@ -99,6 +99,37 @@ export function AdventureGalleryPage() {
   const handleEditAdventure = (adventure: Adventure) => {
     // Navigate to adventure editor
     window.location.href = `/adventures/${adventure.id}/edit`;
+  };
+
+  const handleDeleteAdventure = async (adventure: Adventure) => {
+    if (
+      confirm(
+        `Are you sure you want to delete "${adventure.title}"? This will permanently delete the entire adventure including all episodes and scenes.`
+      )
+    ) {
+      try {
+        await adventureService.delete(adventure.id);
+
+        // Refetch and transform data (same as your existing useEffect)
+        const data = await adventureService.getAll();
+        const transformedAdventures = data.map((adventure) => ({
+          ...adventure,
+          isOfficial: !adventure.user_id,
+          genres: adventure.genres || [],
+          estimatedTime: "2-4 hours",
+          sceneCount:
+            adventure.episodes?.reduce(
+              (total, ep) => total + (ep.scenes?.length || 0),
+              0
+            ) || 0,
+          ageRating: "For Everyone" as AgeRating,
+        }));
+
+        setAdventures(transformedAdventures);
+      } catch (error) {
+        alert("Failed to delete adventure. Please try again.");
+      }
+    }
   };
 
   const filteredAdventures = adventures.filter((adventure) => {
@@ -314,6 +345,13 @@ export function AdventureGalleryPage() {
                       onClick={() => handleEditAdventure(adventure)}
                     >
                       Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      leftIcon={Trash}
+                      onClick={() => handleDeleteAdventure(adventure)}
+                    >
+                      Delete
                     </Button>
                   </>
                 )}

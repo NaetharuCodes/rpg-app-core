@@ -15,6 +15,9 @@ import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
 import { adventureService, type Scene as APIScene } from "@/services/api";
 import { useNavigate, useParams } from "react-router-dom";
+import { imageService } from "@/services/api";
+import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
+import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 
 interface SceneData {
   title: string;
@@ -118,8 +121,6 @@ interface AdventureSceneEditorProps {
 }
 
 export function AdventureSceneEditorPage({
-  sceneNumber = 1,
-  totalScenes = 12,
   onBack,
   onNextScene,
   onPrevScene,
@@ -135,8 +136,8 @@ export function AdventureSceneEditorPage({
 
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const [showAssetPicker, setShowAssetPicker] = useState(false);
-  const [titleData, setTitleData] = useState([]);
+  const [sceneNumber, setSceneNumber] = useState(1);
+  const [totalScenes, setTotalScenes] = useState(1);
 
   const isEditing = Boolean(sceneId);
   const hasNext = sceneNumber < totalScenes;
@@ -158,7 +159,6 @@ export function AdventureSceneEditorPage({
         episodeId,
         sceneId,
       });
-
       console.log("Loading adventure id: ", adventureId);
       console.log("Loading scene id: ", sceneId);
 
@@ -167,16 +167,18 @@ export function AdventureSceneEditorPage({
         parseInt(adventureId!),
         parseInt(episodeId!)
       );
-      console.log("All scenes loaded:", scenes);
-      console.log("Loading adventure id: ", adventureId);
-      console.log("Loading scene id: ", sceneId);
 
       const scene = scenes.find((s) => s.id === parseInt(sceneId!));
-      console.log("Found scene:", scene);
-
       if (!scene) {
         throw new Error("Scene not found");
       }
+
+      // ADD THIS SECTION HERE:
+      const currentSceneIndex = scenes.findIndex(
+        (s) => s.id === parseInt(sceneId!)
+      );
+      setSceneNumber(currentSceneIndex + 1); // +1 because arrays are 0-indexed
+      setTotalScenes(scenes.length);
 
       setApiScene(scene);
       // Convert to component format
@@ -800,14 +802,13 @@ export function AdventureSceneEditorPage({
       </div>
 
       {/* Image Picker Modal */}
-      {/* <ImagePickerModal
+      <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
-        onSelectImage={(imageUrl) =>
-          setTitleData((prev) => ({ ...prev, bannerImage: imageUrl }))
+        onSelectImage={
+          (imageUrl) => setSceneData((prev) => ({ ...prev, image: imageUrl })) // ← Fix this!
         }
-        images={mockLibraryImages.banner}
-      /> */}
+      />
 
       {/* Asset Picker Modal */}
       {/* <AssetPickerModal

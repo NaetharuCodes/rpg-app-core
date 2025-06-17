@@ -12,7 +12,6 @@ interface ImagePickerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectImage: (imageUrl: string) => void;
-  images: LibraryImage[];
   aspectRatio?: "banner" | "square" | "landscape" | "portrait";
   title?: string;
   description?: string;
@@ -45,7 +44,6 @@ export function ImagePickerModal({
   isOpen,
   onClose,
   onSelectImage,
-  images,
   aspectRatio = "landscape",
   title = "Choose Image",
   description = "Select from library or upload your own",
@@ -107,7 +105,7 @@ export function ImagePickerModal({
             <div
               className={`grid ${config.gridCols} gap-4 overflow-y-auto max-h-[50vh]`}
             >
-              {images.map((image) => (
+              {/* {images.map((image) => (
                 <button
                   key={image.id}
                   onClick={() => {
@@ -128,7 +126,7 @@ export function ImagePickerModal({
                     </p>
                   </div>
                 </button>
-              ))}
+              ))} */}
             </div>
           ) : (
             <div>
