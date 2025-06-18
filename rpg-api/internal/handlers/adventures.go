@@ -168,6 +168,13 @@ func (h *AdventureHandler) DeleteAdventure(c *gin.Context) {
 		return
 	}
 
+	// Remove the asset assocations from the scenes
+	if err := tx.Exec("DELETE FROM scene_assets WHERE scene_id IN (SELECT id FROM scenes WHERE episode_id IN (SELECT id FROM episodes WHERE adventure_id = ?))", id).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete scene associations"})
+		return
+	}
+
 	// Delete scenes first (they reference episodes)
 	if err := tx.Exec("DELETE FROM scenes WHERE episode_id IN (SELECT id FROM episodes WHERE adventure_id = ?)", id).Error; err != nil {
 		tx.Rollback()
@@ -732,6 +739,11 @@ func (h *AdventureHandler) DeleteScene(c *gin.Context) {
 		return
 	}
 
+	if err := h.DB.Model(&scene).Association("Assets").Clear(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear scene associations"})
+		return
+	}
+
 	// Delete scene
 	if err := h.DB.Delete(&scene).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete scene"})
@@ -847,6 +859,10 @@ func (h *AdventureHandler) UpdateEpilogue(c *gin.Context) {
 
 	// Don't allow changing adventure_id
 	epilogue.AdventureID = uint(adventureID)
+
+	// Clear existing outcomes and hooks before saving new ones
+	h.DB.Where("epilogue_id = ?", epilogue.ID).Delete(&models.EpilogueOutcome{})
+	h.DB.Where("epilogue_id = ?", epilogue.ID).Delete(&models.FollowUpHook{})
 
 	if err := h.DB.Save(&epilogue).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update epilogue"})

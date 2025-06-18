@@ -218,7 +218,7 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
   if (previewMode) {
     // Preview Mode - Shows how the epilogue will look to players
     return (
-      <div className="min-h-screen bg-background">
+      <div className=" min-h-screen bg-background">
         {/* Header */}
         <div className="border-b border-border bg-card">
           <div className="max-w-6xl mx-auto px-6 py-4">
@@ -244,7 +244,6 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
             </div>
           </div>
         </div>
-
         {/* Preview Content - Similar to AdventureEpiloguePage */}
         <div className="min-h-screen bg-background">
           {/* Header */}
@@ -417,7 +416,7 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card">
+      <div className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

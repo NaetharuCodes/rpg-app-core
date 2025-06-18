@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Upload, ImageIcon } from "lucide-react";
+import { X, Upload, ImageIcon, Dice6 } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { imageService } from "@/services/api";
 
@@ -53,6 +53,8 @@ export function ImagePickerModal({
     "library"
   );
 
+  const [isUploading, setIsUploading] = useState(false);
+
   if (!isOpen) return null;
 
   const config = aspectRatioConfig[aspectRatio];
@@ -63,18 +65,27 @@ export function ImagePickerModal({
     const file = event.target.files?.[0];
     if (file) {
       try {
-        // Use your image upload service instead of FileReader
+        setIsUploading(true); // Start loading
         const response = await imageService.uploadImage(file);
-        onSelectImage(response.urls.medium); // or whichever variant you prefer
+        onSelectImage(response.urls.medium);
         onClose();
       } catch (error) {
         console.error("Upload failed:", error);
         alert("Failed to upload image. Please try again.");
+      } finally {
+        setIsUploading(false); // Stop loading
       }
     }
   };
 
-  return (
+  return isUploading ? (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-card border border-border rounded-lg p-8 text-center">
+        <Dice6 className="h-10 w-10 text-accent animate-spin animate-pulse mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground">Uploading image...</p>
+      </div>
+    </div>
+  ) : (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-card border border-border rounded-lg w-full max-w-4xl max-h-[80vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-border">
@@ -86,9 +97,7 @@ export function ImagePickerModal({
             <X className="h-4 w-4" />
           </Button>
         </div>
-
         <div className="p-6">
-          {/* Source Toggle */}
           <div className="flex gap-3 mb-6">
             <Button
               variant={imageSource === "library" ? "primary" : "secondary"}
@@ -105,33 +114,11 @@ export function ImagePickerModal({
               Upload New
             </Button>
           </div>
-
           {imageSource === "library" ? (
             <div
               className={`grid ${config.gridCols} gap-4 overflow-y-auto max-h-[50vh]`}
             >
-              {/* {images.map((image) => (
-                <button
-                  key={image.id}
-                  onClick={() => {
-                    onSelectImage(image.url);
-                    onClose();
-                  }}
-                  className={`group relative ${config.aspectClass} bg-muted rounded-lg overflow-hidden hover:ring-2 hover:ring-primary transition-all`}
-                >
-                  <img
-                    src={image.url}
-                    alt={image.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                  <div className="absolute bottom-2 left-2 right-2">
-                    <p className="text-white text-sm font-medium bg-black/50 rounded px-2 py-1 truncate">
-                      {image.name}
-                    </p>
-                  </div>
-                </button>
-              ))} */}
+              {/* Library content commented out */}
             </div>
           ) : (
             <div>
