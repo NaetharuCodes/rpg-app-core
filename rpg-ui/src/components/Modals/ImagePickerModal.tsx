@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Upload, ImageIcon } from "lucide-react";
 import { Button } from "@/components/Button/Button";
+import { imageService } from "@/services/api";
 
 export interface LibraryImage {
   id: string;
@@ -56,16 +57,20 @@ export function ImagePickerModal({
 
   const config = aspectRatioConfig[aspectRatio];
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        onSelectImage(result);
+      try {
+        // Use your image upload service instead of FileReader
+        const response = await imageService.uploadImage(file);
+        onSelectImage(response.urls.medium); // or whichever variant you prefer
         onClose();
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert("Failed to upload image. Please try again.");
+      }
     }
   };
 

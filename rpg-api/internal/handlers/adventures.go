@@ -553,7 +553,7 @@ func (h *AdventureHandler) GetScenes(c *gin.Context) {
 
 	for i := range scenes {
 		var assetIDs []uint
-		h.DB.Model(&scenes[i]).Association("Assets").Find(&assetIDs)
+		h.DB.Raw("SELECT asset_id FROM scene_assets WHERE scene_id = ?", scenes[i].ID).Scan(&assetIDs)
 		scenes[i].AssetIDs = assetIDs
 	}
 

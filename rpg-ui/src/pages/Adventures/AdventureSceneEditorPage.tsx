@@ -132,18 +132,20 @@ export function AdventureSceneEditorPage({
   const hasPrev = sceneNumber > 1;
 
   useEffect(() => {
-    if (adventureId && episodeId && sceneId) {
+    if (adventureId && episodeId && sceneId && assets.length > 0) {
       loadScene();
-    } else {
+    } else if (!adventureId || !episodeId || !sceneId) {
       setIsLoading(false);
     }
-  }, [adventureId, episodeId, sceneId]);
+  }, [adventureId, episodeId, sceneId, assets]);
 
   useEffect(() => {
     const fetchAssets = async () => {
       try {
         const data = await assetService.getAll();
         setAssets(data);
+        console.log("Assets loaded:", data.length);
+        console.log("Fetching assets...");
       } catch (err) {
         setError("Failed to load assets");
         console.error(err);
@@ -166,6 +168,8 @@ export function AdventureSceneEditorPage({
         parseInt(episodeId!)
       );
 
+      console.log("All scenes from API:", scenes);
+
       const scene = scenes.find((s) => s.id === parseInt(sceneId!));
       if (!scene) {
         throw new Error("Scene not found");
@@ -178,6 +182,12 @@ export function AdventureSceneEditorPage({
       setTotalScenes(scenes.length);
 
       setSceneData(scene);
+      console.log(
+        "Scene loaded with asset_ids:",
+        scene.asset_ids,
+        "Available assets:",
+        assets.length
+      );
     } catch (err) {
       console.error("Error in loadScene:", err);
       setError(err instanceof Error ? err.message : "Failed to load scene");
