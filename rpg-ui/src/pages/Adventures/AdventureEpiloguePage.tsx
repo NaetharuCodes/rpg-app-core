@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -16,34 +16,6 @@ import {
   type Adventure,
   type Epilogue,
 } from "@/services/api";
-
-interface Outcome {
-  title: string;
-  description: string;
-  details: string;
-}
-
-interface FollowUpHook {
-  title: string;
-  description: string;
-}
-
-interface EpilogueData {
-  id: number;
-  adventure_id: number;
-  title: string;
-  content: string;
-  outcomes: Outcome[];
-  designer_notes: string;
-  follow_up_hooks: FollowUpHook[];
-  credits: {
-    designer: string;
-    system: string;
-    version: string;
-    year: string;
-  };
-  created_at: string;
-}
 
 interface NavigationContext {
   totalScenes: number;
