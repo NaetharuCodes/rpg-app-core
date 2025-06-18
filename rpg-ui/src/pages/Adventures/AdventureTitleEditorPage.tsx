@@ -8,7 +8,6 @@ import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 import { mockLibraryImages } from "@/components/mocks/imageMocks";
 import { mockAssets } from "@/components/mocks/assetMocks";
-import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
 import { adventureService, assetService, type Asset } from "@/services/api";
 
 interface TitleData {
@@ -20,16 +19,6 @@ interface TitleData {
   prologue: string;
   relatedAssets: string[]; // Asset IDs
 }
-
-const defaultTitleData: TitleData = {
-  title: "",
-  subtitle: "A Simple D6 RPG Adventure for 3-5 Players",
-  bannerImage: null,
-  introduction: "",
-  background: "",
-  prologue: "",
-  relatedAssets: [],
-};
 
 const assetTypeColors = {
   character: "fantasy",
@@ -548,15 +537,6 @@ export function AdventureTitleEditor({
             </Card>
 
             {/* Related Assets */}
-            <AssetSelector
-              title="Related Assets"
-              description="Key characters, creatures, locations, and items"
-              selectedAssetIds={titleData.relatedAssets}
-              availableAssets={mockAssets}
-              onToggleAsset={handleToggleAsset}
-              emptyStateMessage="No assets selected yet"
-              emptyStateButtonText="Add Your First Asset"
-            />
           </div>
 
           {/* Preview Sidebar */}
@@ -670,23 +650,14 @@ export function AdventureTitleEditor({
       </div>
 
       {/* Image Picker Modal */}
-      <ImagePickerModal
+      {/* <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
         onSelectImage={(imageUrl) =>
           setTitleData((prev) => ({ ...prev, bannerImage: imageUrl }))
         }
         images={mockLibraryImages.banner}
-      />
-
-      {/* Asset Picker Modal */}
-      <AssetPickerModal
-        isOpen={showAssetPicker}
-        onClose={() => setShowAssetPicker(false)}
-        selectedAssets={titleData.relatedAssets}
-        onToggleAsset={handleToggleAsset}
-        assets={mockAssets}
-      />
+      /> */}
     </div>
   );
 }

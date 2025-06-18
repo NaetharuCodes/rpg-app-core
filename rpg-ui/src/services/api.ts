@@ -61,6 +61,7 @@ export interface Scene {
   image_url?: string;
   prose?: string;
   gm_notes?: string;
+  asset_ids?: number[];
   created_at: string;
 }
 
