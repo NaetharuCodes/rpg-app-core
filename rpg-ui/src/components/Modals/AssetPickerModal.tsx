@@ -3,21 +3,14 @@ import { X } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { cn } from "@/lib/utils";
-
-export interface AssetPickerAsset {
-  id: string;
-  name: string;
-  type: "character" | "creature" | "location" | "item";
-  description: string;
-  imageUrl: string;
-}
+import type { Asset } from "@/services/api";
 
 interface AssetPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  assets: AssetPickerAsset[];
+  assets: Asset[];
   selectedAssets: string[];
-  onToggleAsset: (assetId: string) => void;
+  onToggleAsset: (assetId: number) => void;
   title?: string;
   description?: string;
   availableTypes?: ("character" | "creature" | "location" | "item")[];
@@ -40,7 +33,6 @@ export function AssetPickerModal({
   title = "Select Assets",
   description = "Choose assets for your content",
   availableTypes = ["character", "creature", "location", "item"],
-  multiSelect = true,
 }: AssetPickerModalProps) {
   const [filter, setFilter] = useState<
     "all" | "character" | "creature" | "location" | "item"
@@ -56,15 +48,7 @@ export function AssetPickerModal({
             asset.type === filter && availableTypes.includes(asset.type)
         );
 
-  const handleAssetClick = (assetId: string) => {
-    if (
-      !multiSelect &&
-      selectedAssets.length > 0 &&
-      !selectedAssets.includes(assetId)
-    ) {
-      // Single select mode: replace selection
-      onToggleAsset(selectedAssets[0]); // Remove current selection
-    }
+  const handleAssetClick = (assetId: number) => {
     onToggleAsset(assetId);
   };
 
@@ -115,7 +99,7 @@ export function AssetPickerModal({
                   onClick={() => handleAssetClick(asset.id)}
                   className={cn(
                     "bg-card border rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-md group relative",
-                    selectedAssets.includes(asset.id)
+                    selectedAssets.includes(asset.name)
                       ? "border-primary ring-2 ring-primary/20"
                       : "border-border hover:border-primary/50"
                   )}
@@ -123,7 +107,7 @@ export function AssetPickerModal({
                   {/* Asset Image */}
                   <div className="aspect-[4/3] bg-muted overflow-hidden">
                     <img
-                      src={asset.imageUrl}
+                      src={asset.image_url}
                       alt={asset.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -134,12 +118,12 @@ export function AssetPickerModal({
                     <div
                       className={cn(
                         "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
-                        selectedAssets.includes(asset.id)
+                        selectedAssets.includes(asset.name)
                           ? "border-primary bg-primary"
                           : "border-white bg-white/80"
                       )}
                     >
-                      {selectedAssets.includes(asset.id) && (
+                      {selectedAssets.includes(asset.name) && (
                         <div className="w-3 h-3 bg-primary-foreground rounded-full" />
                       )}
                     </div>

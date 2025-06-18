@@ -45,13 +45,12 @@ interface Asset {
 }
 
 interface NavigationContext {
-  currentScene: number;
+  currentSceneIndex: number;
   totalScenes: number;
   episode: {
     id: number;
     title: string;
-    sceneNumber: number;
-    totalInEpisode: number;
+    order: number;
   };
   hasNext: boolean;
   hasPrev: boolean;
@@ -257,15 +256,25 @@ export function AdventureScenePage({
   const { adventureId, episodeId, sceneNumber } = useParams();
   const navigate = useNavigate();
 
-  const [scene, setScene] = useState<Scene | null>(null);
+  // State for scenes and navigation
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [episode, setEpisode] = useState<Episode | null>(null);
   const [adventure, setAdventure] = useState<Adventure | null>(null);
+  const [allEpisodes, setAllEpisodes] = useState<Episode[]>([]);
   const [navigation, setNavigation] = useState<NavigationContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [showAllAssets, setShowAllAssets] = useState(false);
   const [showDiceRoller, setShowDiceRoller] = useState(false);
+
+  // Update URL without navigation
+  const updateUrl = (newSceneIndex: number) => {
+    const newSceneNumber = newSceneIndex + 1;
+    const newUrl = `/adventures/${adventureId}/episodes/${episodeId}/scenes/${newSceneNumber}`;
+    window.history.replaceState(null, "", newUrl);
+  };
 
   useEffect(() => {
     const loadSceneData = async () => {
@@ -280,11 +289,15 @@ export function AdventureScenePage({
         );
         setAdventure(adventureData);
 
-        // Fetch episode data
-        const episodes = await adventureService.episodes.getAll(
+        // Fetch all episodes for navigation context
+        const episodesData = await adventureService.episodes.getAll(
           parseInt(adventureId)
         );
-        const currentEpisode = episodes.find(
+        const sortedEpisodes = episodesData.sort((a, b) => a.order - b.order);
+        setAllEpisodes(sortedEpisodes);
+
+        // Find current episode
+        const currentEpisode = sortedEpisodes.find(
           (ep) => ep.id === parseInt(episodeId)
         );
         if (!currentEpisode) {
@@ -292,66 +305,61 @@ export function AdventureScenePage({
         }
         setEpisode(currentEpisode);
 
-        // Fetch scenes for this episode
-        const scenes = await adventureService.scenes.getAll(
+        // Fetch all scenes for this episode
+        const scenesData = await adventureService.scenes.getAll(
           parseInt(adventureId),
           parseInt(episodeId)
         );
-        const sortedScenes = scenes.sort((a, b) => a.order - b.order);
+        const sortedScenes = scenesData.sort((a, b) => a.order - b.order);
+        setScenes(sortedScenes);
 
-        // Find current scene by scene number (1-indexed)
-        const currentScene = sortedScenes[parseInt(sceneNumber) - 1];
-        if (!currentScene) {
+        // Determine current scene index from URL scene number
+        const urlSceneNumber = parseInt(sceneNumber);
+        const sceneIndex = urlSceneNumber - 1; // Convert 1-based to 0-based
+
+        // Validate scene index
+        if (sceneIndex < 0 || sceneIndex >= sortedScenes.length) {
           throw new Error("Scene not found");
         }
-        setScene(currentScene);
 
-        // Calculate navigation context
-        const currentSceneIndex = parseInt(sceneNumber) - 1;
-        const totalScenesInEpisode = sortedScenes.length;
+        setCurrentSceneIndex(sceneIndex);
 
-        // Calculate total scenes across all episodes
-        const totalScenes =
-          adventureData.episodes?.reduce(
-            (total, ep) => total + (ep.scenes?.length || 0),
-            0
-          ) || 0;
-
-        // Find current episode index
-        const sortedEpisodes = episodes.sort((a, b) => a.order - b.order);
+        // Build navigation context
         const currentEpisodeIndex = sortedEpisodes.findIndex(
           (ep) => ep.id === parseInt(episodeId)
         );
 
-        // Determine what happens on "next"
         let nextAction: "scene" | "episode" | "epilogue" = "scene";
-        if (currentSceneIndex === totalScenesInEpisode - 1) {
+        let hasNext = true;
+
+        if (sceneIndex === sortedScenes.length - 1) {
           // Last scene in episode
           if (currentEpisodeIndex === sortedEpisodes.length - 1) {
-            // Last episode - go to epilogue
+            // Last episode - go to epilogue (always available)
             nextAction = "epilogue";
+            hasNext = true;
           } else {
             // Go to next episode
             nextAction = "episode";
+            hasNext = true;
           }
+        } else {
+          // Not last scene, so next scene is available
+          hasNext = true;
         }
 
+        const hasPrev = sceneIndex > 0 || currentEpisodeIndex > 0;
+
         setNavigation({
-          currentScene: parseInt(sceneNumber),
-          totalScenes: totalScenesInEpisode,
+          currentSceneIndex: sceneIndex,
+          totalScenes: sortedScenes.length,
           episode: {
             id: currentEpisode.id,
             title: currentEpisode.title,
-            sceneNumber: parseInt(sceneNumber),
-            totalInEpisode: totalScenesInEpisode,
+            order: currentEpisode.order,
           },
-          hasNext:
-            currentSceneIndex < totalScenesInEpisode - 1 ||
-            currentEpisodeIndex < sortedEpisodes.length - 1 ||
-            (currentSceneIndex === totalScenesInEpisode - 1 &&
-              currentEpisodeIndex === sortedEpisodes.length - 1 &&
-              nextAction === "epilogue"),
-          hasPrev: currentSceneIndex > 0 || currentEpisodeIndex > 0,
+          hasNext,
+          hasPrev,
           nextAction,
         });
       } catch (err) {
@@ -375,14 +383,39 @@ export function AdventureScenePage({
 
     if (navigation.nextAction === "scene") {
       // Go to next scene in same episode
-      const nextSceneNumber = navigation.currentScene + 1;
-      navigate(
-        `/adventures/${adventureId}/episodes/${episodeId}/scenes/${nextSceneNumber}`
+      const nextIndex = currentSceneIndex + 1;
+      setCurrentSceneIndex(nextIndex);
+      updateUrl(nextIndex);
+
+      // Update navigation context
+      setNavigation((prev) =>
+        prev
+          ? {
+              ...prev,
+              currentSceneIndex: nextIndex,
+              hasNext: true,
+              hasPrev: true,
+              nextAction:
+                nextIndex === scenes.length - 1
+                  ? allEpisodes.findIndex(
+                      (ep) => ep.id === parseInt(episodeId)
+                    ) ===
+                    allEpisodes.length - 1
+                    ? "epilogue"
+                    : "episode"
+                  : "scene",
+            }
+          : null
       );
     } else if (navigation.nextAction === "episode") {
       // Go to next episode title page
-      const nextEpisodeId = parseInt(episodeId) + 1; // This is simplified - you might need to fetch episodes to get the actual next episode ID
-      navigate(`/adventures/${adventureId}/episodes/${nextEpisodeId}`);
+      const currentEpisodeIndex = allEpisodes.findIndex(
+        (ep) => ep.id === parseInt(episodeId)
+      );
+      const nextEpisode = allEpisodes[currentEpisodeIndex + 1];
+      if (nextEpisode) {
+        navigate(`/adventures/${adventureId}/episodes/${nextEpisode.id}`);
+      }
     } else if (navigation.nextAction === "epilogue") {
       // Go to epilogue
       navigate(`/adventures/${adventureId}/epilogue`);
@@ -397,15 +430,26 @@ export function AdventureScenePage({
 
     if (!navigation || !adventureId || !episodeId) return;
 
-    if (navigation.currentScene > 1) {
+    if (currentSceneIndex > 0) {
       // Go to previous scene in same episode
-      const prevSceneNumber = navigation.currentScene - 1;
-      navigate(
-        `/adventures/${adventureId}/episodes/${episodeId}/scenes/${prevSceneNumber}`
+      const prevIndex = currentSceneIndex - 1;
+      setCurrentSceneIndex(prevIndex);
+      updateUrl(prevIndex);
+
+      // Update navigation context
+      setNavigation((prev) =>
+        prev
+          ? {
+              ...prev,
+              currentSceneIndex: prevIndex,
+              hasNext: true,
+              hasPrev: prevIndex > 0,
+              nextAction: "scene",
+            }
+          : null
       );
     } else {
-      // Go back to episode title or previous episode's last scene
-      // For now, just go back to episode title
+      // Go back to episode title page
       navigate(`/adventures/${adventureId}/episodes/${episodeId}`);
     }
   };
@@ -421,7 +465,13 @@ export function AdventureScenePage({
     );
   }
 
-  if (error || !scene || !episode || !navigation) {
+  if (
+    error ||
+    !scenes.length ||
+    !episode ||
+    !navigation ||
+    currentSceneIndex >= scenes.length
+  ) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -437,11 +487,13 @@ export function AdventureScenePage({
     );
   }
 
+  const currentScene = scenes[currentSceneIndex];
   const sceneAssets = mockAssets.filter(
-    (asset) => scene.title.toLowerCase().includes(asset.name.toLowerCase()) // Simple matching for now
+    (asset) =>
+      currentScene.title.toLowerCase().includes(asset.name.toLowerCase()) // Simple matching for now
   );
 
-  const gmNotes = parseGMNotes(scene.gm_notes || "");
+  const gmNotes = parseGMNotes(currentScene.gm_notes || "");
 
   return (
     <div className="min-h-screen bg-background">
@@ -458,9 +510,9 @@ export function AdventureScenePage({
                 {episode.title}
               </span>
             </div>
-            <h1 className="text-2xl font-bold">{scene.title}</h1>
+            <h1 className="text-2xl font-bold">{currentScene.title}</h1>
             <p className="text-sm text-muted-foreground">
-              Scene {navigation.currentScene} of {navigation.totalScenes}
+              Scene {currentSceneIndex + 1} of {navigation.totalScenes}
             </p>
           </div>
 
@@ -493,11 +545,11 @@ export function AdventureScenePage({
       {/* Scene Content */}
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {/* Scene Image */}
-        {scene.image_url && (
+        {currentScene.image_url && (
           <div className="h-32 rounded-lg overflow-hidden bg-muted">
             <img
-              src={scene.image_url}
-              alt={scene.title}
+              src={currentScene.image_url}
+              alt={currentScene.title}
               className="w-full h-full object-cover"
             />
           </div>
@@ -516,7 +568,7 @@ export function AdventureScenePage({
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none">
-              {(scene.prose || "No scene description available.")
+              {(currentScene.prose || "No scene description available.")
                 .split("\n")
                 .map((paragraph, index) => (
                   <p
