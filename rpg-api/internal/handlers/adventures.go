@@ -524,27 +524,32 @@ func (h *AdventureHandler) DeleteEpisode(c *gin.Context) {
 
 // GET /adventures/:id/episodes/:episodeId/scenes
 func (h *AdventureHandler) GetScenes(c *gin.Context) {
+
 	adventureID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
 		return
 	}
+
 	episodeID, err := strconv.Atoi(c.Param("episodeId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
 		return
 	}
+
 	// Verify user has access to this adventure
 	if !h.hasAdventureAccess(c, uint(adventureID)) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
 		return
 	}
+
 	// Verify episode belongs to adventure
 	var episode models.Episode
 	if err := h.DB.Where("id = ? AND adventure_id = ?", episodeID, adventureID).First(&episode).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Episode not found"})
 		return
 	}
+
 	var scenes []models.Scene
 	if err := h.DB.Where("episode_id = ?", episodeID).Preload("Assets").Order("\"order\" ASC").Find(&scenes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch scenes"})

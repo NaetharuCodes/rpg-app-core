@@ -650,14 +650,16 @@ export function AdventureTitleEditor({
       </div>
 
       {/* Image Picker Modal */}
-      {/* <ImagePickerModal
+      <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
         onSelectImage={(imageUrl) =>
           setTitleData((prev) => ({ ...prev, bannerImage: imageUrl }))
         }
-        images={mockLibraryImages.banner}
-      /> */}
+        aspectRatio="banner"
+        title="Choose Banner Image"
+        description="Select or upload a banner image for your adventure"
+      />
     </div>
   );
 }
