@@ -3,10 +3,8 @@ import { X, Package, Plus } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
-import {
-  AssetPickerModal,
-  type AssetPickerAsset,
-} from "@/components/Modals/AssetPickerModal";
+import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
+import type { Asset } from "@/services/api";
 
 const assetTypeColors = {
   character: "fantasy",
@@ -19,8 +17,8 @@ interface AssetSelectorProps {
   title?: string;
   description?: string;
   selectedAssetIds: string[];
-  availableAssets: AssetPickerAsset[];
-  onToggleAsset: (assetId: string) => void;
+  availableAssets: Asset[];
+  onToggleAsset: (assetId: number) => void;
   className?: string;
   gridCols?: "1" | "2" | "3";
   emptyStateMessage?: string;
@@ -45,7 +43,7 @@ export function AssetSelector({
   const [showAssetPicker, setShowAssetPicker] = useState(false);
 
   const selectedAssets = availableAssets.filter((asset) =>
-    selectedAssetIds.includes(asset.id)
+    selectedAssetIds.includes(asset.name)
   );
 
   const gridColsMap = {
@@ -82,7 +80,7 @@ export function AssetSelector({
                 >
                   <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
                     <img
-                      src={asset.imageUrl}
+                      src={asset.image_url}
                       alt={asset.name}
                       className="w-full h-full object-cover"
                     />

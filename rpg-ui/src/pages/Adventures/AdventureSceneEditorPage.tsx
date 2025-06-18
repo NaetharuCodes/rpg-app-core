@@ -13,9 +13,13 @@ import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
-import { adventureService, type Scene as APIScene } from "@/services/api";
+import {
+  adventureService,
+  assetService,
+  type Scene as APIScene,
+  type Asset,
+} from "@/services/api";
 import { useNavigate, useParams } from "react-router-dom";
-import { imageService } from "@/services/api";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 
@@ -136,8 +140,10 @@ export function AdventureSceneEditorPage({
 
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [showAssetPicker, setShowAssetPicker] = useState(false);
   const [sceneNumber, setSceneNumber] = useState(1);
   const [totalScenes, setTotalScenes] = useState(1);
+  const [assets, setAssets] = useState<Asset[]>([]);
 
   const isEditing = Boolean(sceneId);
   const hasNext = sceneNumber < totalScenes;
@@ -150,6 +156,21 @@ export function AdventureSceneEditorPage({
       setIsLoading(false);
     }
   }, [adventureId, episodeId, sceneId]);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const data = await assetService.getAll();
+        setAssets(data);
+      } catch (err) {
+        setError("Failed to load assets");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAssets();
+  }, []);
 
   const loadScene = async () => {
     try {
@@ -248,7 +269,7 @@ export function AdventureSceneEditorPage({
     }
   };
 
-  const handleToggleAsset = (assetId: string) => {
+  const handleToggleAsset = (assetId: number) => {
     setSceneData((prev) => ({
       ...prev,
       sceneAssets: prev.sceneAssets.includes(assetId)
@@ -811,13 +832,13 @@ export function AdventureSceneEditorPage({
       />
 
       {/* Asset Picker Modal */}
-      {/* <AssetPickerModal
+      <AssetPickerModal
         isOpen={showAssetPicker}
         onClose={() => setShowAssetPicker(false)}
-        selectedAssets={titleData}
+        selectedAssets={[]}
         onToggleAsset={handleToggleAsset}
-        assets={mockAssets}
-      /> */}
+        assets={assets}
+      />
     </div>
   );
 }
