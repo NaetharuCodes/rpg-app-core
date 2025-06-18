@@ -23,7 +23,7 @@ export function AdventureCard({
   return (
     <div
       className={cn(
-        "bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group",
+        "bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group flex flex-col space-between",
         className
       )}
     >

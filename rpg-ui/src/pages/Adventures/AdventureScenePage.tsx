@@ -393,7 +393,7 @@ export function AdventureScenePage({
           ? {
               ...prev,
               currentSceneIndex: nextIndex,
-              hasNext: nextIndex < scenes.length - 1,
+              hasNext: true,
               hasPrev: true,
               nextAction:
                 nextIndex === scenes.length - 1
