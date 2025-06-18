@@ -259,8 +259,6 @@ export function AdventureSceneEditorPage({
         );
         setApiScene(created);
         alert("Scene created!");
-        // Optionally navigate to the edit URL for the newly created scene
-        // navigate(`/adventures/${adventureId}/edit/scenes/${created.id}`);
       }
     } catch (err) {
       alert(
@@ -269,22 +267,7 @@ export function AdventureSceneEditorPage({
     }
   };
 
-  const handleToggleAsset = (assetId: number) => {
-    setSceneData((prev) => ({
-      ...prev,
-      sceneAssets: prev.sceneAssets.includes(assetId)
-        ? prev.sceneAssets.filter((id) => id !== assetId)
-        : [...prev.sceneAssets, assetId],
-    }));
-  };
-
-  const handleNextScene = () => {
-    // TODO: Implement next scene logic with episode awareness
-  };
-
-  const handlePrevScene = () => {
-    // TODO: Implement prev scene logic with episode awareness
-  };
+  const handleToggleAsset = (assetId: number) => {};
 
   const handleBackToOverview = () => {
     navigate(`/adventures/${adventureId}/edit`);
