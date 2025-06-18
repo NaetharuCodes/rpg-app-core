@@ -27,7 +27,7 @@ export function AssetCard({ asset, children, className }: AssetCardProps) {
   return (
     <div
       className={cn(
-        "bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group relative",
+        "bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group relative flex flex flex-col",
         className
       )}
       style={{ contain: "layout style" }}
@@ -42,7 +42,7 @@ export function AssetCard({ asset, children, className }: AssetCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4 overflow-hidden">
+      <div className="p-4 overflow-hidden flex flex-col flex-1">
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-lg">{assetTypeIcons[asset.type]}</span>
@@ -77,7 +77,7 @@ export function AssetCard({ asset, children, className }: AssetCardProps) {
             ))}
           </div>
         )}
-
+        <div className="flex-1"></div>
         {children && <div className="flex gap-2">{children}</div>}
       </div>
     </div>

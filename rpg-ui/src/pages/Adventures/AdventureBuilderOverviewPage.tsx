@@ -896,7 +896,7 @@ export function AdventureBuilderOverviewPage({
                               onClick={() => toggleEpisode(episode.id)}
                               className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors"
                             >
-                              <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
+                              <div className="min-w-8 min-h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
                                 {episodeIndex + 1}
                               </div>
                               <div className="text-left">
@@ -937,7 +937,6 @@ export function AdventureBuilderOverviewPage({
                             </Button>
                           </div>
                         </div>
-
                         {/* Episode Content - Scenes */}
                         {expandedEpisodes.has(episode.id) && (
                           <div className="mt-6 space-y-3">
@@ -947,7 +946,7 @@ export function AdventureBuilderOverviewPage({
                                 className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ml-12"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="w-6 h-6 rounded bg-background text-foreground flex items-center justify-center text-xs font-medium">
+                                  <div className="w-6 h-6 min-w-6 min-h-6 rounded bg-background text-foreground flex items-center justify-center text-xs font-medium">
                                     {sceneIndex + 1}
                                   </div>
                                   <div>
@@ -990,7 +989,6 @@ export function AdventureBuilderOverviewPage({
                                 </div>
                               </div>
                             ))}
-
                             {/* Add Scene Button */}
                             <div className="ml-12">
                               <Button
