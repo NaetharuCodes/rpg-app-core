@@ -529,30 +529,32 @@ func (h *AdventureHandler) GetScenes(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid adventure ID"})
 		return
 	}
-
 	episodeID, err := strconv.Atoi(c.Param("episodeId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid episode ID"})
 		return
 	}
-
 	// Verify user has access to this adventure
 	if !h.hasAdventureAccess(c, uint(adventureID)) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
 		return
 	}
-
 	// Verify episode belongs to adventure
 	var episode models.Episode
 	if err := h.DB.Where("id = ? AND adventure_id = ?", episodeID, adventureID).First(&episode).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Episode not found"})
 		return
 	}
-
 	var scenes []models.Scene
-	if err := h.DB.Where("episode_id = ?", episodeID).Order("\"order\" ASC").Find(&scenes).Error; err != nil {
+	if err := h.DB.Where("episode_id = ?", episodeID).Preload("Assets").Order("\"order\" ASC").Find(&scenes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch scenes"})
 		return
+	}
+
+	for i := range scenes {
+		var assetIDs []uint
+		h.DB.Model(&scenes[i]).Association("Assets").Find(&assetIDs)
+		scenes[i].AssetIDs = assetIDs
 	}
 
 	c.JSON(http.StatusOK, scenes)
@@ -594,6 +596,13 @@ func (h *AdventureHandler) CreateScene(c *gin.Context) {
 	if err := c.ShouldBindJSON(&scene); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if len(scene.AssetIDs) > 0 {
+		var assets []models.Asset
+		if err := h.DB.Where("id IN ?", scene.AssetIDs).Find(&assets).Error; err == nil {
+			scene.Assets = assets
+		}
 	}
 
 	// Get next order number within this episode
@@ -655,6 +664,15 @@ func (h *AdventureHandler) UpdateScene(c *gin.Context) {
 	if err := c.ShouldBindJSON(&scene); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Clear the existing asset list, and then create a fresh one based on the new submission.
+	h.DB.Model(&scene).Association("Assets").Clear()
+	if len(scene.AssetIDs) > 0 {
+		var assets []models.Asset
+		if err := h.DB.Where("id IN ?", scene.AssetIDs).Find(&assets).Error; err == nil {
+			h.DB.Model(&scene).Association("Assets").Append(assets)
+		}
 	}
 
 	// Don't allow changing episode_id or order through update

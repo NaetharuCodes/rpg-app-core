@@ -125,6 +125,9 @@ type Scene struct {
 	GMNotes     string    `json:"gm_notes" gorm:"type:text"`
 	CreatedAt   time.Time `json:"created_at"`
 
+	// For frontend communication
+	AssetIDs []uint `json:"asset_ids" gorm:"-"` // Don't persist, just for JSON to save me having to send whole assets up from the creator pages
+
 	// Relationships
 	Episode Episode `json:"episode" gorm:"foreignKey:EpisodeID"`
 	Assets  []Asset `json:"assets,omitempty" gorm:"many2many:scene_assets;"`

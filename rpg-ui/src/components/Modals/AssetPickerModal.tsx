@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
@@ -10,7 +10,7 @@ interface AssetPickerModalProps {
   onClose: () => void;
   assets: Asset[];
   selectedAssets: string[];
-  onToggleAsset: (assetId: number) => void;
+  onAcceptSelection: (assetIds: number[]) => void;
   title?: string;
   description?: string;
   availableTypes?: ("character" | "creature" | "location" | "item")[];
@@ -29,7 +29,7 @@ export function AssetPickerModal({
   onClose,
   assets,
   selectedAssets,
-  onToggleAsset,
+  onAcceptSelection,
   title = "Select Assets",
   description = "Choose assets for your content",
   availableTypes = ["character", "creature", "location", "item"],
@@ -37,6 +37,16 @@ export function AssetPickerModal({
   const [filter, setFilter] = useState<
     "all" | "character" | "creature" | "location" | "item"
   >("all");
+
+  // Internal pending selection state
+  const [pendingSelection, setPendingSelection] = useState<string[]>([]);
+
+  // Initialize pending selection when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setPendingSelection([...selectedAssets]);
+    }
+  }, [isOpen, selectedAssets]);
 
   if (!isOpen) return null;
 
@@ -49,25 +59,40 @@ export function AssetPickerModal({
         );
 
   const handleAssetClick = (assetId: number) => {
-    onToggleAsset(assetId);
+    const assetIdStr = assetId.toString();
+    setPendingSelection((prev) =>
+      prev.includes(assetIdStr)
+        ? prev.filter((id) => id !== assetIdStr)
+        : [...prev, assetIdStr]
+    );
+  };
+
+  const handleAccept = () => {
+    onAcceptSelection(pendingSelection.map((id) => parseInt(id)));
+    onClose();
+  };
+
+  const handleCancel = () => {
+    // Reset pending selection and close
+    setPendingSelection([...selectedAssets]);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-lg w-full max-w-6xl h-[80vh] overflow-hidden">
+      <div className="bg-card border border-border rounded-lg w-full max-w-6xl h-[80vh] md:h-[80vh] h-[90vh] flex flex-col mx-4 md:mx-0">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
             <h2 className="text-xl font-semibold">{title}</h2>
             <p className="text-muted-foreground">{description}</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={handleCancel}>
             <X className="h-4 w-4" />
           </Button>
         </div>
-
-        <div className="p-6">
+        <div className="flex-1 overflow-hidden flex flex-col p-3 md:p-6">
           {/* Filter Tabs */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto pb-2">
             <Button
               variant={filter === "all" ? "primary" : "ghost"}
               size="sm"
@@ -88,18 +113,15 @@ export function AssetPickerModal({
           </div>
 
           {/* Assets Grid */}
-          <div
-            className="overflow-y-auto"
-            style={{ height: "calc(80vh - 200px)" }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
               {filteredAssets.map((asset) => (
                 <div
                   key={asset.id}
                   onClick={() => handleAssetClick(asset.id)}
                   className={cn(
                     "bg-card border rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-md group relative",
-                    selectedAssets.includes(asset.name)
+                    pendingSelection.includes(asset.id.toString())
                       ? "border-primary ring-2 ring-primary/20"
                       : "border-border hover:border-primary/50"
                   )}
@@ -118,12 +140,12 @@ export function AssetPickerModal({
                     <div
                       className={cn(
                         "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
-                        selectedAssets.includes(asset.name)
+                        pendingSelection.includes(asset.id.toString())
                           ? "border-primary bg-primary"
                           : "border-white bg-white/80"
                       )}
                     >
-                      {selectedAssets.includes(asset.name) && (
+                      {pendingSelection.includes(asset.id.toString()) && (
                         <div className="w-3 h-3 bg-primary-foreground rounded-full" />
                       )}
                     </div>
@@ -148,14 +170,21 @@ export function AssetPickerModal({
             </div>
           </div>
         </div>
-
-        <div className="border-t border-border p-6">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">
-              {selectedAssets.length} asset
-              {selectedAssets.length !== 1 ? "s" : ""} selected
+        {/* Footer with Accept/Cancel buttons */}
+        <div className="border-t border-border p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+            <span className="text-sm text-muted-foreground order-2 sm:order-1">
+              {pendingSelection.length} asset
+              {pendingSelection.length !== 1 ? "s" : ""} selected
             </span>
-            <Button onClick={onClose}>Done</Button>
+            <div className="flex gap-3 order-1 sm:order-2">
+              <Button variant="ghost" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleAccept}>
+                Accept
+              </Button>
+            </div>
           </div>
         </div>
       </div>

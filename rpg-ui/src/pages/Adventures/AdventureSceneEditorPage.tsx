@@ -8,38 +8,23 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Plus,
+  Package,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
-import { AssetSelector } from "@/components/AssetPicker/AssetPicker";
+
 import {
   adventureService,
   assetService,
-  type Scene as APIScene,
+  type Scene,
   type Asset,
 } from "@/services/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
-
-interface SceneData {
-  title: string;
-  description: string;
-  image: string | null;
-  prose: string;
-  gmNotes: string; // Markdown format
-  sceneAssets: string[]; // Asset IDs
-}
-
-const defaultSceneData: SceneData = {
-  title: "",
-  description: "",
-  image: null,
-  prose: "",
-  gmNotes: "",
-  sceneAssets: [],
-};
 
 const assetTypeColors = {
   character: "fantasy",
@@ -118,7 +103,7 @@ interface AdventureSceneEditorProps {
   sceneId?: string;
   sceneNumber?: number;
   totalScenes?: number;
-  onSave?: (sceneData: SceneData) => void;
+  onSave?: (sceneData: Scene) => void;
   onBack?: () => void;
   onNextScene?: () => void;
   onPrevScene?: () => void;
@@ -132,12 +117,9 @@ export function AdventureSceneEditorPage({
   const { id: adventureId, episodeId, sceneId } = useParams();
   const navigate = useNavigate();
 
-  const [sceneData, setSceneData] = useState<SceneData>(defaultSceneData);
-
+  const [sceneData, setSceneData] = useState<Scene | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [apiScene, setApiScene] = useState<APIScene | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
@@ -165,8 +147,6 @@ export function AdventureSceneEditorPage({
       } catch (err) {
         setError("Failed to load assets");
         console.error(err);
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchAssets();
@@ -180,10 +160,7 @@ export function AdventureSceneEditorPage({
         episodeId,
         sceneId,
       });
-      console.log("Loading adventure id: ", adventureId);
-      console.log("Loading scene id: ", sceneId);
 
-      // We find the scene we need from the Episodes that pulled back from the api
       const scenes = await adventureService.scenes.getAll(
         parseInt(adventureId!),
         parseInt(episodeId!)
@@ -194,25 +171,13 @@ export function AdventureSceneEditorPage({
         throw new Error("Scene not found");
       }
 
-      // ADD THIS SECTION HERE:
       const currentSceneIndex = scenes.findIndex(
         (s) => s.id === parseInt(sceneId!)
       );
-      setSceneNumber(currentSceneIndex + 1); // +1 because arrays are 0-indexed
+      setSceneNumber(currentSceneIndex + 1);
       setTotalScenes(scenes.length);
 
-      setApiScene(scene);
-      // Convert to component format
-      const convertedData = {
-        title: scene.title,
-        description: scene.description,
-        image: scene.image_url || null,
-        prose: scene.prose || "",
-        gmNotes: scene.gm_notes || "",
-        sceneAssets: [], // TODO: Handle assets when implemented
-      };
-      console.log("Converted scene data:", convertedData);
-      setSceneData(convertedData);
+      setSceneData(scene);
     } catch (err) {
       console.error("Error in loadScene:", err);
       setError(err instanceof Error ? err.message : "Failed to load scene");
@@ -222,27 +187,30 @@ export function AdventureSceneEditorPage({
   };
 
   const handleSave = async () => {
-    if (!sceneData.title.trim()) {
+    if (!sceneData) return;
+
+    if (!sceneData.title?.trim()) {
       alert("Please enter a scene title");
       return;
     }
 
     try {
-      if (apiScene) {
+      if (sceneData.id) {
         // Updating existing scene
         const updated = await adventureService.scenes.update(
           parseInt(adventureId!),
           parseInt(episodeId!),
-          apiScene.id,
+          sceneData.id,
           {
             title: sceneData.title,
             description: sceneData.description,
-            image_url: sceneData.image || undefined,
+            image_url: sceneData.image_url,
             prose: sceneData.prose,
-            gm_notes: sceneData.gmNotes,
+            gm_notes: sceneData.gm_notes,
+            asset_ids: sceneData.asset_ids,
           }
         );
-        setApiScene(updated);
+        setSceneData(updated);
         alert("Scene saved!");
       } else {
         // Creating new scene
@@ -252,12 +220,13 @@ export function AdventureSceneEditorPage({
           {
             title: sceneData.title,
             description: sceneData.description,
-            image_url: sceneData.image || undefined,
+            image_url: sceneData.image_url,
             prose: sceneData.prose,
-            gm_notes: sceneData.gmNotes,
+            gm_notes: sceneData.gm_notes,
+            asset_ids: sceneData.asset_ids,
           }
         );
-        setApiScene(created);
+        setSceneData(created);
         alert("Scene created!");
       }
     } catch (err) {
@@ -267,13 +236,34 @@ export function AdventureSceneEditorPage({
     }
   };
 
-  const handleToggleAsset = (assetId: number) => {};
+  const handleToggleAsset = (assetId: number) => {
+    if (!sceneData) return;
+
+    const currentAssetIds = sceneData.asset_ids || [];
+    const isSelected = currentAssetIds.includes(assetId);
+
+    const updatedAssetIds = isSelected
+      ? currentAssetIds.filter((id) => id !== assetId)
+      : [...currentAssetIds, assetId];
+
+    setSceneData((prev) =>
+      prev
+        ? {
+            ...prev,
+            asset_ids: updatedAssetIds,
+          }
+        : prev
+    );
+  };
 
   const handleBackToOverview = () => {
     navigate(`/adventures/${adventureId}/edit`);
   };
 
-  const selectedAssets: any[] = [];
+  // Calculate selected assets based on asset_ids
+  const selectedAssets = assets.filter(
+    (asset) => sceneData?.asset_ids?.includes(asset.id) || false
+  );
 
   if (isLoading) {
     return (
@@ -281,6 +271,16 @@ export function AdventureSceneEditorPage({
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Loading scene...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sceneData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">No scene data available</p>
         </div>
       </div>
     );
@@ -319,10 +319,10 @@ export function AdventureSceneEditorPage({
         {/* Preview Content */}
         <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
           {/* Scene Image */}
-          {sceneData.image && (
+          {sceneData.image_url && (
             <div className="h-32 rounded-lg overflow-hidden bg-muted">
               <img
-                src={sceneData.image}
+                src={sceneData.image_url}
                 alt={sceneData.title}
                 className="w-full h-full object-cover"
               />
@@ -361,7 +361,7 @@ export function AdventureSceneEditorPage({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* GM Notes */}
-            {sceneData.gmNotes && (
+            {sceneData.gm_notes && (
               <div className="lg:col-span-2">
                 <Card variant="elevated">
                   <CardHeader>
@@ -371,7 +371,7 @@ export function AdventureSceneEditorPage({
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <MarkdownPreview content={sceneData.gmNotes} />
+                    <MarkdownPreview content={sceneData.gm_notes} />
                   </CardContent>
                 </Card>
               </div>
@@ -379,7 +379,7 @@ export function AdventureSceneEditorPage({
 
             {/* Scene Assets */}
             {selectedAssets.length > 0 && (
-              <div className={sceneData.gmNotes ? "" : "lg:col-span-3"}>
+              <div className={sceneData.gm_notes ? "" : "lg:col-span-3"}>
                 <Card variant="elevated">
                   <CardHeader>
                     <h3 className="text-lg font-semibold">Scene Assets</h3>
@@ -396,7 +396,7 @@ export function AdventureSceneEditorPage({
                         >
                           <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
                             <img
-                              src={asset.imageUrl}
+                              src={asset.image_url}
                               alt={asset.name}
                               className="w-full h-full object-cover"
                             />
@@ -509,12 +509,16 @@ export function AdventureSceneEditorPage({
                     </label>
                     <input
                       type="text"
-                      value={sceneData.title}
+                      value={sceneData.title || ""}
                       onChange={(e) =>
-                        setSceneData((prev) => ({
-                          ...prev,
-                          title: e.target.value,
-                        }))
+                        setSceneData((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                title: e.target.value,
+                              }
+                            : prev
+                        )
                       }
                       className="w-full px-4 py-3 text-lg border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="Enter scene title..."
@@ -527,12 +531,16 @@ export function AdventureSceneEditorPage({
                     </label>
                     <input
                       type="text"
-                      value={sceneData.description}
+                      value={sceneData.description || ""}
                       onChange={(e) =>
-                        setSceneData((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
+                        setSceneData((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                description: e.target.value,
+                              }
+                            : prev
+                        )
                       }
                       className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="Brief description for the scene list..."
@@ -543,11 +551,11 @@ export function AdventureSceneEditorPage({
                     <label className="block text-sm font-medium mb-3">
                       Scene Image
                     </label>
-                    {sceneData.image ? (
+                    {sceneData.image_url ? (
                       <div className="space-y-3">
                         <div className="aspect-[16/9] bg-muted rounded-lg overflow-hidden">
                           <img
-                            src={sceneData.image}
+                            src={sceneData.image_url}
                             alt="Scene"
                             className="w-full h-full object-cover"
                           />
@@ -562,7 +570,9 @@ export function AdventureSceneEditorPage({
                           <Button
                             variant="ghost"
                             onClick={() =>
-                              setSceneData((prev) => ({ ...prev, image: null }))
+                              setSceneData((prev) =>
+                                prev ? { ...prev, image_url: undefined } : prev
+                              )
                             }
                           >
                             Remove
@@ -600,12 +610,16 @@ export function AdventureSceneEditorPage({
                       scene
                     </p>
                     <textarea
-                      value={sceneData.prose}
+                      value={sceneData.prose || ""}
                       onChange={(e) =>
-                        setSceneData((prev) => ({
-                          ...prev,
-                          prose: e.target.value,
-                        }))
+                        setSceneData((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                prose: e.target.value,
+                              }
+                            : prev
+                        )
                       }
                       rows={10}
                       className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
@@ -621,12 +635,16 @@ export function AdventureSceneEditorPage({
                       Use markdown formatting for organization.
                     </p>
                     <textarea
-                      value={sceneData.gmNotes}
+                      value={sceneData.gm_notes || ""}
                       onChange={(e) =>
-                        setSceneData((prev) => ({
-                          ...prev,
-                          gmNotes: e.target.value,
-                        }))
+                        setSceneData((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                gm_notes: e.target.value,
+                              }
+                            : prev
+                        )
                       }
                       rows={15}
                       className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
@@ -638,15 +656,86 @@ export function AdventureSceneEditorPage({
             </Card>
 
             {/* Scene Assets */}
-            <AssetSelector
-              title="Scene Assets"
-              description="Characters, creatures, locations, and items in this scene"
-              selectedAssetIds={sceneData.sceneAssets}
-              availableAssets={[]}
-              onToggleAsset={handleToggleAsset}
-              emptyStateMessage="No assets selected yet"
-              emptyStateButtonText="Add Your First Asset"
-            />
+            <Card variant="elevated">
+              <CardHeader>
+                <div className="flex items-center justify-between pb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold">Scene Assets</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Characters, creatures, locations, and items in this scene
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    leftIcon={Plus}
+                    onClick={() => setShowAssetPicker(true)}
+                  >
+                    Add Assets
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {selectedAssets.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedAssets.map((asset) => (
+                      <div
+                        key={asset.id}
+                        className="flex items-center gap-3 p-3 border border-border rounded-lg"
+                      >
+                        <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
+                          <img
+                            src={asset.image_url}
+                            alt={asset.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium text-sm truncate">
+                              {asset.name}
+                            </h4>
+                            <Badge
+                              variant={
+                                assetTypeColors[
+                                  asset.type as keyof typeof assetTypeColors
+                                ]
+                              }
+                              size="sm"
+                            >
+                              {asset.type}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {asset.description}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleAsset(asset.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      No assets selected yet
+                    </p>
+                    <Button
+                      variant="secondary"
+                      leftIcon={Plus}
+                      onClick={() => setShowAssetPicker(true)}
+                    >
+                      Add Your First Asset
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Preview Sidebar */}
@@ -658,10 +747,10 @@ export function AdventureSceneEditorPage({
               <CardContent>
                 <div className="space-y-4">
                   {/* Mini Image Preview */}
-                  {sceneData.image ? (
+                  {sceneData.image_url ? (
                     <div className="aspect-[16/9] bg-muted rounded-lg overflow-hidden">
                       <img
-                        src={sceneData.image}
+                        src={sceneData.image_url}
                         alt="Scene preview"
                         className="w-full h-full object-cover"
                       />
@@ -694,12 +783,12 @@ export function AdventureSceneEditorPage({
                     </div>
                   )}
 
-                  {sceneData.gmNotes && (
+                  {sceneData.gm_notes && (
                     <div className="border-t border-border pt-4">
                       <h5 className="font-medium text-sm mb-2">GM Notes</h5>
                       <div className="text-xs text-muted-foreground line-clamp-4">
                         <MarkdownPreview
-                          content={sceneData.gmNotes.slice(0, 200) + "..."}
+                          content={sceneData.gm_notes.slice(0, 200) + "..."}
                         />
                       </div>
                     </div>
@@ -809,8 +898,10 @@ export function AdventureSceneEditorPage({
       <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
-        onSelectImage={
-          (imageUrl) => setSceneData((prev) => ({ ...prev, image: imageUrl })) // ← Fix this!
+        onSelectImage={(imageUrl) =>
+          setSceneData((prev) =>
+            prev ? { ...prev, image_url: imageUrl } : prev
+          )
         }
       />
 
@@ -818,9 +909,15 @@ export function AdventureSceneEditorPage({
       <AssetPickerModal
         isOpen={showAssetPicker}
         onClose={() => setShowAssetPicker(false)}
-        selectedAssets={[]}
-        onToggleAsset={handleToggleAsset}
+        selectedAssets={sceneData.asset_ids?.map((id) => id.toString()) || []}
+        onAcceptSelection={(assetIds) =>
+          setSceneData((prev) =>
+            prev ? { ...prev, asset_ids: assetIds } : prev
+          )
+        }
         assets={assets}
+        title="Select Scene Assets"
+        description="Choose assets that appear in this scene"
       />
     </div>
   );
