@@ -7,42 +7,21 @@ import {
   FileText,
   Users,
   Dice6,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { DiceRoller } from "@/components/DiceRoller/DiceRoller";
 import { SceneAssets } from "@/components/SceneAssets/SceneAssets";
-import { mockAssets } from "@/components/mocks/assetMocks";
 import {
   adventureService,
+  assetService,
   type Scene,
   type Episode,
   type Adventure,
+  type Asset,
 } from "@/services/api";
-
-const assetTypeColors = {
-  character: "fantasy",
-  creature: "horror",
-  location: "scifi",
-  item: "mystery",
-} as const;
-
-interface GMNote {
-  type: "paragraph" | "list" | "callout";
-  title?: string;
-  content?: string;
-  items?: string[];
-}
-
-interface Asset {
-  id: string;
-  name: string;
-  type: "character" | "creature" | "location" | "item";
-  description: string;
-  imageUrl: string;
-}
+import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
 
 interface NavigationContext {
   currentSceneIndex: number;
@@ -63,192 +42,6 @@ interface AdventureScenePageProps {
   onBackToTitle?: () => void;
 }
 
-function GMNoteItem({ note }: { note: GMNote }) {
-  switch (note.type) {
-    case "paragraph":
-      return (
-        <div className="prose max-w-none">
-          <p className="text-muted-foreground">{note.content}</p>
-        </div>
-      );
-
-    case "list":
-      return (
-        <div>
-          {note.title && (
-            <h4 className="font-semibold text-foreground mb-2">{note.title}</h4>
-          )}
-          <ul className="space-y-1 text-muted-foreground">
-            {note.items?.map((item, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-accent mt-1">•</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
-
-    case "callout":
-      return (
-        <Card variant="feature" className="bg-accent/5 border border-accent/20">
-          <CardContent className="p-4">
-            {note.title && (
-              <h4 className="font-semibold text-foreground mb-2">
-                {note.title}
-              </h4>
-            )}
-            <p className="text-muted-foreground italic">{note.content}</p>
-          </CardContent>
-        </Card>
-      );
-
-    default:
-      return null;
-  }
-}
-
-function AssetCard({
-  asset,
-  size = "normal",
-}: {
-  asset: Asset;
-  size?: "normal" | "small";
-}) {
-  if (size === "small") {
-    return (
-      <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:bg-accent/5 transition-colors cursor-pointer">
-        <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
-          <img
-            src={asset.imageUrl}
-            alt={asset.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-sm truncate">{asset.name}</h4>
-            <Badge variant={assetTypeColors[asset.type]} size="sm">
-              {asset.type}
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground line-clamp-2">
-            {asset.description}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-      <div className="aspect-[3/4] bg-muted">
-        <img
-          src={asset.imageUrl}
-          alt={asset.name}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <Badge variant={assetTypeColors[asset.type]} size="sm">
-            {asset.type}
-          </Badge>
-        </div>
-        <h4 className="font-medium mb-2">{asset.name}</h4>
-        <p className="text-sm text-muted-foreground line-clamp-3">
-          {asset.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function AllAssetsModal({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const [activeTab, setActiveTab] = useState<
-    "all" | "character" | "creature" | "location" | "item"
-  >("all");
-
-  if (!isOpen) return null;
-
-  const filteredAssets = mockAssets;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-lg w-full max-w-6xl max-h-[80vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <div>
-            <h2 className="text-xl font-semibold">Adventure Assets</h2>
-            <p className="text-muted-foreground">
-              All assets available in this adventure
-            </p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="p-6">
-          {/* Filter Tabs */}
-          <div className="flex gap-2 mb-6">
-            {(
-              ["all", "character", "creature", "location", "item"] as const
-            ).map((tab) => (
-              <Button
-                key={tab}
-                variant={activeTab === tab ? "primary" : "ghost"}
-                size="sm"
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab === "all"
-                  ? "All"
-                  : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                s
-              </Button>
-            ))}
-          </div>
-
-          {/* Assets Grid */}
-          <div className="overflow-y-auto max-h-[50vh]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAssets.map((asset) => (
-                <AssetCard key={asset.id} asset={asset} size="small" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Helper function to parse GM notes from string
-function parseGMNotes(gmNotesString: string): GMNote[] {
-  if (!gmNotesString || gmNotesString.trim() === "") {
-    return [
-      {
-        type: "paragraph",
-        content: "No additional GM notes for this scene.",
-      },
-    ];
-  }
-
-  // For now, just return as a single paragraph
-  // You can enhance this later to parse markdown or structured format
-  return [
-    {
-      type: "paragraph",
-      content: gmNotesString,
-    },
-  ];
-}
-
 export function AdventureScenePage({
   onNextScene,
   onPrevScene,
@@ -265,8 +58,7 @@ export function AdventureScenePage({
   const [navigation, setNavigation] = useState<NavigationContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [showAllAssets, setShowAllAssets] = useState(false);
+  const [sceneAssets, setSceneAssets] = useState<Asset[]>([]);
   const [showDiceRoller, setShowDiceRoller] = useState(false);
 
   // Update URL without navigation
@@ -324,6 +116,33 @@ export function AdventureScenePage({
 
         setCurrentSceneIndex(sceneIndex);
 
+        // Load only the assets for this scene
+        const currentScene = sortedScenes[sceneIndex];
+        if (currentScene?.asset_ids && currentScene.asset_ids.length > 0) {
+          const sceneAssetPromises = currentScene.asset_ids.map((id) =>
+            assetService.getById(id)
+          );
+
+          const sceneAssetData = await Promise.all(sceneAssetPromises);
+
+          // Sort by type
+          const sortedAssets = sceneAssetData.sort((a, b) => {
+            const assetTypeOrder = [
+              "location",
+              "character",
+              "creature",
+              "item",
+            ];
+            return (
+              assetTypeOrder.indexOf(a.type) - assetTypeOrder.indexOf(b.type)
+            );
+          });
+
+          setSceneAssets(sortedAssets);
+        } else {
+          setSceneAssets([]); // Clear assets if scene has none
+        }
+
         // Build navigation context
         const currentEpisodeIndex = sortedEpisodes.findIndex(
           (ep) => ep.id === parseInt(episodeId)
@@ -372,6 +191,34 @@ export function AdventureScenePage({
 
     loadSceneData();
   }, [adventureId, episodeId, sceneNumber]);
+
+  useEffect(() => {
+    const loadCurrentSceneAssets = async () => {
+      if (scenes.length === 0 || currentSceneIndex >= scenes.length) return;
+
+      const currentScene = scenes[currentSceneIndex];
+      if (currentScene?.asset_ids && currentScene.asset_ids.length > 0) {
+        const sceneAssetPromises = currentScene.asset_ids.map((id) =>
+          assetService.getById(id)
+        );
+        const sceneAssetData = await Promise.all(sceneAssetPromises);
+
+        // Sort by type
+        const sortedAssets = sceneAssetData.sort((a, b) => {
+          const assetTypeOrder = ["location", "character", "creature", "item"];
+          return (
+            assetTypeOrder.indexOf(a.type) - assetTypeOrder.indexOf(b.type)
+          );
+        });
+
+        setSceneAssets(sortedAssets);
+      } else {
+        setSceneAssets([]);
+      }
+    };
+
+    loadCurrentSceneAssets();
+  }, [scenes, currentSceneIndex]);
 
   const handleNextScene = () => {
     if (onNextScene) {
@@ -488,12 +335,6 @@ export function AdventureScenePage({
   }
 
   const currentScene = scenes[currentSceneIndex];
-  const sceneAssets = mockAssets.filter(
-    (asset) =>
-      currentScene.title.toLowerCase().includes(asset.name.toLowerCase()) // Simple matching for now
-  );
-
-  const gmNotes = parseGMNotes(currentScene.gm_notes || "");
 
   return (
     <div className="min-h-screen bg-background">
@@ -597,11 +438,7 @@ export function AdventureScenePage({
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {gmNotes.map((note, index) => (
-                    <GMNoteItem key={index} note={note} />
-                  ))}
-                </div>
+                <MarkdownViewer content={currentScene.gm_notes || ""} />
               </CardContent>
             </Card>
           </div>
@@ -669,11 +506,6 @@ export function AdventureScenePage({
         </div>
       </div>
 
-      {/* All Assets Modal */}
-      <AllAssetsModal
-        isOpen={showAllAssets}
-        onClose={() => setShowAllAssets(false)}
-      />
       {/* Dice Roller Modal */}
       <DiceRoller
         isOpen={showDiceRoller}

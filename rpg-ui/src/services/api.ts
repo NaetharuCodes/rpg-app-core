@@ -23,11 +23,13 @@ export interface Adventure {
   genres: string[];
   is_official: boolean;
   age_rating: "For Everyone" | "Teen" | "Adult";
+  playerCount: string;
+  duration: string;
   user_id?: number;
-  created_at: string;
+  title_page?: TitlePage;
+  epilogue?: Epilogue;
   episodes?: Episode[];
-  title_page?: any; // TODO: Define TitlePage interface
-  epilogue?: any; // TODO: Define Epilogue interface
+  created_at: string;
 }
 
 export interface TitlePage {

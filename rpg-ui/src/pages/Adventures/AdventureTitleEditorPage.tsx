@@ -5,9 +5,6 @@ import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
-import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
-import { mockLibraryImages } from "@/components/mocks/imageMocks";
-import { mockAssets } from "@/components/mocks/assetMocks";
 import { adventureService, assetService, type Asset } from "@/services/api";
 
 interface TitleData {
@@ -47,7 +44,6 @@ export function AdventureTitleEditor({
   });
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const [showAssetPicker, setShowAssetPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allAssets, setAllAssets] = useState<Asset[]>([]);

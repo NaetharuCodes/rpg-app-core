@@ -6,7 +6,6 @@ import {
   Trash2,
   ChevronDown,
   Save,
-  Play,
   Users,
   Clock,
   BookOpen,
@@ -20,45 +19,21 @@ import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { EpisodeEditModal } from "@/components/Modals/EditEpisodeModal";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { cn } from "@/lib/utils";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   adventureService,
-  imageService,
   type Adventure,
   type Episode,
   type Scene,
 } from "@/services/api";
 
-// Mock Link component for artifact demo
-const Link = ({ to, className, children, ...props }: any) => (
-  <a href={to} className={className} {...props}>
-    {children}
-  </a>
-);
+type SceneStatus = "empty" | "draft" | "complete";
 
-interface LocalScene {
-  id: string;
-  title: string;
-  description: string;
-  status: "empty" | "draft" | "complete";
-}
-
-interface LocalEpisode {
-  id: string;
-  title: string;
-  description: string;
-  scenes: LocalScene[];
-}
-
-interface LocalAdventure extends Omit<Adventure, "episodes"> {
-  playerCount: string;
-  duration: string;
-  suitability: "All" | "Teen" | "Adult";
-  episodes: LocalEpisode[];
-  hasTitle: boolean;
-  hasEpilogue: boolean;
-  titlePageData?: any;
-}
+const getSceneStatus = (scene: Scene): SceneStatus => {
+  if (scene.prose && scene.prose.trim()) return "complete";
+  if (scene.title && scene.title.trim()) return "draft";
+  return "empty";
+};
 
 const genreOptions = [
   "fantasy",
@@ -69,95 +44,69 @@ const genreOptions = [
   "modern",
 ];
 
-const suitabilityColours = {
-  All: "green",
+const ageRatingColors = {
+  "For Everyone": "green",
   Teen: "yellow",
   Adult: "destructive",
 } as const;
 
 // Empty adventure for new creation
-const createEmptyAdventure = (): LocalAdventure => ({
+const createEmptyAdventure = (): Adventure => ({
   id: 0,
   title: "",
   description: "",
-  card_image_url: "",
   banner_image_url: "",
+  card_image_url: "",
   genres: [],
   is_official: false,
   age_rating: "For Everyone",
-  created_at: "",
   playerCount: "3-5",
   duration: "2-4 hours",
-  suitability: "All",
-  hasTitle: false,
-  hasEpilogue: false,
-  episodes: [
-    {
-      id: "episode-1",
-      title: "Episode 1",
-      description: "",
-      scenes: [
-        { id: "scene-1-1", title: "", description: "", status: "empty" },
-      ],
-    },
-  ],
+  episodes: [],
+  created_at: "",
 });
 
-// Mock library images - replace with your actual image library
-const mockLibraryImages = [
-  {
-    id: "1",
-    url: "https://picsum.photos/800/450?random=1",
-    name: "Fantasy Landscape",
-  },
-  {
-    id: "2",
-    url: "https://picsum.photos/800/450?random=2",
-    name: "Mysterious Castle",
-  },
-  {
-    id: "3",
-    url: "https://picsum.photos/800/450?random=3",
-    name: "Dark Forest",
-  },
-];
-
-interface AdventureBuilderOverviewProps {
-  adventureId?: string;
-  onSave?: (adventure: LocalAdventure) => void;
-  onPreview?: () => void;
-}
-
-export function AdventureBuilderOverviewPage({
-  onPreview,
-}: AdventureBuilderOverviewProps) {
-  const [adventure, setAdventure] = useState<LocalAdventure>(() =>
+export function AdventureBuilderOverviewPage() {
+  const [adventure, setAdventure] = useState<Adventure>(() =>
     createEmptyAdventure()
   );
 
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(
-    new Set(["episode-1"]) // First episode expanded by default
+    new Set(["1"]) // First episode expanded by default
   );
 
   // Episode modal state
   const [episodeModalOpen, setEpisodeModalOpen] = useState(false);
-  const [editingEpisode, setEditingEpisode] = useState<LocalEpisode | null>(
-    null
-  );
+  const [editingEpisode, setEditingEpisode] = useState<Episode | null>(null);
   const [isCreatingEpisode, setIsCreatingEpisode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiAdventure, setApiAdventure] = useState<Adventure | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Image picker state
   const [showCardImagePicker, setShowCardImagePicker] = useState(false);
 
   const loadAdventure = async (adventureId: number) => {
     try {
       setIsLoading(true);
       const data = await adventureService.getById(adventureId);
-      setApiAdventure(data);
-      await convertApiDataToComponent(data);
+      const sortedData = {
+        ...data,
+        episodes:
+          data.episodes
+            ?.map((episode) => ({
+              ...episode,
+              scenes: episode.scenes?.sort((a, b) => a.order - b.order) || [],
+            }))
+            .sort((a, b) => a.order - b.order) || [],
+      };
+
+      setApiAdventure(sortedData);
+      setAdventure(sortedData);
+
+      // Set first episode as expanded
+      if (data.episodes && data.episodes.length > 0) {
+        setExpandedEpisodes(new Set([data.episodes[0].id.toString()]));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load adventure");
     } finally {
@@ -176,53 +125,6 @@ export function AdventureBuilderOverviewPage({
       setIsLoading(false);
     }
   }, [id]);
-
-  const convertApiDataToComponent = async (apiData: Adventure) => {
-    console.log("All episodes from API:", apiData.episodes);
-
-    const sortedEpisodes = (apiData.episodes || []).sort(
-      (a, b) => a.order - b.order
-    );
-
-    const episodes: LocalEpisode[] = sortedEpisodes.map((ep) => ({
-      id: ep.id.toString(),
-      title: ep.title,
-      description: ep.description,
-      scenes: (ep.scenes || [])
-        .sort((a, b) => a.order - b.order)
-        .map((scene) => ({
-          id: scene.id.toString(),
-          title: scene.title,
-          description: scene.description,
-          status: scene.prose ? "complete" : scene.title ? "draft" : "empty",
-        })),
-    }));
-
-    let hasTitle = false;
-    let titlePageData = null;
-    try {
-      titlePageData = await adventureService.titlePage.get(apiData.id);
-      hasTitle = true;
-    } catch (err) {
-      hasTitle = false;
-    }
-
-    setAdventure((prev) => ({
-      ...prev,
-      id: apiData.id,
-      title: apiData.title,
-      description: apiData.description,
-      card_image_url: apiData.card_image_url,
-      banner_image_url: apiData.banner_image_url,
-      genres: apiData.genres,
-      is_official: apiData.is_official,
-      age_rating: apiData.age_rating,
-      created_at: apiData.created_at,
-      episodes,
-      hasTitle,
-      titlePageData,
-    }));
-  };
 
   const handleNavigateToTitle = () => {
     navigate(`/adventures/${id}/edit/title`);
@@ -270,18 +172,14 @@ export function AdventureBuilderOverviewPage({
   };
 
   const handleAddEpisode = () => {
-    const newEpisode: LocalEpisode = {
-      id: `episode-${adventure.episodes.length + 1}`,
-      title: `Episode ${adventure.episodes.length + 1}`,
+    const newEpisode: Episode = {
+      id: 0, // Will be set by API
+      adventure_id: adventure.id,
+      order: (adventure.episodes?.length || 0) + 1,
+      title: `Episode ${(adventure.episodes?.length || 0) + 1}`,
       description: "",
-      scenes: [
-        {
-          id: `scene-${adventure.episodes.length + 1}-1`,
-          title: "",
-          description: "",
-          status: "empty",
-        },
-      ],
+      created_at: "",
+      scenes: [],
     };
 
     setEditingEpisode(newEpisode);
@@ -289,13 +187,13 @@ export function AdventureBuilderOverviewPage({
     setEpisodeModalOpen(true);
   };
 
-  const handleEditEpisode = (episode: LocalEpisode) => {
+  const handleEditEpisode = (episode: Episode) => {
     setEditingEpisode(episode);
     setIsCreatingEpisode(false);
     setEpisodeModalOpen(true);
   };
 
-  const handleSaveEpisode = async (updatedEpisode: LocalEpisode) => {
+  const handleSaveEpisode = async (updatedEpisode: Episode) => {
     console.log("handleSaveEpisode called with:", updatedEpisode);
 
     if (!apiAdventure) {
@@ -316,15 +214,7 @@ export function AdventureBuilderOverviewPage({
         console.log("New episode created:", newEpisode);
         setAdventure((prev) => ({
           ...prev,
-          episodes: [
-            ...prev.episodes,
-            {
-              id: newEpisode.id.toString(),
-              title: newEpisode.title,
-              description: newEpisode.description,
-              scenes: [],
-            },
-          ],
+          episodes: [...(prev.episodes || []), newEpisode],
         }));
       } else {
         console.log(
@@ -334,7 +224,7 @@ export function AdventureBuilderOverviewPage({
         );
         const result = await adventureService.episodes.update(
           apiAdventure.id,
-          parseInt(updatedEpisode.id),
+          updatedEpisode.id,
           {
             title: updatedEpisode.title,
             description: updatedEpisode.description,
@@ -343,7 +233,7 @@ export function AdventureBuilderOverviewPage({
         console.log("Update result:", result);
         setAdventure((prev) => ({
           ...prev,
-          episodes: prev.episodes.map((ep) =>
+          episodes: (prev.episodes || []).map((ep) =>
             ep.id === updatedEpisode.id
               ? {
                   ...ep,
@@ -365,8 +255,8 @@ export function AdventureBuilderOverviewPage({
     setIsCreatingEpisode(false);
   };
 
-  const handleDeleteEpisode = async (episodeId: string) => {
-    if (!apiAdventure || adventure.episodes.length <= 1) {
+  const handleDeleteEpisode = async (episodeId: number) => {
+    if (!apiAdventure || (adventure.episodes?.length || 0) <= 1) {
       alert("An adventure must have at least one episode");
       return;
     }
@@ -377,17 +267,16 @@ export function AdventureBuilderOverviewPage({
       )
     ) {
       try {
-        await adventureService.episodes.delete(
-          apiAdventure.id,
-          parseInt(episodeId)
-        );
+        await adventureService.episodes.delete(apiAdventure.id, episodeId);
         setAdventure((prev) => ({
           ...prev,
-          episodes: prev.episodes.filter((episode) => episode.id !== episodeId),
+          episodes: (prev.episodes || []).filter(
+            (episode) => episode.id !== episodeId
+          ),
         }));
         setExpandedEpisodes((prev) => {
           const newSet = new Set(prev);
-          newSet.delete(episodeId);
+          newSet.delete(episodeId.toString());
           return newSet;
         });
       } catch (err) {
@@ -398,7 +287,7 @@ export function AdventureBuilderOverviewPage({
     }
   };
 
-  const handleAddScene = async (episodeId: string) => {
+  const handleAddScene = async (episodeId: number) => {
     console.log("adding a scene");
 
     if (!apiAdventure) return;
@@ -407,7 +296,7 @@ export function AdventureBuilderOverviewPage({
     try {
       const newScene = await adventureService.scenes.create(
         apiAdventure.id,
-        parseInt(episodeId),
+        episodeId,
         {
           title: "",
           description: "",
@@ -416,19 +305,11 @@ export function AdventureBuilderOverviewPage({
 
       setAdventure((prev) => ({
         ...prev,
-        episodes: prev.episodes.map((ep) =>
+        episodes: (prev.episodes || []).map((ep) =>
           ep.id === episodeId
             ? {
                 ...ep,
-                scenes: [
-                  ...ep.scenes,
-                  {
-                    id: newScene.id.toString(),
-                    title: newScene.title,
-                    description: newScene.description,
-                    status: "empty",
-                  },
-                ],
+                scenes: [...(ep.scenes || []), newScene],
               }
             : ep
         ),
@@ -440,11 +321,11 @@ export function AdventureBuilderOverviewPage({
     }
   };
 
-  const handleDeleteScene = async (episodeId: string, sceneId: string) => {
+  const handleDeleteScene = async (episodeId: number, sceneId: number) => {
     if (!apiAdventure) return;
 
-    const episode = adventure.episodes.find((e) => e.id === episodeId);
-    if (!episode || episode.scenes.length <= 1) {
+    const episode = adventure.episodes?.find((e) => e.id === episodeId);
+    if (!episode || (episode.scenes?.length || 0) <= 1) {
       alert("An episode must have at least one scene");
       return;
     }
@@ -453,17 +334,19 @@ export function AdventureBuilderOverviewPage({
       try {
         await adventureService.scenes.delete(
           apiAdventure.id,
-          parseInt(episodeId),
-          parseInt(sceneId)
+          episodeId,
+          sceneId
         );
 
         setAdventure((prev) => ({
           ...prev,
-          episodes: prev.episodes.map((ep) =>
+          episodes: (prev.episodes || []).map((ep) =>
             ep.id === episodeId
               ? {
                   ...ep,
-                  scenes: ep.scenes.filter((scene) => scene.id !== sceneId),
+                  scenes: (ep.scenes || []).filter(
+                    (scene) => scene.id !== sceneId
+                  ),
                 }
               : ep
           ),
@@ -489,10 +372,9 @@ export function AdventureBuilderOverviewPage({
           description: adventure.description,
           card_image_url: adventure.card_image_url,
           genres: adventure.genres,
-          age_rating:
-            adventure.suitability === "All"
-              ? "For Everyone"
-              : adventure.suitability,
+          age_rating: adventure.age_rating,
+          playerCount: adventure.playerCount,
+          duration: adventure.duration,
         });
         await loadAdventure(apiAdventure.id);
         alert("Adventure updated!");
@@ -504,10 +386,9 @@ export function AdventureBuilderOverviewPage({
           banner_image_url: "",
           genres: adventure.genres || [],
           is_official: false,
-          age_rating:
-            adventure.suitability === "All"
-              ? "For Everyone"
-              : adventure.suitability,
+          age_rating: adventure.age_rating,
+          playerCount: adventure.playerCount,
+          duration: adventure.duration,
         });
 
         // Auto-create title page
@@ -548,7 +429,8 @@ export function AdventureBuilderOverviewPage({
     }
   };
 
-  const getStatusBadge = (status: LocalScene["status"]) => {
+  const getStatusBadge = (scene: Scene) => {
+    const status = getSceneStatus(scene);
     switch (status) {
       case "complete":
         return (
@@ -572,8 +454,8 @@ export function AdventureBuilderOverviewPage({
   };
 
   const getTotalScenes = () => {
-    return adventure.episodes.reduce(
-      (total, episode) => total + episode.scenes.length,
+    return (adventure.episodes || []).reduce(
+      (total, episode) => total + (episode.scenes?.length || 0),
       0
     );
   };
@@ -592,7 +474,7 @@ export function AdventureBuilderOverviewPage({
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card">
+      <div className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="max-w-6xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -766,19 +648,20 @@ export function AdventureBuilderOverviewPage({
 
                     <div>
                       <label className="block text-sm font-medium mb-2">
-                        Suitability
+                        Age Rating
                       </label>
                       <select
-                        value={adventure.suitability}
+                        value={adventure.age_rating}
                         onChange={(e) =>
                           setAdventure((prev) => ({
                             ...prev,
-                            suitability: e.target.value as any,
+                            age_rating: e.target
+                              .value as Adventure["age_rating"],
                           }))
                         }
                         className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                       >
-                        <option value="All">All</option>
+                        <option value="For Everyone">For Everyone</option>
                         <option value="Teen">Teen</option>
                         <option value="Adult">Adult</option>
                       </select>
@@ -852,16 +735,16 @@ export function AdventureBuilderOverviewPage({
                       </div>
                       <div>
                         <h3 className="font-medium">
-                          {adventure.titlePageData?.title || "Title Page"}
+                          {adventure.title_page?.title || "Title Page"}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {adventure.titlePageData?.subtitle ||
+                          {adventure.title_page?.subtitle ||
                             "Adventure introduction and setup"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {adventure.hasTitle ? (
+                      {adventure.title_page ? (
                         <Badge variant="green" size="sm">
                           Complete
                         </Badge>
@@ -882,7 +765,7 @@ export function AdventureBuilderOverviewPage({
                   </div>
 
                   {/* Episodes */}
-                  {adventure.episodes.map((episode, episodeIndex) => (
+                  {(adventure.episodes || []).map((episode, episodeIndex) => (
                     <Card
                       key={episode.id}
                       variant="ghost"
@@ -893,7 +776,9 @@ export function AdventureBuilderOverviewPage({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <button
-                              onClick={() => toggleEpisode(episode.id)}
+                              onClick={() =>
+                                toggleEpisode(episode.id.toString())
+                              }
                               className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors"
                             >
                               <div className="min-w-8 min-h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
@@ -906,10 +791,10 @@ export function AdventureBuilderOverviewPage({
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                   {episode.description || "No description yet"}{" "}
-                                  • {episode.scenes.length} scenes
+                                  • {episode.scenes?.length || 0} scenes
                                 </p>
                               </div>
-                              {expandedEpisodes.has(episode.id) ? (
+                              {expandedEpisodes.has(episode.id.toString()) ? (
                                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
                               ) : (
                                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -931,16 +816,16 @@ export function AdventureBuilderOverviewPage({
                               leftIcon={Trash2}
                               onClick={() => handleDeleteEpisode(episode.id)}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                              disabled={adventure.episodes.length <= 1}
+                              disabled={(adventure.episodes?.length || 0) <= 1}
                             >
                               Delete
                             </Button>
                           </div>
                         </div>
                         {/* Episode Content - Scenes */}
-                        {expandedEpisodes.has(episode.id) && (
+                        {expandedEpisodes.has(episode.id.toString()) && (
                           <div className="mt-6 space-y-3">
-                            {episode.scenes.map((scene, sceneIndex) => (
+                            {(episode.scenes || []).map((scene, sceneIndex) => (
                               <div
                                 key={scene.id}
                                 className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ml-12"
@@ -960,15 +845,15 @@ export function AdventureBuilderOverviewPage({
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {getStatusBadge(scene.status)}
+                                  {getStatusBadge(scene)}
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     leftIcon={Edit}
                                     onClick={() =>
                                       handleNavigateToScene(
-                                        scene.id,
-                                        episode.id
+                                        scene.id.toString(),
+                                        episode.id.toString()
                                       )
                                     }
                                   >
@@ -982,7 +867,9 @@ export function AdventureBuilderOverviewPage({
                                       handleDeleteScene(episode.id, scene.id)
                                     }
                                     className="text-red-600 hover:text-red-700"
-                                    disabled={episode.scenes.length <= 1}
+                                    disabled={
+                                      (episode.scenes?.length || 0) <= 1
+                                    }
                                   >
                                     Delete
                                   </Button>
@@ -1021,7 +908,7 @@ export function AdventureBuilderOverviewPage({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {adventure.hasEpilogue ? (
+                      {adventure.epilogue ? (
                         <Badge variant="green" size="sm">
                           Complete
                         </Badge>
@@ -1072,10 +959,10 @@ export function AdventureBuilderOverviewPage({
                       {adventure.duration}
                     </Badge>
                     <Badge
-                      variant={suitabilityColours[adventure.suitability]}
+                      variant={ageRatingColors[adventure.age_rating]}
                       size="sm"
                     >
-                      {adventure.suitability}
+                      {adventure.age_rating}
                     </Badge>
                   </div>
 
@@ -1095,16 +982,16 @@ export function AdventureBuilderOverviewPage({
                       <span className="text-sm font-medium">Structure</span>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>Title Page: {adventure.hasTitle ? "✓" : "○"}</div>
+                      <div>Title Page: {adventure.title_page ? "✓" : "○"}</div>
                       <div>
-                        {adventure.episodes.length} Episode
-                        {adventure.episodes.length !== 1 ? "s" : ""}
+                        {adventure.episodes?.length || 0} Episode
+                        {(adventure.episodes?.length || 0) !== 1 ? "s" : ""}
                       </div>
                       <div>
                         {getTotalScenes()} Total Scene
                         {getTotalScenes() !== 1 ? "s" : ""}
                       </div>
-                      <div>Epilogue: {adventure.hasEpilogue ? "✓" : "○"}</div>
+                      <div>Epilogue: {adventure.epilogue ? "✓" : "○"}</div>
                     </div>
                   </div>
                 </div>

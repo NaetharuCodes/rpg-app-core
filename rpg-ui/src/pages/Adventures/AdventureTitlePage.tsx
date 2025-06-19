@@ -3,7 +3,6 @@ import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { SceneAssets } from "@/components/SceneAssets/SceneAssets";
-import { mockAssets } from "@/components/mocks/assetMocks";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -288,7 +287,6 @@ export function AdventureTitlePage({
                 </div>
               </CardContent>
             </Card>
-            <SceneAssets assets={mockAssets} />
           </div>
         </div>
       </div>

@@ -2,20 +2,12 @@ import { X } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
-
-export interface AssetViewerAsset {
-  id: string;
-  name: string;
-  type: "character" | "creature" | "location" | "item";
-  description: string;
-  imageUrl: string;
-  genres?: string[];
-}
+import type { Asset } from "@/services/api";
 
 interface AssetViewerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  asset: AssetViewerAsset | null;
+  asset: Asset | null;
 }
 
 const assetTypeColors = {
@@ -47,7 +39,7 @@ export function AssetViewerModal({
           {/* Asset Image */}
           <div className="aspect-[3/4] bg-muted overflow-hidden">
             <img
-              src={asset.imageUrl}
+              src={asset.image_url}
               alt={asset.name}
               className="w-full h-full object-cover"
             />

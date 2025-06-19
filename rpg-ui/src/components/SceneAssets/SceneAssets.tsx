@@ -6,15 +6,7 @@ import {
   AssetViewerModal,
   type AssetViewerAsset,
 } from "@/components/Modals/AssetViewerModal";
-
-interface Asset {
-  id: string;
-  name: string;
-  type: "character" | "creature" | "location" | "item";
-  description: string;
-  imageUrl: string;
-  genres?: string[];
-}
+import type { Asset } from "@/services/api";
 
 interface SceneAssetsProps {
   assets: Asset[];
@@ -43,9 +35,7 @@ export function SceneAssets({
   title = "Scene Assets",
   className = "",
 }: SceneAssetsProps) {
-  const [selectedAsset, setSelectedAsset] = useState<AssetViewerAsset | null>(
-    null
-  );
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [showAssetViewer, setShowAssetViewer] = useState(false);
 
   // Group and sort assets by type
@@ -55,16 +45,7 @@ export function SceneAssets({
   }, [] as Asset[]);
 
   const handleAssetClick = (asset: Asset) => {
-    // Convert to AssetViewerAsset format
-    const viewerAsset: AssetViewerAsset = {
-      id: asset.id,
-      name: asset.name,
-      type: asset.type,
-      description: asset.description,
-      imageUrl: asset.imageUrl,
-      genres: asset.genres,
-    };
-    setSelectedAsset(viewerAsset);
+    setSelectedAsset(asset);
     setShowAssetViewer(true);
   };
 
@@ -111,7 +92,7 @@ export function SceneAssets({
               >
                 <div className="w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
                   <img
-                    src={asset.imageUrl}
+                    src={asset.image_url}
                     alt={asset.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />

@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
 import { Button } from "@/components/Button/Button";
-
-interface Episode {
-  id: string;
-  title: string;
-  description: string;
-}
+import type { Episode } from "@/services/api";
 
 interface EpisodeEditModalProps {
   isOpen: boolean;
