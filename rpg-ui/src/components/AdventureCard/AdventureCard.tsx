@@ -59,7 +59,7 @@ export function AdventureCard({
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 overflow-hidden flex flex-col flex-1">
         {/* Title */}
         <h3 className="font-semibold text-lg mb-2 line-clamp-2">
           {adventure.title}
@@ -69,7 +69,7 @@ export function AdventureCard({
         <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
           {adventure.description}
         </p>
-
+        <div className="flex-1"></div>
         {/* Action Buttons */}
         {children && <div className="flex gap-2">{children}</div>}
       </div>
