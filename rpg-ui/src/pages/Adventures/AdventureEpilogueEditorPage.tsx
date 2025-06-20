@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Save, Eye, Edit, Plus, Trash2, Trophy } from "lucide-react";
+import { Save, Edit, Plus, Trash2, Trophy } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";

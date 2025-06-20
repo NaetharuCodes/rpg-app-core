@@ -3,8 +3,9 @@ import { Plus, Search, Filter, Edit, Play, Trash } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { AdventureCard } from "@/components/AdventureCard/AdventureCard";
 import { cn } from "@/lib/utils";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { adventureService, type Adventure } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ViewMode = "rpg-core" | "my-adventures";
 type AgeRating = "For Everyone" | "Teen" | "Adult";
@@ -12,7 +13,6 @@ type AgeRating = "For Everyone" | "Teen" | "Adult";
 export function AdventureGalleryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("rpg-core");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterGenre, setFilterGenre] = useState<string>("all");
   const [filterAgeRating, setFilterAgeRating] = useState<AgeRating | "all">(
     "all"
   );
@@ -20,65 +20,16 @@ export function AdventureGalleryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { id } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchAdventures = async () => {
-      try {
-        setIsLoading(true);
-        const data = await adventureService.getAll();
-        console.log("API Response:", data);
-        // Transform API data to match your display format
-        const transformedAdventures = data.map((adventure) => ({
-          ...adventure,
-          isOfficial: !adventure.user_id, // Official adventures have no user_id
-          genres: adventure || [],
-          // Add default values for display properties
-          estimatedTime: "2-4 hours", // You can calculate this from scenes later
-          sceneCount:
-            adventure.episodes?.reduce(
-              (total, ep) => total + (ep.scenes?.length || 0),
-              0
-            ) || 0,
-          ageRating: "For Everyone" as AgeRating, // Default, you can enhance this later
-        }));
-
-        setAdventures(transformedAdventures);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load adventures"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAdventures();
-  }, []);
-
-  // Mock auth state - will replace with real auth context later
-  const isAuthenticated = true;
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchAdventures = async () => {
       try {
         setIsLoading(true);
         const data = await adventureService.getAll();
-        const transformedAdventures = data.map((adventure) => ({
-          ...adventure,
-          isOfficial: !adventure.user_id, // Official adventures have no user_id
-          genres: adventure.genres || [],
-          estimatedTime: "2-4 hours",
-          sceneCount:
-            adventure.episodes?.reduce(
-              (total, ep) => total + (ep.scenes?.length || 0),
-              0
-            ) || 0,
-          ageRating: "For Everyone" as AgeRating,
-        }));
-
-        setAdventures(transformedAdventures);
+        setAdventures(data);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load adventures"
@@ -107,8 +58,6 @@ export function AdventureGalleryPage() {
     ) {
       try {
         await adventureService.delete(adventure.id);
-
-        // Refetch and transform data (same as your existing useEffect)
         const data = await adventureService.getAll();
         const transformedAdventures = data.map((adventure) => ({
           ...adventure,
@@ -140,13 +89,10 @@ export function AdventureGalleryPage() {
       adventure.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       adventure.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesGenre =
-      filterGenre === "all" || adventure.genres.includes(filterGenre);
-
     const matchesAgeRating =
       filterAgeRating === "all" || adventure.age_rating === filterAgeRating;
 
-    return matchesViewMode && matchesSearch && matchesGenre && matchesAgeRating;
+    return matchesViewMode && matchesSearch && matchesAgeRating;
   });
 
   if (isLoading) {
@@ -246,22 +192,6 @@ export function AdventureGalleryPage() {
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Filters:</span>
             </div>
-
-            {/* Genre Filter */}
-            {/* <select
-              value={filterGenre}
-              onChange={(e) => setFilterGenre(e.target.value)}
-              className="px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
-            >
-              <option value="all">All Genres</option>
-              {allGenres.map((genre) => (
-                <option key={genre} value={genre}>
-                  {genre.charAt(0).toUpperCase() + genre.slice(1)}
-                </option>
-              ))}
-            </select> */}
-
-            {/* Age Rating Filter */}
             <select
               value={filterAgeRating}
               onChange={(e) =>
@@ -289,9 +219,7 @@ export function AdventureGalleryPage() {
         {filteredAdventures.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground">
-              {searchTerm ||
-              filterGenre !== "all" ||
-              filterAgeRating !== "all" ? (
+              {searchTerm || filterAgeRating !== "all" ? (
                 <div>
                   <p className="text-lg mb-2">No adventures found</p>
                   <p>Try adjusting your search or filters</p>
