@@ -21,8 +21,6 @@ export interface Adventure {
   genres: string[];
   is_official: boolean;
   age_rating: "For Everyone" | "Teen" | "Adult";
-  playerCount: string;
-  duration: string;
   user_id?: number;
   title_page?: TitlePage;
   epilogue?: Epilogue;

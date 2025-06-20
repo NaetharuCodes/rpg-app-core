@@ -59,8 +59,6 @@ const createEmptyAdventure = (): Adventure => ({
   genres: [],
   is_official: false,
   age_rating: "For Everyone",
-  playerCount: "3-5",
-  duration: "2-4 hours",
   episodes: [],
   created_at: "",
 });
@@ -369,8 +367,6 @@ export function AdventureBuilderOverviewPage() {
           card_image_url: adventure.card_image_url,
           genres: adventure.genres,
           age_rating: adventure.age_rating,
-          playerCount: adventure.playerCount,
-          duration: adventure.duration,
         });
         await loadAdventure(adventure.id);
         alert("Adventure updated!");
@@ -383,35 +379,6 @@ export function AdventureBuilderOverviewPage() {
           genres: adventure.genres || [],
           is_official: false,
           age_rating: adventure.age_rating,
-          playerCount: adventure.playerCount,
-          duration: adventure.duration,
-        });
-
-        // Auto-create title page
-        await adventureService.titlePage.create(created.id, {
-          title: adventure.title,
-          subtitle: "",
-          banner_image_url: "",
-          introduction: "",
-          background: "",
-          prologue: "",
-        });
-
-        // Auto-create first episode
-        const firstEpisode = await adventureService.episodes.create(
-          created.id,
-          {
-            title: "Episode 1",
-            description: "",
-          }
-        );
-
-        // Auto-create first scene in the episode
-        await adventureService.scenes.create(created.id, firstEpisode.id, {
-          title: "Scene 1",
-          description: "",
-          prose: "",
-          gm_notes: "",
         });
 
         setAdventure(created);
@@ -580,48 +547,6 @@ export function AdventureBuilderOverviewPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Player Count
-                      </label>
-                      <select
-                        value={adventure.playerCount}
-                        onChange={(e) =>
-                          setAdventure((prev) => ({
-                            ...prev,
-                            playerCount: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="2-3">2-3 Players</option>
-                        <option value="3-5">3-5 Players</option>
-                        <option value="4-6">4-6 Players</option>
-                        <option value="5-8">5-8 Players</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Duration
-                      </label>
-                      <select
-                        value={adventure.duration}
-                        onChange={(e) =>
-                          setAdventure((prev) => ({
-                            ...prev,
-                            duration: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="1-2 hours">1-2 hours</option>
-                        <option value="2-4 hours">2-4 hours</option>
-                        <option value="4-6 hours">4-6 hours</option>
-                        <option value="6+ hours">6+ hours</option>
-                      </select>
-                    </div>
-
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         Age Rating
@@ -928,12 +853,6 @@ export function AdventureBuilderOverviewPage() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="fantasy" icon={Users} size="sm">
-                      {adventure.playerCount}
-                    </Badge>
-                    <Badge variant="scifi" icon={Clock} size="sm">
-                      {adventure.duration}
-                    </Badge>
                     <Badge
                       variant={ageRatingColors[adventure.age_rating]}
                       size="sm"
