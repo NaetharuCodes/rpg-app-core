@@ -87,6 +87,9 @@ export function AdventureBuilderOverviewPage() {
     try {
       setIsLoading(true);
       const data = await adventureService.getById(adventureId);
+
+      console.log("DATA: ====> ", data);
+
       const sortedData = {
         ...data,
         episodes:

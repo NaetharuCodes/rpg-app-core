@@ -80,13 +80,15 @@ type Adventure struct {
 	Genres         pq.StringArray `json:"genres" gorm:"type:text[]"`
 	IsOfficial     bool           `json:"is_official" gorm:"default:false"`
 	AgeRating      string         `json:"age_rating" gorm:"default:'For Everyone'"`
-	UserID         *uint          `json:"user_id" gorm:"index"` // Foreign key to User (nullable for official adventures)
+	UserID         *uint          `json:"user_id" gorm:"index"`
 	CreatedAt      time.Time      `json:"created_at"`
 
 	// Relationships
-	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Episodes []Episode `json:"episodes,omitempty" gorm:"foreignKey:AdventureID"`
-	Assets   []Asset   `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
+	User      *User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Episodes  []Episode  `json:"episodes,omitempty" gorm:"foreignKey:AdventureID"`
+	Assets    []Asset    `json:"assets,omitempty" gorm:"many2many:adventure_assets;"`
+	TitlePage *TitlePage `json:"title_page,omitempty" gorm:"foreignKey:AdventureID"`
+	Epilogue  *Epilogue  `json:"epilogue,omitempty" gorm:"foreignKey:AdventureID"`
 }
 
 type TitlePage struct {

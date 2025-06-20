@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/naetharu/rpg-api/internal/middleware"
@@ -48,20 +50,65 @@ func (h *AdventureHandler) CreateAdventure(c *gin.Context) {
 		Title:       "Episode 1",
 		Description: "",
 	}
+
 	if err := h.DB.Create(&defaultEpisode).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create default episode"})
 		return
 	}
 
+	// Auto-create default title page
+	defaultTitlePage := models.TitlePage{
+		AdventureID:    adventure.ID,
+		Title:          adventure.Title,
+		Subtitle:       "",
+		BannerImageURL: "",
+		Introduction:   "",
+		Background:     "",
+		Prologue:       "",
+	}
+	if err := h.DB.Create(&defaultTitlePage).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create default title page"})
+		return
+	}
+
+	// Auto-create default scene for the episode
+	defaultScene := models.Scene{
+		EpisodeID:   defaultEpisode.ID,
+		Order:       1,
+		Title:       "Scene 1",
+		Description: "",
+	}
+	if err := h.DB.Create(&defaultScene).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create default scene"})
+		return
+	}
+
+	// Auto-create default epilogue
+	defaultEpilogue := models.Epilogue{
+		AdventureID:   adventure.ID,
+		Content:       "",
+		DesignerNotes: "",
+		Credits: models.Credits{
+			Designer: "", // Could populate from user data
+			System:   "Simple D6 RPG System",
+			Version:  "1.0",
+			Year:     fmt.Sprintf("%d", time.Now().Year()),
+		},
+	}
+	if err := h.DB.Create(&defaultEpilogue).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create default epilogue"})
+		return
+	}
+
 	// Return adventure with episodes
-	h.DB.Preload("Episodes").First(&adventure, adventure.ID)
+	h.DB.Preload("Episodes").Preload("TitlePage").Preload("Epilogue").First(&adventure, adventure.ID)
 	c.JSON(http.StatusCreated, adventure)
 }
 
 // GET /adventures
 func (h *AdventureHandler) GetAdventures(c *gin.Context) {
 	var adventures []models.Adventure
-	query := h.DB.Preload("Episodes")
+	query := h.DB.Preload("Episodes").Preload("TitlePage").Preload("Epilogue")
 
 	user, isAuthenticated := middleware.GetCurrentUser(c)
 	if isAuthenticated {
@@ -88,7 +135,7 @@ func (h *AdventureHandler) GetAdventure(c *gin.Context) {
 	}
 
 	var adventure models.Adventure
-	query := h.DB.Preload("Episodes.Scenes")
+	query := h.DB.Preload("Episodes.Scenes").Preload("TitlePage").Preload("Epilogue")
 
 	user, isAuthenticated := middleware.GetCurrentUser(c)
 	if isAuthenticated {
