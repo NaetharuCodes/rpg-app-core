@@ -80,11 +80,8 @@ export function AdventureGalleryPage() {
   };
 
   const filteredAdventures = adventures.filter((adventure) => {
-    // Filter by official/custom based on view mode
     const matchesViewMode =
       viewMode === "rpg-core" ? adventure.is_official : !adventure.is_official;
-
-    // Rest of your existing filter logic stays the same...
     const matchesSearch =
       adventure.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       adventure.description.toLowerCase().includes(searchTerm.toLowerCase());
