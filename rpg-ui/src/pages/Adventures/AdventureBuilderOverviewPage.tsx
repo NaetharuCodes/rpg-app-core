@@ -4,8 +4,6 @@ import {
   Edit,
   Trash2,
   ChevronDown,
-  Users,
-  Clock,
   BookOpen,
   ChevronRight,
   Loader2,
@@ -595,7 +593,7 @@ export function AdventureBuilderOverviewPage() {
             </Card>
 
             {/* Adventure Structure - Episodes */}
-            {!adventure && (
+            {!isEditing && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-blue-800 text-sm">
                   Save your adventure details above to start adding episodes and
@@ -605,7 +603,7 @@ export function AdventureBuilderOverviewPage() {
             )}
             <Card
               variant="elevated"
-              className={cn(!adventure && "opacity-50 pointer-events-none")}
+              className={cn(!isEditing && "opacity-50 pointer-events-none")}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
