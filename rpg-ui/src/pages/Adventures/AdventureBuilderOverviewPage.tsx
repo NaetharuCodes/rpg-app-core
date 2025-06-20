@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   Plus,
   Edit,
   Trash2,
   ChevronDown,
-  Save,
   Users,
   Clock,
   BookOpen,
@@ -19,7 +17,7 @@ import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { EpisodeEditModal } from "@/components/Modals/EditEpisodeModal";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { cn } from "@/lib/utils";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   adventureService,
   type Adventure,
@@ -81,7 +79,6 @@ export function AdventureBuilderOverviewPage() {
   const [editingEpisode, setEditingEpisode] = useState<Episode | null>(null);
   const [isCreatingEpisode, setIsCreatingEpisode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [apiAdventure, setApiAdventure] = useState<Adventure | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [showCardImagePicker, setShowCardImagePicker] = useState(false);
@@ -101,7 +98,6 @@ export function AdventureBuilderOverviewPage() {
             .sort((a, b) => a.order - b.order) || [],
       };
 
-      setApiAdventure(sortedData);
       setAdventure(sortedData);
 
       // Set first episode as expanded
@@ -197,7 +193,7 @@ export function AdventureBuilderOverviewPage() {
   const handleSaveEpisode = async (updatedEpisode: Episode) => {
     console.log("handleSaveEpisode called with:", updatedEpisode);
 
-    if (!apiAdventure) {
+    if (!adventure) {
       console.log("No apiAdventure found");
       return;
     }
@@ -206,7 +202,7 @@ export function AdventureBuilderOverviewPage() {
       if (isCreatingEpisode) {
         console.log("Creating new episode...");
         const newEpisode = await adventureService.episodes.create(
-          apiAdventure.id,
+          adventure.id,
           {
             title: updatedEpisode.title,
             description: updatedEpisode.description,
@@ -220,11 +216,11 @@ export function AdventureBuilderOverviewPage() {
       } else {
         console.log(
           "Updating existing episode...",
-          apiAdventure.id,
+          adventure.id,
           updatedEpisode.id
         );
         const result = await adventureService.episodes.update(
-          apiAdventure.id,
+          adventure.id,
           updatedEpisode.id,
           {
             title: updatedEpisode.title,
@@ -257,7 +253,7 @@ export function AdventureBuilderOverviewPage() {
   };
 
   const handleDeleteEpisode = async (episodeId: number) => {
-    if (!apiAdventure || (adventure.episodes?.length || 0) <= 1) {
+    if (!adventure || (adventure.episodes?.length || 0) <= 1) {
       alert("An adventure must have at least one episode");
       return;
     }
@@ -268,7 +264,7 @@ export function AdventureBuilderOverviewPage() {
       )
     ) {
       try {
-        await adventureService.episodes.delete(apiAdventure.id, episodeId);
+        await adventureService.episodes.delete(adventure.id, episodeId);
         setAdventure((prev) => ({
           ...prev,
           episodes: (prev.episodes || []).filter(
@@ -291,12 +287,12 @@ export function AdventureBuilderOverviewPage() {
   const handleAddScene = async (episodeId: number) => {
     console.log("adding a scene");
 
-    if (!apiAdventure) return;
+    if (!adventure) return;
 
     console.log("adding a scene and working");
     try {
       const newScene = await adventureService.scenes.create(
-        apiAdventure.id,
+        adventure.id,
         episodeId,
         {
           title: "",
@@ -323,7 +319,7 @@ export function AdventureBuilderOverviewPage() {
   };
 
   const handleDeleteScene = async (episodeId: number, sceneId: number) => {
-    if (!apiAdventure) return;
+    if (!adventure) return;
 
     const episode = adventure.episodes?.find((e) => e.id === episodeId);
     if (!episode || (episode.scenes?.length || 0) <= 1) {
@@ -333,11 +329,7 @@ export function AdventureBuilderOverviewPage() {
 
     if (confirm("Are you sure you want to delete this scene?")) {
       try {
-        await adventureService.scenes.delete(
-          apiAdventure.id,
-          episodeId,
-          sceneId
-        );
+        await adventureService.scenes.delete(adventure.id, episodeId, sceneId);
 
         setAdventure((prev) => ({
           ...prev,
@@ -367,8 +359,8 @@ export function AdventureBuilderOverviewPage() {
     }
 
     try {
-      if (isEditing && apiAdventure) {
-        await adventureService.update(apiAdventure.id, {
+      if (isEditing && adventure) {
+        await adventureService.update(adventure.id, {
           title: adventure.title,
           description: adventure.description,
           card_image_url: adventure.card_image_url,
@@ -377,7 +369,7 @@ export function AdventureBuilderOverviewPage() {
           playerCount: adventure.playerCount,
           duration: adventure.duration,
         });
-        await loadAdventure(apiAdventure.id);
+        await loadAdventure(adventure.id);
         alert("Adventure updated!");
       } else {
         const created = await adventureService.create({
@@ -419,7 +411,7 @@ export function AdventureBuilderOverviewPage() {
           gm_notes: "",
         });
 
-        setApiAdventure(created);
+        setAdventure(created);
         navigate(`/adventures/${created.id}/edit`);
         alert("Adventure created with basic structure!");
       }
@@ -675,7 +667,7 @@ export function AdventureBuilderOverviewPage() {
             </Card>
 
             {/* Adventure Structure - Episodes */}
-            {!apiAdventure && (
+            {!adventure && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-blue-800 text-sm">
                   Save your adventure details above to start adding episodes and
@@ -685,7 +677,7 @@ export function AdventureBuilderOverviewPage() {
             )}
             <Card
               variant="elevated"
-              className={cn(!apiAdventure && "opacity-50 pointer-events-none")}
+              className={cn(!adventure && "opacity-50 pointer-events-none")}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
