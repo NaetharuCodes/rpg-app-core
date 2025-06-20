@@ -3,7 +3,7 @@ import { Plus, Search, Filter, Edit, Play, Trash } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { AdventureCard } from "@/components/AdventureCard/AdventureCard";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { adventureService, type Adventure } from "@/services/api";
 
 type ViewMode = "rpg-core" | "my-adventures";
@@ -19,6 +19,9 @@ export function AdventureGalleryPage() {
   const [adventures, setAdventures] = useState<Adventure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAdventures = async () => {
@@ -62,20 +65,17 @@ export function AdventureGalleryPage() {
       try {
         setIsLoading(true);
         const data = await adventureService.getAll();
-
-        // Transform API data to match your display format
         const transformedAdventures = data.map((adventure) => ({
           ...adventure,
           isOfficial: !adventure.user_id, // Official adventures have no user_id
           genres: adventure.genres || [],
-          // Add default values for display properties
-          estimatedTime: "2-4 hours", // You can calculate this from scenes later
+          estimatedTime: "2-4 hours",
           sceneCount:
             adventure.episodes?.reduce(
               (total, ep) => total + (ep.scenes?.length || 0),
               0
             ) || 0,
-          ageRating: "For Everyone" as AgeRating, // Default, you can enhance this later
+          ageRating: "For Everyone" as AgeRating,
         }));
 
         setAdventures(transformedAdventures);
@@ -92,13 +92,11 @@ export function AdventureGalleryPage() {
   }, []);
 
   const handlePlayAdventure = (adventure: Adventure) => {
-    // Navigate to adventure title page
-    window.location.href = `/adventures/${adventure.id}`;
+    navigate(`/adventures/${adventure.id}`);
   };
 
   const handleEditAdventure = (adventure: Adventure) => {
-    // Navigate to adventure editor
-    window.location.href = `/adventures/${adventure.id}/edit`;
+    navigate(`/adventures/${adventure.id}/edit`);
   };
 
   const handleDeleteAdventure = async (adventure: Adventure) => {

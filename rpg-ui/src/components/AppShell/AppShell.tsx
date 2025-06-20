@@ -342,7 +342,7 @@ export function AppShell({ children }: AppShellProps) {
 
               {/* Copyright */}
               <div className="border-t border-border pt-6 mt-6 text-center text-sm text-muted-foreground">
-                © 2025 RPG Core. All rights reserved.
+                © 2025 Naetharu Tech Limited. All rights reserved.
               </div>
             </div>
           </footer>

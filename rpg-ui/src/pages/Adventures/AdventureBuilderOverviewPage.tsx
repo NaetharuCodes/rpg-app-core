@@ -26,6 +26,7 @@ import {
   type Episode,
   type Scene,
 } from "@/services/api";
+import CreateHeader from "@/components/CreateHeader/CreateHeader";
 
 type SceneStatus = "empty" | "draft" | "complete";
 
@@ -460,6 +461,10 @@ export function AdventureBuilderOverviewPage() {
     );
   };
 
+  const handleBackToOverview = () => {
+    navigate(`/adventures/`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -474,35 +479,11 @@ export function AdventureBuilderOverviewPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/adventures"
-                className="p-2 hover:bg-accent rounded-md transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold">
-                  {isEditing ? "Edit Adventure" : "Create New Adventure"}
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  {isEditing
-                    ? "Modify your adventure structure and content"
-                    : "Build your custom RPG adventure step by step"}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button onClick={handleSave} leftIcon={Save}>
-                {isEditing ? "Save Changes" : "Create Adventure"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CreateHeader
+        isEditing={isEditing}
+        handleSave={handleSave}
+        navigateBack={handleBackToOverview}
+      />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
