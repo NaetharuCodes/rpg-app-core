@@ -25,6 +25,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
+import CreateHeader from "@/components/CreateHeader/CreateHeader";
 
 const assetTypeColors = {
   character: "fantasy",
@@ -448,59 +449,12 @@ export function AdventureSceneEditorPage({
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" leftIcon={ArrowLeft} onClick={onBack}>
-                Back to Overview
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold">
-                  {isEditing ? "Edit Scene" : "Create Scene"}
-                </h1>
-                <p className="text-muted-foreground">
-                  Scene {sceneNumber} of {totalScenes}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                leftIcon={Eye}
-                onClick={() => setPreviewMode(true)}
-              >
-                Preview
-              </Button>
-              <Button variant="primary" leftIcon={Save} onClick={handleSave}>
-                Save
-              </Button>
-            </div>
-          </div>
-
-          {/* Scene Navigation */}
-          <div className="flex items-center gap-2 mt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={ChevronLeft}
-              onClick={onPrevScene}
-              disabled={!hasPrev}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              rightIcon={ChevronRight}
-              onClick={onNextScene}
-              disabled={!hasNext}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </div>
+      <CreateHeader
+        isEditing={isEditing}
+        handleSave={handleSave}
+        togglePreview={() => setPreviewMode(true)}
+        navigateBack={handleBackToOverview}
+      />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

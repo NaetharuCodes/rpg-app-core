@@ -6,6 +6,7 @@ import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
 import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
 import { adventureService } from "@/services/api";
+import CreateHeader from "@/components/CreateHeader/CreateHeader";
 
 interface Outcome {
   id: string;
@@ -415,42 +416,12 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
   // Editor Mode
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                leftIcon={ArrowLeft}
-                onClick={handleBackToOverview}
-              >
-                Back to Overview
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold">Edit Epilogue</h1>
-                <p className="text-muted-foreground">
-                  {isEditing
-                    ? "Modify your adventure conclusion"
-                    : "Create your adventure conclusion"}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                leftIcon={Eye}
-                onClick={() => setPreviewMode(true)}
-              >
-                Preview
-              </Button>
-              <Button variant="primary" leftIcon={Save} onClick={handleSave}>
-                Save
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CreateHeader
+        isEditing={isEditing}
+        handleSave={handleSave}
+        togglePreview={() => setPreviewMode(true)}
+        navigateBack={handleBackToOverview}
+      />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
