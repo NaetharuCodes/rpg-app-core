@@ -1,6 +1,5 @@
 const API_BASE = "http://localhost:8080";
 
-// Existing Asset interface (keeping for reference)
 export interface Asset {
   id: number;
   name: string;
@@ -13,7 +12,6 @@ export interface Asset {
   created_at: string;
 }
 
-// New Adventure-related interfaces
 export interface Adventure {
   id: number;
   title: string;
@@ -101,7 +99,6 @@ export interface FollowUpHook {
   order: number;
 }
 
-// Helper function to get auth headers
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("auth_token");
   const headers: HeadersInit = {
@@ -115,7 +112,6 @@ function getAuthHeaders(): HeadersInit {
   return headers;
 }
 
-// Helper function to make authenticated requests
 async function authenticatedFetch(url: string, options: RequestInit = {}) {
   const response = await fetch(url, {
     ...options,
@@ -140,7 +136,6 @@ async function authenticatedFetch(url: string, options: RequestInit = {}) {
   return response;
 }
 
-// Existing Asset service (keeping for reference)
 export const assetService = {
   async getAll(): Promise<Asset[]> {
     const response = await authenticatedFetch(`${API_BASE}/assets`);
@@ -180,7 +175,6 @@ export const assetService = {
   },
 };
 
-// Image upload service
 export interface ImageUploadResponse {
   image_id: string;
   filename: string;
@@ -233,9 +227,8 @@ export const imageService = {
   },
 };
 
-// Adventure service with nested episode and scene management
 export const adventureService = {
-  // Adventure CRUD operations
+  // Adventure Management
   async getAll(): Promise<Adventure[]> {
     const response = await authenticatedFetch(`${API_BASE}/adventures`);
     return response.json();
@@ -445,10 +438,7 @@ export const adventureService = {
       return response.json();
     },
 
-    async update(
-      adventureId: number,
-      epilogue: any // TODO: Create proper interface
-    ): Promise<any> {
+    async update(adventureId: number, epilogue: Epilogue): Promise<Epilogue> {
       const response = await authenticatedFetch(
         `${API_BASE}/adventures/${adventureId}/epilogue`,
         {
