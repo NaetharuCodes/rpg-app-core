@@ -237,7 +237,10 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                     </h2>
                     <div className="space-y-6">
                       {epilogue.outcomes.map((outcome) => (
-                        <Card key={outcome.id} variant="elevated">
+                        <Card
+                          key={`${outcome.id} ${outcome.description}`}
+                          variant="elevated"
+                        >
                           <CardHeader>
                             <h3 className="text-xl font-semibold text-foreground">
                               {outcome.title}
@@ -300,7 +303,7 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                       <div className="space-y-4">
                         {epilogue.follow_up_hooks.map((hook) => (
                           <div
-                            key={hook.id}
+                            key={`${hook.id} + ${hook.order}`}
                             className="p-3 bg-muted/30 rounded-lg"
                           >
                             <h4 className="font-medium text-sm mb-1">
