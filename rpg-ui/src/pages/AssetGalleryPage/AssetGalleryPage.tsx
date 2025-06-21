@@ -5,25 +5,27 @@ import { AssetCard } from "@/components/AssetCard/AssetCard";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { assetService, type Asset } from "@/services/api";
-import {
-  AssetViewerModal,
-  type AssetViewerAsset,
-} from "@/components/Modals/AssetViewerModal";
+import { AssetViewerModal } from "@/components/Modals/AssetViewerModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 type AssetType = "character" | "creature" | "location" | "item";
 type ViewMode = "rpg-core" | "my-assets";
 
 export function AssetsGalleryPage() {
+  // ASSETS
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+
+  // FILTERING AND VIEWS
   const [viewMode, setViewMode] = useState<ViewMode>("rpg-core");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<AssetType | "all">("all");
-  const [assets, setAssets] = useState<Asset[]>([]);
+
+  // LOADING AND ERRORS
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedAsset, setSelectedAsset] = useState<AssetViewerAsset | null>(
-    null
-  );
+
+  // MODALS
   const [showAssetViewer, setShowAssetViewer] = useState(false);
 
   const { isAuthenticated, user } = useAuth();
@@ -64,14 +66,7 @@ export function AssetsGalleryPage() {
   if (loading) return <div className="p-6">Loading assets...</div>;
   if (error) return <div className="p-6">Error: {error}</div>;
 
-  const handleUseAsset = (asset: Asset) => {
-    // In real app, this would add to campaign or open in editor
-    console.log("Using asset:", asset.name);
-    alert(`Added "${asset.name}" to your campaign!`);
-  };
-
   const handleEditAsset = (asset: Asset) => {
-    // In real app, this would navigate to edit page
     console.log("Editing asset:", asset.name);
     alert(`Editing "${asset.name}"`);
   };
@@ -90,20 +85,8 @@ export function AssetsGalleryPage() {
     }
   };
 
-  const handleDuplicateAsset = (asset: Asset) => {
-    console.log("Duplicating asset:", asset.name);
-    alert(`Created a copy of "${asset.name}"!`);
-  };
-
   const handleAssetClick = (asset: Asset) => {
-    setSelectedAsset({
-      id: asset.id.toString(),
-      name: asset.name,
-      type: asset.type,
-      description: asset.description,
-      imageUrl: asset.image_url,
-      genres: asset.genres,
-    });
+    setSelectedAsset(asset);
     setShowAssetViewer(true);
   };
 

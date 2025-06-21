@@ -24,6 +24,9 @@ export function AssetViewerModal({
 }: AssetViewerModalProps) {
   if (!isOpen || !asset) return null;
 
+  console.log("The asset is: ", asset);
+  console.log("The asset image url is: ", asset.image_url);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-card border border-border rounded-lg w-full max-w-md overflow-hidden">
