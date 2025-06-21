@@ -23,6 +23,7 @@ import {
   type Scene,
 } from "@/services/api";
 import CreateHeader from "@/components/CreateHeader/CreateHeader";
+import SavingModal from "@/components/Modals/SavingModal";
 
 type SceneStatus = "empty" | "draft" | "complete";
 
@@ -76,6 +77,8 @@ export function AdventureBuilderOverviewPage() {
   const [isCreatingEpisode, setIsCreatingEpisode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSavingModal, setShowSavingModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [showCardImagePicker, setShowCardImagePicker] = useState(false);
 
@@ -352,6 +355,10 @@ export function AdventureBuilderOverviewPage() {
   };
 
   const handleSave = async () => {
+    const saveStartTime = Date.now();
+    setIsSaving(true);
+    setShowSavingModal(true);
+
     if (!adventure.title.trim()) {
       alert("Please enter an adventure title");
       return;
@@ -367,7 +374,13 @@ export function AdventureBuilderOverviewPage() {
           age_rating: adventure.age_rating,
         });
         await loadAdventure(adventure.id);
-        alert("Adventure updated!");
+        const elapsed = Date.now() - saveStartTime;
+        const minDelay = 800; // 800ms minimum
+        if (elapsed < minDelay) {
+          setTimeout(() => setIsSaving(false), minDelay - elapsed);
+        } else {
+          setIsSaving(false);
+        }
       } else {
         const created = await adventureService.create({
           title: adventure.title,
@@ -381,9 +394,10 @@ export function AdventureBuilderOverviewPage() {
 
         setAdventure(created);
         navigate(`/adventures/${created.id}/edit`);
-        alert("Adventure created with basic structure!");
+        setIsSaving(false);
       }
     } catch (err) {
+      setShowSavingModal(false);
       alert(
         `Failed to save adventure: ${err instanceof Error ? err.message : "Unknown error"}`
       );
@@ -911,6 +925,14 @@ export function AdventureBuilderOverviewPage() {
         aspectRatio="landscape"
         title="Choose Card Image"
         description="Select an image for your adventure card in the gallery"
+      />
+
+      {/* Saving modal */}
+      <SavingModal
+        isOpen={showSavingModal}
+        isLoading={isSaving}
+        message={isEditing ? "Saving adventure..." : "Creating adventure..."}
+        onClose={() => setShowSavingModal(false)}
       />
     </div>
   );

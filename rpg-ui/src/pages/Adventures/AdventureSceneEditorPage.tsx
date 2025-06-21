@@ -26,6 +26,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { AssetPickerModal } from "@/components/Modals/AssetPickerModal";
 import CreateHeader from "@/components/CreateHeader/CreateHeader";
+import SavingModal from "@/components/Modals/SavingModal";
 
 const assetTypeColors = {
   character: "fantasy",
@@ -127,7 +128,8 @@ export function AdventureSceneEditorPage({
   const [sceneNumber, setSceneNumber] = useState(1);
   const [totalScenes, setTotalScenes] = useState(1);
   const [assets, setAssets] = useState<Asset[]>([]);
-
+  const [showSavingModal, setShowSavingModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const isEditing = Boolean(sceneId);
   const hasNext = sceneNumber < totalScenes;
   const hasPrev = sceneNumber > 1;
@@ -198,8 +200,10 @@ export function AdventureSceneEditorPage({
   };
 
   const handleSave = async () => {
+    const saveStartTime = Date.now();
+    setShowSavingModal(true);
+    setIsSaving(true);
     if (!sceneData) return;
-
     if (!sceneData.title?.trim()) {
       alert("Please enter a scene title");
       return;
@@ -222,7 +226,14 @@ export function AdventureSceneEditorPage({
           }
         );
         setSceneData(updated);
-        alert("Scene saved!");
+        const elapsed = Date.now() - saveStartTime;
+        const minDelay = 800;
+
+        if (elapsed < minDelay) {
+          setTimeout(() => setIsSaving(false), minDelay - elapsed);
+        } else {
+          setIsSaving(false);
+        }
       } else {
         // Creating new scene
         const created = await adventureService.scenes.create(
@@ -238,9 +249,17 @@ export function AdventureSceneEditorPage({
           }
         );
         setSceneData(created);
-        alert("Scene created!");
+        const elapsed = Date.now() - saveStartTime;
+        const minDelay = 800;
+
+        if (elapsed < minDelay) {
+          setTimeout(() => setIsSaving(false), minDelay - elapsed);
+        } else {
+          setIsSaving(false);
+        }
       }
     } catch (err) {
+      setShowSavingModal(false);
       alert(
         `Failed to save scene: ${err instanceof Error ? err.message : "Unknown error"}`
       );
@@ -882,6 +901,14 @@ export function AdventureSceneEditorPage({
         assets={assets}
         title="Select Scene Assets"
         description="Choose assets that appear in this scene"
+      />
+
+      {/* Saving Modal */}
+      <SavingModal
+        isOpen={showSavingModal}
+        isLoading={isSaving}
+        message={sceneData.id ? "Saving scene..." : "Creating scene..."}
+        onClose={() => setShowSavingModal(false)}
       />
     </div>
   );
