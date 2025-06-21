@@ -628,7 +628,7 @@ export function AdventureBuilderOverviewPage() {
               className={cn(!isEditing && "opacity-50 pointer-events-none")}
             >
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 sm:pb-2">
                   <div>
                     <h2 className="text-2xl font-semibold">
                       Adventure Structure
@@ -649,22 +649,22 @@ export function AdventureBuilderOverviewPage() {
               <CardContent>
                 <div className="space-y-4">
                   {/* Title Page */}
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                  <div className="flex items-center justify-between p-3 sm:p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
+                    <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                      <div className="hidden sm:flex min-w-8 min-h-8 rounded-full bg-primary text-primary-foreground items-center justify-center text-sm font-medium">
                         T
                       </div>
-                      <div>
-                        <h3 className="font-medium">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium truncate">
                           {adventure.title_page?.title || "Title Page"}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">
                           {adventure.title_page?.subtitle ||
                             "Adventure introduction and setup"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
                       {adventure.title_page ? (
                         <Badge variant="green" size="sm">
                           Complete
@@ -694,23 +694,23 @@ export function AdventureBuilderOverviewPage() {
                     >
                       {/* Episode Header */}
                       <div className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                             <button
                               onClick={() =>
                                 toggleEpisode(episode.id.toString())
                               }
-                              className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors"
+                              className="flex items-center gap-2 hover:bg-accent rounded-md p-1 -m-1 transition-colors min-w-0 flex-1"
                             >
-                              <div className="min-w-8 min-h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
+                              <div className="hidden sm:flex min-w-8 min-h-8 rounded-full bg-accent text-accent-foreground items-center justify-center text-sm font-medium">
                                 {episodeIndex + 1}
                               </div>
-                              <div className="text-left">
-                                <h3 className="font-medium">
+                              <div className="text-left min-w-0 flex-1">
+                                <h3 className="font-medium truncate">
                                   {episode.title ||
                                     `Episode ${episodeIndex + 1}`}
                                 </h3>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">
                                   {episode.description || "No description yet"}{" "}
                                   • {episode.scenes?.length || 0} scenes
                                 </p>
@@ -722,7 +722,7 @@ export function AdventureBuilderOverviewPage() {
                               )}
                             </button>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -749,23 +749,23 @@ export function AdventureBuilderOverviewPage() {
                             {(episode.scenes || []).map((scene, sceneIndex) => (
                               <div
                                 key={scene.id}
-                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ml-12"
+                                className="flex items-center justify-between p-2 sm:p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition gap-2"
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-6 h-6 min-w-6 min-h-6 rounded bg-background text-foreground flex items-center justify-center text-xs font-medium">
+                                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                  <div className="hidden sm:flex w-6 h-6 min-w-6 min-h-6 rounded bg-background text-foreground items-center justify-center text-xs font-medium">
                                     {sceneIndex + 1}
                                   </div>
-                                  <div>
-                                    <h4 className="font-medium text-sm">
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="font-medium text-sm truncate">
                                       {scene.title || `Scene ${sceneIndex + 1}`}
                                     </h4>
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-xs text-muted-foreground line-clamp-1 sm:line-clamp-none">
                                       {scene.description ||
                                         "No description yet"}
                                     </p>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
                                   {getStatusBadge(scene)}
                                   <Button
                                     variant="ghost"
@@ -798,7 +798,7 @@ export function AdventureBuilderOverviewPage() {
                               </div>
                             ))}
                             {/* Add Scene Button */}
-                            <div className="ml-12">
+                            <div className="ml-0 sm:ml-12">
                               <Button
                                 variant="secondary"
                                 size="sm"
@@ -816,19 +816,19 @@ export function AdventureBuilderOverviewPage() {
                   ))}
 
                   {/* Epilogue */}
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-sm font-medium">
+                  <div className="flex items-center justify-between p-3 sm:p-4 border border-border rounded-lg hover:bg-accent/5 transition-colors gap-2">
+                    <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                      <div className="hidden sm:flex w-8 h-8 rounded-full bg-muted text-muted-foreground items-center justify-center text-sm font-medium">
                         E
                       </div>
-                      <div>
-                        <h3 className="font-medium">Epilogue</h3>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium truncate">Epilogue</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">
                           Adventure conclusion and outcomes
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
                       {adventure.epilogue ? (
                         <Badge variant="green" size="sm">
                           Complete
