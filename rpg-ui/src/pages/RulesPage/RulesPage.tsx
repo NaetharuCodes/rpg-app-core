@@ -259,7 +259,7 @@ export function RulesPage() {
                     Character Examples
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card variant="ghost" className="border border-border">
+                    <Card variant="ghost" className="border border-border pb-2">
                       <CardHeader>
                         <h4 className="font-semibold">Dr. Sarah Chen</h4>
                         <p className="text-sm text-muted-foreground">
@@ -268,7 +268,7 @@ export function RulesPage() {
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex gap-2 mb-2">
+                        <div className="flex gap-2 mb-2 pt-2">
                           <Badge variant="green" size="sm">
                             Health: 3
                           </Badge>
@@ -293,7 +293,7 @@ export function RulesPage() {
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex gap-2 mb-2">
+                        <div className="flex gap-2 mb-2 pt-2">
                           <Badge variant="green" size="sm">
                             Health: 3
                           </Badge>
@@ -316,7 +316,7 @@ export function RulesPage() {
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex gap-2 mb-2">
+                        <div className="flex gap-2 mb-2 pt-2">
                           <Badge variant="green" size="sm">
                             Health: 3
                           </Badge>
