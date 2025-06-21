@@ -1,11 +1,12 @@
 // rpg-ui/src/contexts/AuthContext.tsx
-import React, {
+import {
   createContext,
   useContext,
   useState,
   useEffect,
-  ReactNode,
+  type ReactNode,
 } from "react";
+import { parseJwt, isTokenExpired } from "@/utils/jwt";
 
 interface User {
   id: number;
@@ -33,15 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = user !== null;
 
-  // Check for existing token on app load
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       const token = localStorage.getItem("auth_token");
-      if (token) {
-        const isValid = await verifyToken(token);
-        if (!isValid) {
-          localStorage.removeItem("auth_token");
+      if (token && !isTokenExpired(token)) {
+        // Token exists and is valid - extract user info
+        const payload = parseJwt(token);
+        if (payload) {
+          setUser({
+            id: payload.user_id,
+            email: payload.email,
+            name: payload.name,
+            avatar: "",
+          });
         }
+      } else if (token) {
+        // Token is expired
+        localStorage.removeItem("auth_token");
       }
       setIsLoading(false);
     };
@@ -60,32 +69,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const verifyToken = async (token: string): Promise<boolean> => {
+    if (isTokenExpired(token)) {
+      localStorage.removeItem("auth_token");
+      setUser(null);
+      return false;
+    }
+
     try {
       const response = await fetch(`${API_BASE}/auth/verify`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.valid && data.user) {
-          // Only update user if it's different
-          setUser((prevUser) => {
-            if (!prevUser || prevUser.id !== data.user.id) {
-              return data.user;
-            }
-            return prevUser;
-          });
+          setUser(data.user);
           localStorage.setItem("auth_token", token);
           return true;
         }
       }
+
+      // Verification failed
+      localStorage.removeItem("auth_token");
+      setUser(null);
       return false;
     } catch (error) {
       console.error("Token verification failed:", error);
+      localStorage.removeItem("auth_token");
+      setUser(null);
       return false;
     }
   };

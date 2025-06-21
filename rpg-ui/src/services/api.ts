@@ -110,6 +110,16 @@ function getAuthHeaders(): HeadersInit {
 }
 
 async function authenticatedFetch(url: string, options: RequestInit = {}) {
+  const token = localStorage.getItem("auth_token");
+
+  // Check token before making request
+  if (token && isTokenExpired(token)) {
+    localStorage.removeItem("auth_token");
+    // Redirect to home or trigger logout
+    window.location.href = "/";
+    throw new Error("Session expired");
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -120,8 +130,9 @@ async function authenticatedFetch(url: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Token might be expired, remove it
+      // Server says token is invalid - clean up and redirect
       localStorage.removeItem("auth_token");
+      window.location.href = "/";
       throw new Error("Authentication required");
     }
     const errorData = await response.json().catch(() => ({}));
