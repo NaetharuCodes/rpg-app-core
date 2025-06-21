@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 import { adventureService, assetService, type Asset } from "@/services/api";
 import CreateHeader from "@/components/CreateHeader/CreateHeader";
+import SavingModal from "@/components/Modals/SavingModal";
 
 interface TitleData {
   title: string;
@@ -48,6 +49,8 @@ export function AdventureTitleEditor({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allAssets, setAllAssets] = useState<Asset[]>([]);
+  const [showSavingModal, setShowSavingModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -108,6 +111,10 @@ export function AdventureTitleEditor({
   };
 
   const handleSave = async () => {
+    const saveStartTime = Date.now();
+    setShowSavingModal(true);
+    setIsSaving(true);
+
     if (!titleData.title.trim()) {
       alert("Please enter an adventure title");
       return;
@@ -138,9 +145,16 @@ export function AdventureTitleEditor({
         }
       }
 
-      alert("Title page saved!");
-      navigate(`/adventures/${id}/edit`);
+      const elapsed = Date.now() - saveStartTime;
+      const minDelay = 800;
+
+      if (elapsed < minDelay) {
+        setTimeout(() => setIsSaving(false), minDelay - elapsed);
+      } else {
+        setIsSaving(false);
+      }
     } catch (err) {
+      setShowSavingModal(false);
       alert(
         `Failed to save title page: ${err instanceof Error ? err.message : "Unknown error"}`
       );
@@ -320,7 +334,6 @@ export function AdventureTitleEditor({
   // Editor Mode
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <CreateHeader
         isEditing={isEditing}
         handleSave={handleSave}
@@ -622,6 +635,12 @@ export function AdventureTitleEditor({
         aspectRatio="banner"
         title="Choose Banner Image"
         description="Select or upload a banner image for your adventure"
+      />
+      <SavingModal
+        isOpen={showSavingModal}
+        isLoading={isSaving}
+        message={isEditing ? "Saving adventure..." : "Creating adventure..."}
+        onClose={() => setShowSavingModal(false)}
       />
     </div>
   );
