@@ -193,7 +193,9 @@ export function AdventureBuilderOverviewPage() {
   };
 
   const handleSaveEpisode = async (updatedEpisode: Episode) => {
-    console.log("handleSaveEpisode called with:", updatedEpisode);
+    const saveStartTime = Date.now();
+    setShowSavingModal(true);
+    setIsSaving(true);
 
     if (!adventure) {
       console.log("No apiAdventure found");
@@ -202,7 +204,6 @@ export function AdventureBuilderOverviewPage() {
 
     try {
       if (isCreatingEpisode) {
-        console.log("Creating new episode...");
         const newEpisode = await adventureService.episodes.create(
           adventure.id,
           {
@@ -210,17 +211,21 @@ export function AdventureBuilderOverviewPage() {
             description: updatedEpisode.description,
           }
         );
-        console.log("New episode created:", newEpisode);
         setAdventure((prev) => ({
           ...prev,
           episodes: [...(prev.episodes || []), newEpisode],
         }));
+
+        // Save Modal Timer
+        const elapsed = Date.now() - saveStartTime;
+        const minDelay = 800;
+
+        if (elapsed < minDelay) {
+          setTimeout(() => setIsSaving(false), minDelay - elapsed);
+        } else {
+          setIsSaving(false);
+        }
       } else {
-        console.log(
-          "Updating existing episode...",
-          adventure.id,
-          updatedEpisode.id
-        );
         const result = await adventureService.episodes.update(
           adventure.id,
           updatedEpisode.id,
@@ -229,19 +234,22 @@ export function AdventureBuilderOverviewPage() {
             description: updatedEpisode.description,
           }
         );
-        console.log("Update result:", result);
         setAdventure((prev) => ({
           ...prev,
           episodes: (prev.episodes || []).map((ep) =>
-            ep.id === updatedEpisode.id
-              ? {
-                  ...ep,
-                  title: updatedEpisode.title,
-                  description: updatedEpisode.description,
-                }
-              : ep
+            ep.id === updatedEpisode.id ? result : ep
           ),
         }));
+
+        // Save Modal Timer
+        const elapsed = Date.now() - saveStartTime;
+        const minDelay = 800;
+
+        if (elapsed < minDelay) {
+          setTimeout(() => setIsSaving(false), minDelay - elapsed);
+        } else {
+          setIsSaving(false);
+        }
       }
     } catch (err) {
       console.error("Error in handleSaveEpisode:", err);
