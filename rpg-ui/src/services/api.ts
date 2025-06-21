@@ -66,7 +66,6 @@ export interface Scene {
 export interface Epilogue {
   id: number;
   adventure_id: number;
-  title: string;
   content: string;
   outcomes: EpilogueOutcome[];
   designer_notes: string;

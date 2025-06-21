@@ -5,65 +5,39 @@ import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
 import { MarkdownViewer } from "@/components/MarkdownViewer/MarkdownViewer";
-import { adventureService } from "@/services/api";
+import {
+  adventureService,
+  type Epilogue,
+  type EpilogueOutcome,
+  type FollowUpHook,
+} from "@/services/api";
 import CreateHeader from "@/components/CreateHeader/CreateHeader";
 
-interface Outcome {
-  id: string;
-  title: string;
-  description: string;
-  details: string;
-}
-
-interface FollowUpHook {
-  id: string;
-  title: string;
-  description: string;
-}
-
-interface EpilogueData {
-  content: string;
-  outcomes: Outcome[];
-  designerNotes: {
-    title: string;
-    content: string;
-  };
-  followUpHooks: FollowUpHook[];
-  credits: {
-    designer: string;
-    system: string;
-    version: string;
-    year: string;
-  };
-}
-
-const defaultEpilogueData: EpilogueData = {
+const defaultEpilogueData: Epilogue = {
+  id: 0,
+  adventure_id: 0,
   content: "",
-  outcomes: [],
-  designerNotes: {
-    title: "Designer's Notes",
-    content: "",
-  },
-  followUpHooks: [],
+  designer_notes: "",
   credits: {
     designer: "",
     system: "Simple D6 RPG System",
     version: "1.0",
     year: new Date().getFullYear().toString(),
   },
+  created_at: "",
+  outcomes: [],
+  follow_up_hooks: [],
 };
 
 interface AdventureEpilogueEditorProps {
   adventureId?: string;
-  onSave?: (epilogueData: EpilogueData) => void;
+  onSave?: (epilogue: Epilogue) => void;
   onBack?: () => void;
 }
 
 export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
-  const [epilogueData, setEpilogueData] =
-    useState<EpilogueData>(defaultEpilogueData);
+  const [epilogue, setEpilogue] = useState<Epilogue>(defaultEpilogueData);
   const [isLoading, setIsLoading] = useState(true);
-  const [apiEpilogue, setApiEpilogue] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { id } = useParams();
@@ -84,24 +58,7 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
     try {
       setIsLoading(true);
       const epilogue = await adventureService.epilogue.get(parseInt(id!));
-      setApiEpilogue(epilogue);
-
-      // Convert API data to component format
-      setEpilogueData({
-        content: epilogue.content || "",
-        outcomes: epilogue.outcomes || [],
-        followUpHooks: epilogue.follow_up_hooks || [],
-        designerNotes: {
-          title: "Designer's Notes",
-          content: epilogue.designer_notes || "",
-        },
-        credits: epilogue.credits || {
-          designer: "",
-          system: "",
-          version: "",
-          year: "",
-        },
-      });
+      setEpilogue(epilogue);
       setIsLoading(false);
     } catch (err) {
       // Epilogue doesn't exist yet - that's okay
@@ -115,33 +72,16 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
 
   const handleSave = async () => {
     try {
-      const epilogueToSave = {
-        content: epilogueData.content,
-        designer_notes: epilogueData.designerNotes.content,
-        credits: epilogueData.credits,
-        // Filter and clean up outcomes - remove client-side IDs for new items
-        outcomes: epilogueData.outcomes.map((outcome) => ({
-          ...(typeof outcome.id === "number" ? { id: outcome.id } : {}), // Only include ID if it's a real database ID
-          title: outcome.title,
-          description: outcome.description,
-          details: outcome.details,
-        })),
-        // Same for follow-up hooks
-        follow_up_hooks: epilogueData.followUpHooks.map((hook) => ({
-          ...(typeof hook.id === "number" ? { id: hook.id } : {}), // Only include ID if it's a real database ID
-          title: hook.title,
-          description: hook.description,
-        })),
-      };
-
-      if (apiEpilogue) {
-        await adventureService.epilogue.update(parseInt(id!), epilogueToSave);
+      if (epilogue.id) {
+        // Update existing epilogue
+        await adventureService.epilogue.update(parseInt(id!), epilogue);
       } else {
+        // Create new epilogue
         const created = await adventureService.epilogue.create(
           parseInt(id!),
-          epilogueToSave
+          epilogue
         );
-        setApiEpilogue(created);
+        setEpilogue(created);
       }
       alert("Epilogue saved!");
     } catch (err) {
@@ -152,20 +92,26 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
   };
 
   const addOutcome = () => {
-    const newOutcome: Outcome = {
-      id: `outcome-${Date.now()}`,
+    const newOutcome: EpilogueOutcome = {
+      id: 0, // Use 0 for new items, API will assign real ID
+      epilogue_id: 0, // Will be set by API
       title: "",
       description: "",
       details: "",
+      order: epilogue.outcomes.length + 1, // Next order number
     };
-    setEpilogueData((prev) => ({
+    setEpilogue((prev) => ({
       ...prev,
       outcomes: [...prev.outcomes, newOutcome],
     }));
   };
 
-  const updateOutcome = (id: string, field: keyof Outcome, value: string) => {
-    setEpilogueData((prev) => ({
+  const updateOutcome = (
+    id: number,
+    field: keyof EpilogueOutcome,
+    value: string | number
+  ) => {
+    setEpilogue((prev) => ({
       ...prev,
       outcomes: prev.outcomes.map((outcome) =>
         outcome.id === id ? { ...outcome, [field]: value } : outcome
@@ -173,9 +119,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
     }));
   };
 
-  const deleteOutcome = (id: string) => {
+  const deleteOutcome = (id: number) => {
     if (confirm("Are you sure you want to delete this outcome?")) {
-      setEpilogueData((prev) => ({
+      setEpilogue((prev) => ({
         ...prev,
         outcomes: prev.outcomes.filter((outcome) => outcome.id !== id),
       }));
@@ -184,34 +130,36 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
 
   const addFollowUpHook = () => {
     const newHook: FollowUpHook = {
-      id: `hook-${Date.now()}`,
+      id: 0, // Use 0 for new items, API will assign real ID
+      epilogue_id: 0, // Will be set by API
       title: "",
       description: "",
+      order: epilogue.follow_up_hooks.length + 1, // Next order number
     };
-    setEpilogueData((prev) => ({
+    setEpilogue((prev) => ({
       ...prev,
-      followUpHooks: [...prev.followUpHooks, newHook],
+      follow_up_hooks: [...prev.follow_up_hooks, newHook],
     }));
   };
 
   const updateFollowUpHook = (
-    id: string,
+    id: number,
     field: keyof FollowUpHook,
-    value: string
+    value: string | number
   ) => {
-    setEpilogueData((prev) => ({
+    setEpilogue((prev) => ({
       ...prev,
-      followUpHooks: prev.followUpHooks.map((hook) =>
+      follow_up_hooks: prev.follow_up_hooks.map((hook) =>
         hook.id === id ? { ...hook, [field]: value } : hook
       ),
     }));
   };
 
-  const deleteFollowUpHook = (id: string) => {
+  const deleteFollowUpHook = (id: number) => {
     if (confirm("Are you sure you want to delete this follow-up hook?")) {
-      setEpilogueData((prev) => ({
+      setEpilogue((prev) => ({
         ...prev,
-        followUpHooks: prev.followUpHooks.filter((hook) => hook.id !== id),
+        follow_up_hooks: prev.follow_up_hooks.filter((hook) => hook.id !== id),
       }));
     }
   };
@@ -272,23 +220,23 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
                 {/* Introduction */}
-                {epilogueData.content && (
+                {epilogue.content && (
                   <Card
                     variant="feature"
                     className="bg-accent/5 border border-accent/20"
                   >
-                    <MarkdownViewer content={epilogueData.content} />
+                    <MarkdownViewer content={epilogue.content} />
                   </Card>
                 )}
 
                 {/* Possible Outcomes */}
-                {epilogueData.outcomes.length > 0 && (
+                {epilogue.outcomes.length > 0 && (
                   <section>
                     <h2 className="text-2xl font-bold mb-6">
                       Possible Outcomes
                     </h2>
                     <div className="space-y-6">
-                      {epilogueData.outcomes.map((outcome) => (
+                      {epilogue.outcomes.map((outcome) => (
                         <Card key={outcome.id} variant="elevated">
                           <CardHeader>
                             <h3 className="text-xl font-semibold text-foreground">
@@ -316,15 +264,12 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                 )}
 
                 {/* Designer's Notes */}
-                {epilogueData.designerNotes.content && (
+                {epilogue.designer_notes && (
                   <section>
-                    <h2 className="text-2xl font-bold mb-4">
-                      {epilogueData.designerNotes.title}
-                    </h2>
                     <Card variant="ghost" className="border border-border">
                       <CardContent className="p-6">
                         <div className="prose max-w-none text-muted-foreground">
-                          {epilogueData.designerNotes.content
+                          {epilogue.designer_notes
                             .split("\n")
                             .map((paragraph, index) => (
                               <p key={index} className="mb-4">
@@ -341,7 +286,7 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* Follow-up Adventure Hooks */}
-                {epilogueData.followUpHooks.length > 0 && (
+                {epilogue.follow_up_hooks.length > 0 && (
                   <Card variant="elevated">
                     <CardHeader>
                       <h3 className="text-lg font-semibold">
@@ -353,7 +298,7 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {epilogueData.followUpHooks.map((hook) => (
+                        {epilogue.follow_up_hooks.map((hook) => (
                           <div
                             key={hook.id}
                             className="p-3 bg-muted/30 rounded-lg"
@@ -381,25 +326,25 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                       <div>
                         <span className="font-medium">Designer:</span>
                         <span className="text-muted-foreground ml-2">
-                          {epilogueData.credits.designer}
+                          {epilogue.credits.designer}
                         </span>
                       </div>
                       <div>
                         <span className="font-medium">System:</span>
                         <span className="text-muted-foreground ml-2">
-                          {epilogueData.credits.system}
+                          {epilogue.credits.system}
                         </span>
                       </div>
                       <div>
                         <span className="font-medium">Version:</span>
                         <span className="text-muted-foreground ml-2">
-                          {epilogueData.credits.version}
+                          {epilogue.credits.version}
                         </span>
                       </div>
                       <div>
                         <span className="font-medium">Year:</span>
                         <span className="text-muted-foreground ml-2">
-                          {epilogueData.credits.year}
+                          {epilogue.credits.year}
                         </span>
                       </div>
                     </div>
@@ -437,9 +382,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
               </CardHeader>
               <CardContent>
                 <textarea
-                  value={epilogueData.content}
+                  value={epilogue.content}
                   onChange={(e) =>
-                    setEpilogueData((prev) => ({
+                    setEpilogue((prev) => ({
                       ...prev,
                       content: e.target.value,
                     }))
@@ -471,9 +416,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                {epilogueData.outcomes.length > 0 ? (
+                {epilogue.outcomes.length > 0 ? (
                   <div className="space-y-6">
-                    {epilogueData.outcomes.map((outcome, index) => (
+                    {epilogue.outcomes.map((outcome, index) => (
                       <div
                         key={outcome.id}
                         className="p-4 border border-border rounded-lg"
@@ -578,37 +523,14 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Section Title
-                    </label>
-                    <input
-                      type="text"
-                      value={epilogueData.designerNotes.title}
-                      onChange={(e) =>
-                        setEpilogueData((prev) => ({
-                          ...prev,
-                          designerNotes: {
-                            ...prev.designerNotes,
-                            title: e.target.value,
-                          },
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                      placeholder="Designer's Notes"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Content
+                      Designer's Notes
                     </label>
                     <textarea
-                      value={epilogueData.designerNotes.content}
+                      value={epilogue.designer_notes}
                       onChange={(e) =>
-                        setEpilogueData((prev) => ({
+                        setEpilogue((prev) => ({
                           ...prev,
-                          designerNotes: {
-                            ...prev.designerNotes,
-                            content: e.target.value,
-                          },
+                          designer_notes: e.target.value,
                         }))
                       }
                       rows={6}
@@ -642,9 +564,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                {epilogueData.followUpHooks.length > 0 ? (
+                {epilogue.follow_up_hooks.length > 0 ? (
                   <div className="space-y-4">
-                    {epilogueData.followUpHooks.map((hook, index) => (
+                    {epilogue.follow_up_hooks.map((hook, index) => (
                       <div
                         key={hook.id}
                         className="p-4 border border-border rounded-lg"
@@ -735,9 +657,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                     </label>
                     <input
                       type="text"
-                      value={epilogueData.credits.designer}
+                      value={epilogue.credits.designer}
                       onChange={(e) =>
-                        setEpilogueData((prev) => ({
+                        setEpilogue((prev) => ({
                           ...prev,
                           credits: {
                             ...prev.credits,
@@ -755,9 +677,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                     </label>
                     <input
                       type="text"
-                      value={epilogueData.credits.system}
+                      value={epilogue.credits.system}
                       onChange={(e) =>
-                        setEpilogueData((prev) => ({
+                        setEpilogue((prev) => ({
                           ...prev,
                           credits: {
                             ...prev.credits,
@@ -775,9 +697,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                     </label>
                     <input
                       type="text"
-                      value={epilogueData.credits.version}
+                      value={epilogue.credits.version}
                       onChange={(e) =>
-                        setEpilogueData((prev) => ({
+                        setEpilogue((prev) => ({
                           ...prev,
                           credits: {
                             ...prev.credits,
@@ -795,9 +717,9 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                     </label>
                     <input
                       type="text"
-                      value={epilogueData.credits.year}
+                      value={epilogue.credits.year}
                       onChange={(e) =>
-                        setEpilogueData((prev) => ({
+                        setEpilogue((prev) => ({
                           ...prev,
                           credits: {
                             ...prev.credits,
@@ -824,63 +746,60 @@ export function AdventureEpilogueEditorPage({}: AdventureEpilogueEditorProps) {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-lg">Epilogue</h4>
-                    {epilogueData.content && (
+                    {epilogue.content && (
                       // <p className="text-sm text-muted-foreground line-clamp-3 mt-1">
-                      //   {epilogueData.content}
+                      //   {epilogue.content}
                       // </p>
-                      <MarkdownViewer
-                        content={epilogueData.content}
-                        className=""
-                      />
+                      <MarkdownViewer content={epilogue.content} className="" />
                     )}
                   </div>
 
-                  {epilogueData.outcomes.length > 0 && (
+                  {epilogue.outcomes.length > 0 && (
                     <div className="border-t border-border pt-4">
                       <h5 className="font-medium text-sm mb-2">
-                        Outcomes ({epilogueData.outcomes.length})
+                        Outcomes ({epilogue.outcomes.length})
                       </h5>
                       <div className="space-y-2">
-                        {epilogueData.outcomes.length > 3 && (
+                        {epilogue.outcomes.length > 3 && (
                           <p className="text-xs text-muted-foreground">
-                            +{epilogueData.outcomes.length - 3} more...
+                            +{epilogue.outcomes.length - 3} more...
                           </p>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {epilogueData.followUpHooks.length > 0 && (
+                  {epilogue.follow_up_hooks.length > 0 && (
                     <div className="border-t border-border pt-4">
                       <h5 className="font-medium text-sm mb-2">
-                        Follow-up Hooks ({epilogueData.followUpHooks.length})
+                        Follow-up Hooks ({epilogue.follow_up_hooks.length})
                       </h5>
                       <div className="space-y-1">
-                        {epilogueData.followUpHooks.slice(0, 2).map((hook) => (
+                        {epilogue.follow_up_hooks.slice(0, 2).map((hook) => (
                           <div key={hook.id} className="text-xs">
                             <span className="font-medium">
                               {hook.title || "Untitled"}
                             </span>
                           </div>
                         ))}
-                        {epilogueData.followUpHooks.length > 2 && (
+                        {epilogue.follow_up_hooks.length > 2 && (
                           <p className="text-xs text-muted-foreground">
-                            +{epilogueData.followUpHooks.length - 2} more...
+                            +{epilogue.follow_up_hooks.length - 2} more...
                           </p>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {epilogueData.credits.designer && (
+                  {epilogue.credits.designer && (
                     <div className="border-t border-border pt-4">
                       <h5 className="font-medium text-sm mb-2">Credits</h5>
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <div>Designer: {epilogueData.credits.designer}</div>
-                        <div>System: {epilogueData.credits.system}</div>
+                        <div>Designer: {epilogue.credits.designer}</div>
+                        <div>System: {epilogue.credits.system}</div>
                         <div>
-                          Version {epilogueData.credits.version} (
-                          {epilogueData.credits.year})
+                          Version {epilogue.credits.version} (
+                          {epilogue.credits.year})
                         </div>
                       </div>
                     </div>

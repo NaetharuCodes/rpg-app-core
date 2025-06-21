@@ -152,8 +152,8 @@ type Epilogue struct {
 
 	// Relationship
 	Adventure     Adventure         `json:"adventure" gorm:"foreignKey:AdventureID"`
-	Outcomes      []EpilogueOutcome `json:"outcomes,omitempty" gorm:"foreignKey:EpilogueID"`
-	FollowUpHooks []FollowUpHook    `json:"follow_up_hooks,omitempty" gorm:"foreignKey:EpilogueID"`
+	Outcomes      []EpilogueOutcome `json:"outcomes" gorm:"foreignKey:EpilogueID"`
+	FollowUpHooks []FollowUpHook    `json:"follow_up_hooks" gorm:"foreignKey:EpilogueID"`
 }
 
 type EpilogueOutcome struct {
