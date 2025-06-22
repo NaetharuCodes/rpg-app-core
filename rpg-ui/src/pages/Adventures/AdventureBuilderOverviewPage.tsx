@@ -24,6 +24,7 @@ import {
 } from "@/services/api";
 import CreateHeader from "@/components/CreateHeader/CreateHeader";
 import SavingModal from "@/components/Modals/SavingModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 type SceneStatus = "empty" | "draft" | "complete";
 
@@ -82,6 +83,8 @@ export function AdventureBuilderOverviewPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const [showCardImagePicker, setShowCardImagePicker] = useState(false);
+
+  const { user } = useAuth();
 
   const loadAdventure = async (adventureId: number) => {
     try {
@@ -471,6 +474,52 @@ export function AdventureBuilderOverviewPage() {
       />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {user?.is_admin && (
+          <div className="pb-6 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Adventure Visibility
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Choose whether this adventure should be official or personal
+            </p>
+
+            <div className="flex items-center gap-4 p-4 border border-border rounded-lg">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="adventureVisibility"
+                  value="personal"
+                  checked={!adventure.is_official}
+                  onChange={() =>
+                    setAdventure({ ...adventure, is_official: false })
+                  }
+                  className="w-4 h-4 text-primary"
+                />
+                <span>Personal Adventure</span>
+                <span className="text-sm text-muted-foreground">
+                  (Only you can see this)
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="adventureVisibility"
+                  value="official"
+                  checked={adventure.is_official}
+                  onChange={() =>
+                    setAdventure({ ...adventure, is_official: true })
+                  }
+                  className="w-4 h-4 text-primary"
+                />
+                <span>Official Adventure</span>
+                <span className="text-sm text-muted-foreground">
+                  (Everyone can see this)
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Adventure Metadata */}
           <div className="lg:col-span-2 space-y-8">
@@ -617,6 +666,7 @@ export function AdventureBuilderOverviewPage() {
                 </div>
               </CardContent>
             </Card>
+            {/* Admin Visibility Section */}
 
             {/* Adventure Structure - Episodes */}
             {!isEditing && (

@@ -42,6 +42,11 @@ func (h *AdventureHandler) CreateAdventure(c *gin.Context) {
 	// Set user ownership
 	adventure.UserID = &user.ID
 
+	// Only let admin users create official content
+	if !user.IsAdmin {
+		adventure.IsOfficial = false
+	}
+
 	// Create adventure
 	if err := h.DB.Create(&adventure).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create adventure"})
