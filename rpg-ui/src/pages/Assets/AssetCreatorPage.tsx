@@ -25,83 +25,6 @@ interface AssetFormData {
   genres: string[];
 }
 
-// // Mock images for demonstration - in real app these would come from your asset library
-const mockLibraryImages = {
-  character: [
-    {
-      id: "char1",
-      url: "https://via.placeholder.com/768x1024/4F46E5/FFFFFF?text=Character+1",
-      name: "Knight",
-    },
-    {
-      id: "char2",
-      url: "https://via.placeholder.com/768x1024/7C3AED/FFFFFF?text=Character+2",
-      name: "Wizard",
-    },
-    {
-      id: "char3",
-      url: "https://via.placeholder.com/768x1024/059669/FFFFFF?text=Character+3",
-      name: "Rogue",
-    },
-    {
-      id: "char4",
-      url: "https://via.placeholder.com/768x1024/DC2626/FFFFFF?text=Character+4",
-      name: "Warrior",
-    },
-  ],
-  creature: [
-    {
-      id: "crea1",
-      url: "https://via.placeholder.com/768x1024/B91C1C/FFFFFF?text=Creature+1",
-      name: "Dragon",
-    },
-    {
-      id: "crea2",
-      url: "https://via.placeholder.com/768x1024/7F1D1D/FFFFFF?text=Creature+2",
-      name: "Goblin",
-    },
-    {
-      id: "crea3",
-      url: "https://via.placeholder.com/768x1024/991B1B/FFFFFF?text=Creature+3",
-      name: "Wolf",
-    },
-  ],
-  location: [
-    {
-      id: "loc1",
-      url: "https://via.placeholder.com/768x1024/0369A1/FFFFFF?text=Location+1",
-      name: "Castle",
-    },
-    {
-      id: "loc2",
-      url: "https://via.placeholder.com/768x1024/0284C7/FFFFFF?text=Location+2",
-      name: "Forest",
-    },
-    {
-      id: "loc3",
-      url: "https://via.placeholder.com/768x1024/0EA5E9/FFFFFF?text=Location+3",
-      name: "Tavern",
-    },
-  ],
-  item: [
-    {
-      id: "item1",
-      url: "https://via.placeholder.com/768x1024/D97706/FFFFFF?text=Item+1",
-      name: "Sword",
-    },
-    {
-      id: "item2",
-      url: "https://via.placeholder.com/768x1024/EA580C/FFFFFF?text=Item+2",
-      name: "Potion",
-    },
-    {
-      id: "item3",
-      url: "https://via.placeholder.com/768x1024/F59E0B/FFFFFF?text=Item+3",
-      name: "Shield",
-    },
-  ],
-};
-
 export function AssetCreatorPage() {
   const { isAuthenticated } = useAuth();
 
@@ -209,10 +132,8 @@ export function AssetCreatorPage() {
         genres: formData.genres,
       };
 
-      console.log("Creating asset with data:", assetData);
       const apiResponse = await assetService.create(assetData);
 
-      console.log("Asset created successfully:", apiResponse);
       setCreatedAsset(apiResponse);
       setShowSuccessModal(true);
 
@@ -234,12 +155,6 @@ export function AssetCreatorPage() {
     }
   };
 
-  const handleLibraryImageSelect = (imageUrl: string) => {
-    setFormData({ ...formData, image: imageUrl });
-    setShowImageLibrary(false);
-    setUploadPreview(null);
-  };
-
   const handleGenresChange = (newGenres: string[]) => {
     setFormData((prev) => ({
       ...prev,
@@ -247,7 +162,6 @@ export function AssetCreatorPage() {
     }));
   };
 
-  const currentLibraryImages = mockLibraryImages[formData.type];
   const hasSelectedImage = formData.image !== null;
   const imagePreviewUrl =
     uploadPreview ||
@@ -407,20 +321,6 @@ You can use Markdown formatting:
                   </Button>
                 </div>
 
-                {/* Library Selection */}
-                {imageSource === "library" && (
-                  <div>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setShowImageLibrary(true)}
-                      className="w-full py-4"
-                    >
-                      Choose from {formData.type} images (
-                      {currentLibraryImages.length} available)
-                    </Button>
-                  </div>
-                )}
-
                 {/* Upload Section */}
                 {imageSource === "upload" && (
                   <div>
@@ -528,29 +428,6 @@ You can use Markdown formatting:
               >
                 <X className="h-4 w-4" />
               </Button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {currentLibraryImages.map((image) => (
-                  <button
-                    key={image.id}
-                    onClick={() => handleLibraryImageSelect(image.url)}
-                    className="group relative aspect-[3/4] bg-muted rounded-lg overflow-hidden hover:ring-2 hover:ring-primary transition-all"
-                  >
-                    <img
-                      src={image.url}
-                      alt={image.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-white text-sm font-medium bg-black/50 rounded px-2 py-1 truncate">
-                        {image.name}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>

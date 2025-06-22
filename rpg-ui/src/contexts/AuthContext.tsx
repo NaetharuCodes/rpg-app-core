@@ -7,13 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { parseJwt, isTokenExpired } from "@/utils/jwt";
-
-interface User {
-  id: number;
-  email: string;
-  name: string;
-  avatar: string;
-}
+import type { User } from "@/services/api";
 
 interface AuthContextType {
   user: User | null;
@@ -37,16 +31,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("auth_token");
+      console.log("Token from localStorage:", token ? "exists" : "not found");
+
       if (token && !isTokenExpired(token)) {
-        // Token exists and is valid - extract user info
         const payload = parseJwt(token);
+        console.log("Parsed JWT payload:", payload);
+
         if (payload) {
-          setUser({
+          const newUser = {
             id: payload.user_id,
             email: payload.email,
             name: payload.name,
             avatar: "",
-          });
+            is_admin: payload.is_admin || false,
+          };
+          console.log("Setting user to:", newUser);
+          setUser(newUser);
         }
       } else if (token) {
         // Token is expired

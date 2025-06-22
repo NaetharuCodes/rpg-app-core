@@ -2,8 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppShell } from "./components/AppShell/AppShell";
 import { HomePage } from "./pages/HomePage/HomePage";
 import { RulesPage } from "./pages/RulesPage/RulesPage";
-import { AssetCreatorPage } from "./pages/AssetCreatorPage/AssetCreatorPage";
-import { AssetsGalleryPage } from "./pages/AssetGalleryPage/AssetGalleryPage";
+import { AssetCreatorPage } from "./pages/Assets/AssetCreatorPage";
+import { AssetsGalleryPage } from "./pages/Assets/AssetGalleryPage";
 import { AdventureTitlePage } from "./pages/Adventures/AdventureTitlePage";
 import { AdventureScenePage } from "./pages/Adventures/AdventureScenePage";
 import { AdventureEpiloguePage } from "./pages/Adventures/AdventureEpiloguePage";
@@ -17,6 +17,8 @@ import { AdventureEpilogueEditorPage } from "./pages/Adventures/AdventureEpilogu
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthCallbackPage } from "./pages/Auth/AuthCallbackPage";
 import { EpisodeTitlePage } from "./pages/Adventures/AdventureEpisodeTitlePage";
+import { AdminLayout } from "./components/AdminLayout/AdminLayout";
+import { AssetDetailPage } from "./pages/Assets/AssetDetailPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -42,7 +44,10 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
+
+            {/* ASSET PAGES */}
             <Route path="/assets" element={<AssetsGalleryPage />} />
+            <Route path="/assets/:id" element={<AssetDetailPage />} />
             <Route path="/assets/create" element={<AssetCreatorPage />} />
 
             {/* ADVENTURE ROUTES */}
@@ -93,6 +98,9 @@ function App() {
 
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Admin routes */}
+            <Route path="/admin/*" element={<AdminLayout />} />
 
             {/* Protected Routes (will add auth guards later) */}
             <Route path="/dashboard" element={<DashboardPage />} />

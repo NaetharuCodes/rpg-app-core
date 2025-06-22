@@ -44,6 +44,7 @@ func main() {
 	adventureHandler := handlers.NewAdventureHandler(db)
 	authHandler := handlers.NewAuthHandler(db)
 	uploadHandler := handlers.NewUploadHandler()
+	adminHandler := handlers.NewAdminHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -113,6 +114,15 @@ func main() {
 	r.POST("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.CreateEpilogue)
 	r.PATCH("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.UpdateEpilogue)
 	r.DELETE("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.DeleteEpilogue)
+
+	// Admin routes (require admin auth)
+	r.GET("/admin/stats", authMiddleware.RequireAuth(), adminHandler.GetStats)
+	r.GET("/admin/users", authMiddleware.RequireAuth(), adminHandler.GetUsers)
+	r.PATCH("/admin/users/:id/status", authMiddleware.RequireAuth(), adminHandler.UpdateUserStatus)
+	r.PATCH("/admin/users/:id/promote", authMiddleware.RequireAuth(), adminHandler.PromoteUser)
+	r.GET("/admin/content/unreviewed", authMiddleware.RequireAuth(), adminHandler.GetUnreviewedContent)
+	r.PATCH("/admin/content/assets/:id/review", authMiddleware.RequireAuth(), adminHandler.MarkAssetReviewed)
+	r.PATCH("/admin/content/adventures/:id/review", authMiddleware.RequireAuth(), adminHandler.MarkAdventureReviewed)
 
 	// Start server
 	port := os.Getenv("PORT")

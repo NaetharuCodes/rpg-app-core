@@ -2,6 +2,16 @@ import { isTokenExpired } from "@/utils/jwt";
 
 const API_BASE = "http://localhost:8080";
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  avatar: string;
+  is_admin: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface Asset {
   id: number;
   name: string;
@@ -9,8 +19,10 @@ export interface Asset {
   type: "character" | "creature" | "location" | "item";
   image_url: string;
   is_official: boolean;
+  reviewed: boolean;
   genres: string[];
   user_id?: number;
+  user?: User;
   created_at: string;
 }
 
@@ -22,8 +34,10 @@ export interface Adventure {
   card_image_url?: string;
   genres: string[];
   is_official: boolean;
+  reviewed: boolean;
   age_rating: "For Everyone" | "Teen" | "Adult";
   user_id?: number;
+  user?: User;
   title_page?: TitlePage;
   epilogue?: Epilogue;
   episodes?: Episode[];

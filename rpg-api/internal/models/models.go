@@ -40,6 +40,7 @@ type Asset struct {
 	ImageVariants ImageVariants `json:"image_variants" gorm:"embedded"`
 
 	IsOfficial bool           `json:"is_official" gorm:"default:false"`
+	Reviewed   bool           `json:"reviewed" gorm:"default:false"`
 	Genres     pq.StringArray `json:"genres" gorm:"type:text[]"`
 	UserID     *uint          `json:"user_id" gorm:"index"`
 	CreatedAt  time.Time      `json:"created_at"`
@@ -79,6 +80,7 @@ type Adventure struct {
 	CardImageURL   string         `json:"card_image_url"`
 	Genres         pq.StringArray `json:"genres" gorm:"type:text[]"`
 	IsOfficial     bool           `json:"is_official" gorm:"default:false"`
+	Reviewed       bool           `json:"reviewed" gorm:"default:false"`
 	AgeRating      string         `json:"age_rating" gorm:"default:'For Everyone'"`
 	UserID         *uint          `json:"user_id" gorm:"index"`
 	CreatedAt      time.Time      `json:"created_at"`
