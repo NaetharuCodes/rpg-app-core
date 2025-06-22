@@ -381,9 +381,10 @@ export function AdventureBuilderOverviewPage() {
           title: adventure.title,
           description: adventure.description,
           card_image_url: adventure.card_image_url,
-          card_image_id: adventure.card_image_id, // ADD THIS LINE
+          card_image_id: adventure.card_image_id,
           genres: adventure.genres,
           age_rating: adventure.age_rating,
+          is_official: adventure.is_official,
         });
         await loadAdventure(adventure.id);
         const elapsed = Date.now() - saveStartTime;
@@ -402,7 +403,7 @@ export function AdventureBuilderOverviewPage() {
           banner_image_url: "",
           banner_image_id: "",
           genres: adventure.genres || [],
-          is_official: false,
+          is_official: adventure.is_official,
           reviewed: false,
           age_rating: adventure.age_rating,
         });
@@ -417,6 +418,8 @@ export function AdventureBuilderOverviewPage() {
       );
     }
   };
+
+  console.log("Adventure state", adventure.is_official);
 
   const getStatusBadge = (scene: Scene) => {
     const status = getSceneStatus(scene);

@@ -387,7 +387,7 @@ export function AdventureScenePage({
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {/* Scene Image */}
         {currentScene.image_url && (
-          <div className="h-32 rounded-lg overflow-hidden bg-muted">
+          <div className="h-32 sm:h-[400px] rounded-lg overflow-hidden bg-muted">
             <img
               src={currentScene.image_url}
               alt={currentScene.title}
@@ -399,6 +399,7 @@ export function AdventureScenePage({
         {/* Read-Aloud Prose */}
         <Card variant="feature" className="bg-accent/5 border border-accent/20">
           <CardHeader>
+            This is here{" "}
             <div className="flex items-center gap-2">
               <Eye className="h-5 w-5 text-accent" />
               <h2 className="text-xl font-semibold">Scene Description</h2>
