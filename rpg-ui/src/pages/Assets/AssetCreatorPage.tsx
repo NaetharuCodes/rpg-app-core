@@ -23,10 +23,11 @@ interface AssetFormData {
   description: string;
   image: File | string | null;
   genres: string[];
+  isOfficial: boolean;
 }
 
 export function AssetCreatorPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [createdAsset, setCreatedAsset] = useState<Asset | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(true);
@@ -37,6 +38,7 @@ export function AssetCreatorPage() {
     description: "",
     image: null,
     genres: [],
+    isOfficial: false,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,8 +130,9 @@ export function AssetCreatorPage() {
         description: formData.description.trim(),
         type: formData.type,
         image_url: imageUrl,
-        is_official: false,
+        is_official: formData.isOfficial,
         genres: formData.genres,
+        reviewed: false,
       };
 
       const apiResponse = await assetService.create(assetData);
@@ -144,6 +147,7 @@ export function AssetCreatorPage() {
         description: "",
         image: null,
         genres: [],
+        isOfficial: false,
       });
       setUploadPreview(null);
       setUploadPreview(null);
@@ -170,6 +174,8 @@ export function AssetCreatorPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
+      {/* Official Asset Toggle - Only for Admins */}
+
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -204,6 +210,52 @@ export function AssetCreatorPage() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {user?.is_admin && (
+          <div className="pb-6">
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Asset Visibility
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Choose whether this asset should be official or personal
+            </p>
+
+            <div className="flex items-center gap-4 p-4 border border-border rounded-lg">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="assetVisibility"
+                  value="personal"
+                  checked={!formData.isOfficial}
+                  onChange={() =>
+                    setFormData({ ...formData, isOfficial: false })
+                  }
+                  className="w-4 h-4 text-primary"
+                />
+                <span>Personal Asset</span>
+                <span className="text-sm text-muted-foreground">
+                  (Only you can see this)
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="assetVisibility"
+                  value="official"
+                  checked={formData.isOfficial}
+                  onChange={() =>
+                    setFormData({ ...formData, isOfficial: true })
+                  }
+                  className="w-4 h-4 text-primary"
+                />
+                <span>Official Asset</span>
+                <span className="text-sm text-muted-foreground">
+                  (Everyone can see this)
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[calc(100vh-200px)]">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-8">
@@ -341,7 +393,6 @@ You can use Markdown formatting:
               </div>
             </div>
           </div>
-
           {/* Preview Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-8">

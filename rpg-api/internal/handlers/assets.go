@@ -35,7 +35,9 @@ func (h *AssetHandler) CreateAsset(c *gin.Context) {
 
 	// Set user ownership and ensure it's not official
 	asset.UserID = &user.ID
-	asset.IsOfficial = user.IsAdmin
+	if !user.IsAdmin {
+		asset.IsOfficial = false
+	}
 
 	if err := h.DB.Create(&asset).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create asset"})
