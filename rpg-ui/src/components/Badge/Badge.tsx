@@ -11,9 +11,8 @@ const badgeVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline:
-          "text-foreground border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/80 text-black",
+        outline: "text-foreground border border-input bg-background",
         // Genre/Game type colors
         fantasy:
           "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
