@@ -554,7 +554,13 @@ export function AdventureSceneEditorPage({
                             variant="ghost"
                             onClick={() =>
                               setSceneData((prev) =>
-                                prev ? { ...prev, image_url: undefined } : prev
+                                prev
+                                  ? {
+                                      ...prev,
+                                      image_url: "",
+                                      image_id: "",
+                                    }
+                                  : prev
                               )
                             }
                           >
@@ -881,11 +887,20 @@ export function AdventureSceneEditorPage({
       <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
-        onSelectImage={(imageUrl) =>
+        onSelectImage={(imageData) =>
           setSceneData((prev) =>
-            prev ? { ...prev, image_url: imageUrl } : prev
+            prev
+              ? {
+                  ...prev,
+                  image_url: imageData.url,
+                  image_id: imageData.id,
+                }
+              : prev
           )
         }
+        aspectRatio="landscape"
+        title="Choose Scene Image"
+        description="Select or upload an image for this scene"
       />
 
       {/* Asset Picker Modal */}

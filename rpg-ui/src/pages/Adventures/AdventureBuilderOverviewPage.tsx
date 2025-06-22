@@ -151,10 +151,11 @@ export function AdventureBuilderOverviewPage() {
     }));
   };
 
-  const handleCardImageSelect = (imageUrl: string) => {
+  const handleCardImageSelect = (imageData: { url: string; id: string }) => {
     setAdventure((prev) => ({
       ...prev,
-      card_image_url: imageUrl,
+      card_image_url: imageData.url,
+      card_image_id: imageData.id,
     }));
   };
 
@@ -366,18 +367,17 @@ export function AdventureBuilderOverviewPage() {
     const saveStartTime = Date.now();
     setIsSaving(true);
     setShowSavingModal(true);
-
     if (!adventure.title.trim()) {
       alert("Please enter an adventure title");
       return;
     }
-
     try {
       if (isEditing && adventure) {
         await adventureService.update(adventure.id, {
           title: adventure.title,
           description: adventure.description,
           card_image_url: adventure.card_image_url,
+          card_image_id: adventure.card_image_id, // ADD THIS LINE
           genres: adventure.genres,
           age_rating: adventure.age_rating,
         });
@@ -394,12 +394,12 @@ export function AdventureBuilderOverviewPage() {
           title: adventure.title,
           description: adventure.description,
           card_image_url: adventure.card_image_url || "",
+          card_image_id: adventure.card_image_id || "", // ADD THIS LINE
           banner_image_url: "",
           genres: adventure.genres || [],
           is_official: false,
           age_rating: adventure.age_rating,
         });
-
         setAdventure(created);
         navigate(`/adventures/${created.id}/edit`);
         setIsSaving(false);
@@ -547,6 +547,7 @@ export function AdventureBuilderOverviewPage() {
                               setAdventure((prev) => ({
                                 ...prev,
                                 card_image_url: "",
+                                card_image_id: "",
                               }))
                             }
                           >

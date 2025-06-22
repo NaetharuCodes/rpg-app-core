@@ -31,7 +31,9 @@ export interface Adventure {
   title: string;
   description: string;
   banner_image_url?: string;
+  banner_image_id?: string;
   card_image_url?: string;
+  card_image_id?: string;
   genres: string[];
   is_official: boolean;
   reviewed: boolean;
@@ -74,6 +76,7 @@ export interface Scene {
   title: string;
   description: string;
   image_url?: string;
+  image_id?: string;
   prose?: string;
   gm_notes?: string;
   asset_ids?: number[];
