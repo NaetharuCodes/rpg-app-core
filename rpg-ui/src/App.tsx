@@ -1,24 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AppShell } from "./components/AppShell/AppShell";
-import { HomePage } from "./pages/HomePage/HomePage";
-import { RulesPage } from "./pages/RulesPage/RulesPage";
-import { AssetCreatorPage } from "./pages/Assets/AssetCreatorPage";
+// ASSET IMPORTS
 import { AssetsGalleryPage } from "./pages/Assets/AssetGalleryPage";
+import { AssetCreatorPage } from "./pages/Assets/AssetCreatorPage";
+import { AssetDetailPage } from "./pages/Assets/AssetDetailPage";
+
+// ADVENTURE VIEW IMPORTS
+import { AdventureGalleryPage } from "./pages/Adventures/AdventureGalleryPage";
 import { AdventureTitlePage } from "./pages/Adventures/AdventureTitlePage";
+import { EpisodeTitlePage } from "./pages/Adventures/AdventureEpisodeTitlePage";
 import { AdventureScenePage } from "./pages/Adventures/AdventureScenePage";
 import { AdventureEpiloguePage } from "./pages/Adventures/AdventureEpiloguePage";
-import { AboutPage } from "./pages/AboutPage/AboutPage";
-import { FAQPage } from "./pages/FAQPage/FAQPage";
-import { AdventureGalleryPage } from "./pages/Adventures/AdventureGalleryPage";
+
+// ADVENTURE CREATE IMPORTS
 import { AdventureBuilderOverviewPage } from "./pages/Adventures/AdventureBuilderOverviewPage";
 import { AdventureTitleEditor } from "./pages/Adventures/AdventureTitleEditorPage";
 import { AdventureSceneEditorPage } from "./pages/Adventures/AdventureSceneEditorPage";
 import { AdventureEpilogueEditorPage } from "./pages/Adventures/AdventureEpilogueEditorPage";
+
+// WORLDS IMPORTS
+import { WorldsGalleryPage } from "./pages/Worlds/WorldsGalleryPage";
+
+// MISC PAGES IMPORTS
+import { HomePage } from "./pages/HomePage/HomePage";
+import { RulesPage } from "./pages/RulesPage/RulesPage";
+import { AboutPage } from "./pages/AboutPage/AboutPage";
+import { FAQPage } from "./pages/FAQPage/FAQPage";
+
+// OTHER IMPORTS
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthCallbackPage } from "./pages/Auth/AuthCallbackPage";
-import { EpisodeTitlePage } from "./pages/Adventures/AdventureEpisodeTitlePage";
 import { AdminLayout } from "./components/AdminLayout/AdminLayout";
-import { AssetDetailPage } from "./pages/Assets/AssetDetailPage";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AppShell } from "./components/AppShell/AppShell";
 
 // Placeholders
 const LoginPage = () => (
@@ -90,6 +102,9 @@ function App() {
               path="/adventures/:id/edit/episodes/:episodeId/scenes/:sceneId"
               element={<AdventureSceneEditorPage />}
             />
+
+            {/* WORLDS */}
+            <Route path="/worlds" element={<WorldsGalleryPage />} />
 
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />

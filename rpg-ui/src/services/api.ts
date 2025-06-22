@@ -26,6 +26,23 @@ export interface Asset {
   created_at: string;
 }
 
+export interface World {
+  id: number;
+  title: string;
+  description: string;
+  banner_image_url?: string;
+  banner_image_id?: string;
+  card_image_url?: string;
+  card_image_id?: string;
+  genres: string[];
+  is_official: boolean;
+  reviewed: boolean;
+  age_rating: "For Everyone" | "Teen" | "Adult";
+  user_id?: number;
+  user?: User;
+  created_at: string;
+}
+
 export interface Adventure {
   id: number;
   title: string;
