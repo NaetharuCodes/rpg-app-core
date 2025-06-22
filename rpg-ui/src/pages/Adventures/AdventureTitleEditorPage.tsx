@@ -5,19 +5,14 @@ import { Badge } from "@/components/Badge/Badge";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { useNavigate, useParams } from "react-router-dom";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
-import { adventureService, assetService, type Asset } from "@/services/api";
+import {
+  adventureService,
+  assetService,
+  type Asset,
+  type TitlePage,
+} from "@/services/api";
 import CreateHeader from "@/components/CreateHeader/CreateHeader";
 import SavingModal from "@/components/Modals/SavingModal";
-
-interface TitleData {
-  title: string;
-  subtitle: string;
-  bannerImage: string | null;
-  introduction: string;
-  background: string;
-  prologue: string;
-  relatedAssets: string[]; // Asset IDs
-}
 
 const assetTypeColors = {
   character: "fantasy",
@@ -28,22 +23,23 @@ const assetTypeColors = {
 
 interface AdventureTitleEditorProps {
   adventureId?: string;
-  onSave?: (titleData: TitleData) => void;
+  onSave?: (titlePage: TitlePage) => void;
   onBack?: () => void;
 }
 
 export function AdventureTitleEditor({
   adventureId,
 }: AdventureTitleEditorProps) {
-  const [titleData, setTitleData] = useState<TitleData>({
+  const [titlePage, setTitlePage] = useState<Partial<TitlePage>>({
     title: "",
     subtitle: "",
-    bannerImage: null,
+    banner_image_url: "",
+    banner_image_id: "",
     introduction: "",
     background: "",
     prologue: "",
-    relatedAssets: [],
   });
+
   const [previewMode, setPreviewMode] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,19 +78,19 @@ export function AdventureTitleEditor({
       const titlePage = await adventureService.titlePage.get(parseInt(id!));
 
       // Convert API data to component format
-      setTitleData({
+      setTitlePage({
         title: titlePage.title,
         subtitle: titlePage.subtitle,
-        bannerImage: titlePage.banner_image_url || null,
+        banner_image_url: titlePage.banner_image_url || "",
+        banner_image_id: titlePage.banner_image_id || "",
         introduction: titlePage.introduction,
         background: titlePage.background,
         prologue: titlePage.prologue,
-        relatedAssets: [], // TODO: Handle assets when implemented
       });
     } catch (err) {
       // If title page doesn't exist, that's fine - show empty form
       if (err instanceof Error && err.message.includes("not found")) {
-        // Keep default empty titleData
+        // Keep default empty titlePage
         console.log("No title page found, showing empty form");
       } else {
         setError(
@@ -115,24 +111,24 @@ export function AdventureTitleEditor({
     setShowSavingModal(true);
     setIsSaving(true);
 
-    if (!titleData.title.trim()) {
+    if (!titlePage?.title?.trim()) {
       alert("Please enter an adventure title");
       return;
     }
 
     try {
+      // Creating this so I can make sure all the fields have some value to satisfy the API
       const titlePageData = {
-        title: titleData.title,
-        subtitle: titleData.subtitle,
-        banner_image_url: titleData.bannerImage || "",
-        introduction: titleData.introduction,
-        background: titleData.background,
-        prologue: titleData.prologue,
+        title: titlePage.title || "",
+        subtitle: titlePage.subtitle || "",
+        banner_image_url: titlePage.banner_image_url || "",
+        banner_image_id: titlePage.banner_image_id || "",
+        introduction: titlePage.introduction || "",
+        background: titlePage.background || "",
+        prologue: titlePage.prologue || "",
       };
-
-      // Try to update first, if it fails (404), then create
       try {
-        await adventureService.titlePage.update(parseInt(id!), titlePageData);
+        await adventureService.titlePage.update(parseInt(id!), titlePage);
       } catch (updateErr) {
         if (
           updateErr instanceof Error &&
@@ -160,10 +156,6 @@ export function AdventureTitleEditor({
       );
     }
   };
-
-  const selectedAssets = allAssets.filter((asset) =>
-    titleData.relatedAssets.includes(asset.id.toString())
-  );
 
   if (isLoading) {
     return <div>Loading</div>;
@@ -206,20 +198,20 @@ export function AdventureTitleEditor({
             <div
               className="h-80 bg-cover bg-center bg-muted"
               style={{
-                backgroundImage: titleData.bannerImage
-                  ? `url(${titleData.bannerImage})`
+                backgroundImage: titlePage.banner_image_url
+                  ? `url(${titlePage.banner_image_url})`
                   : undefined,
               }}
             >
-              {titleData.bannerImage && (
+              {titlePage.banner_image_url && (
                 <div className="absolute inset-0 bg-black/40" />
               )}
               <div className="absolute inset-0 flex items-end">
                 <div className="max-w-6xl mx-auto px-6 pb-8 w-full">
                   <h1 className="text-4xl md:text-6xl font-bold text-white mb-2">
-                    {titleData.title || "Untitled Adventure"}
+                    {titlePage.title || "Untitled Adventure"}
                   </h1>
-                  <p className="text-xl text-white/90">{titleData.subtitle}</p>
+                  <p className="text-xl text-white/90">{titlePage.subtitle}</p>
                 </div>
               </div>
             </div>
@@ -230,13 +222,13 @@ export function AdventureTitleEditor({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
-                {titleData.introduction && (
+                {titlePage.introduction && (
                   <section>
                     <h2 className="text-2xl font-bold mb-4">
                       Adventure Overview
                     </h2>
                     <div className="prose prose-lg max-w-none text-muted-foreground">
-                      {titleData.introduction
+                      {titlePage.introduction
                         .split("\n")
                         .map((paragraph, index) => (
                           <p key={index} className="mb-4">
@@ -247,11 +239,11 @@ export function AdventureTitleEditor({
                   </section>
                 )}
 
-                {titleData.background && (
+                {titlePage.background && (
                   <section>
                     <h2 className="text-2xl font-bold mb-4">Background</h2>
                     <div className="prose prose-lg max-w-none text-muted-foreground">
-                      {titleData.background
+                      {titlePage.background
                         .split("\n")
                         .map((paragraph, index) => (
                           <p key={index} className="mb-4">
@@ -262,7 +254,7 @@ export function AdventureTitleEditor({
                   </section>
                 )}
 
-                {titleData.prologue && (
+                {titlePage.prologue && (
                   <section>
                     <h2 className="text-2xl font-bold mb-4">Opening Scene</h2>
                     <Card
@@ -271,7 +263,7 @@ export function AdventureTitleEditor({
                     >
                       <CardContent className="p-6">
                         <div className="prose max-w-none text-muted-foreground italic">
-                          {titleData.prologue
+                          {titlePage.prologue
                             .split("\n")
                             .map((paragraph, index) => (
                               <p key={index} className="mb-4">
@@ -282,46 +274,6 @@ export function AdventureTitleEditor({
                       </CardContent>
                     </Card>
                   </section>
-                )}
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {selectedAssets.length > 0 && (
-                  <Card variant="elevated">
-                    <CardHeader>
-                      <h3 className="text-xl font-semibold">Key Assets</h3>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {selectedAssets.map((asset) => (
-                          <div
-                            key={asset.id}
-                            className="flex items-center justify-between"
-                          >
-                            <div>
-                              <div className="font-medium text-sm">
-                                {asset.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {asset.description}
-                              </div>
-                            </div>
-                            <Badge
-                              variant={
-                                assetTypeColors[
-                                  asset.type as keyof typeof assetTypeColors
-                                ]
-                              }
-                              size="sm"
-                            >
-                              {asset.type}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
                 )}
               </div>
             </div>
@@ -358,9 +310,9 @@ export function AdventureTitleEditor({
                     </label>
                     <input
                       type="text"
-                      value={titleData.title}
+                      value={titlePage.title}
                       onChange={(e) =>
-                        setTitleData((prev) => ({
+                        setTitlePage((prev) => ({
                           ...prev,
                           title: e.target.value,
                         }))
@@ -376,9 +328,9 @@ export function AdventureTitleEditor({
                     </label>
                     <input
                       type="text"
-                      value={titleData.subtitle}
+                      value={titlePage.subtitle}
                       onChange={(e) =>
-                        setTitleData((prev) => ({
+                        setTitlePage((prev) => ({
                           ...prev,
                           subtitle: e.target.value,
                         }))
@@ -392,11 +344,11 @@ export function AdventureTitleEditor({
                     <label className="block text-sm font-medium mb-3">
                       Banner Image
                     </label>
-                    {titleData.bannerImage ? (
+                    {titlePage.banner_image_url ? (
                       <div className="space-y-3">
                         <div className="aspect-[3/1] bg-muted rounded-lg overflow-hidden">
                           <img
-                            src={titleData.bannerImage}
+                            src={titlePage.banner_image_url}
                             alt="Banner"
                             className="w-full h-full object-cover"
                           />
@@ -411,9 +363,9 @@ export function AdventureTitleEditor({
                           <Button
                             variant="ghost"
                             onClick={() =>
-                              setTitleData((prev) => ({
+                              setTitlePage((prev) => ({
                                 ...prev,
-                                bannerImage: null,
+                                banner_image_url: "",
                               }))
                             }
                           >
@@ -452,9 +404,9 @@ export function AdventureTitleEditor({
                       focus
                     </p>
                     <textarea
-                      value={titleData.introduction}
+                      value={titlePage.introduction}
                       onChange={(e) =>
-                        setTitleData((prev) => ({
+                        setTitlePage((prev) => ({
                           ...prev,
                           introduction: e.target.value,
                         }))
@@ -474,9 +426,9 @@ export function AdventureTitleEditor({
                       adventure
                     </p>
                     <textarea
-                      value={titleData.background}
+                      value={titlePage.background}
                       onChange={(e) =>
-                        setTitleData((prev) => ({
+                        setTitlePage((prev) => ({
                           ...prev,
                           background: e.target.value,
                         }))
@@ -496,9 +448,9 @@ export function AdventureTitleEditor({
                       players in
                     </p>
                     <textarea
-                      value={titleData.prologue}
+                      value={titlePage.prologue}
                       onChange={(e) =>
-                        setTitleData((prev) => ({
+                        setTitlePage((prev) => ({
                           ...prev,
                           prologue: e.target.value,
                         }))
@@ -524,10 +476,10 @@ export function AdventureTitleEditor({
               <CardContent>
                 <div className="space-y-4">
                   {/* Mini Banner Preview */}
-                  {titleData.bannerImage ? (
+                  {titlePage.banner_image_url ? (
                     <div className="aspect-[3/1] bg-muted rounded-lg overflow-hidden">
                       <img
-                        src={titleData.bannerImage}
+                        src={titlePage.banner_image_url}
                         alt="Banner preview"
                         className="w-full h-full object-cover"
                       />
@@ -540,54 +492,19 @@ export function AdventureTitleEditor({
 
                   <div>
                     <h4 className="font-semibold text-lg">
-                      {titleData.title || "Untitled Adventure"}
+                      {titlePage.title || "Untitled Adventure"}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      {titleData.subtitle}
+                      {titlePage.subtitle}
                     </p>
                   </div>
 
-                  {titleData.introduction && (
+                  {titlePage.introduction && (
                     <div className="border-t border-border pt-4">
                       <h5 className="font-medium text-sm mb-2">Introduction</h5>
                       <p className="text-xs text-muted-foreground line-clamp-3">
-                        {titleData.introduction}
+                        {titlePage.introduction}
                       </p>
-                    </div>
-                  )}
-
-                  {selectedAssets.length > 0 && (
-                    <div className="border-t border-border pt-4">
-                      <h5 className="font-medium text-sm mb-2">
-                        Assets ({selectedAssets.length})
-                      </h5>
-                      <div className="space-y-1">
-                        {selectedAssets.slice(0, 3).map((asset) => (
-                          <div
-                            key={asset.id}
-                            className="flex items-center gap-2"
-                          >
-                            <Badge
-                              variant={
-                                assetTypeColors[
-                                  asset.type as keyof typeof assetTypeColors
-                                ]
-                              }
-                              size="sm"
-                            >
-                              {asset.type}
-                            </Badge>
-                            <span className="text-xs truncate">
-                              {asset.name}
-                            </span>
-                          </div>
-                        ))}
-                        {selectedAssets.length > 3 && (
-                          <p className="text-xs text-muted-foreground">
-                            +{selectedAssets.length - 3} more...
-                          </p>
-                        )}
-                      </div>
                     </div>
                   )}
                 </div>
@@ -629,8 +546,12 @@ export function AdventureTitleEditor({
       <ImagePickerModal
         isOpen={showImagePicker}
         onClose={() => setShowImagePicker(false)}
-        onSelectImage={(imageUrl) =>
-          setTitleData((prev) => ({ ...prev, bannerImage: imageUrl }))
+        onSelectImage={(imageData) =>
+          setTitlePage((prev) => ({
+            ...prev,
+            banner_image_url: imageData.url,
+            banner_image_id: imageData.id,
+          }))
         }
         aspectRatio="banner"
         title="Choose Banner Image"

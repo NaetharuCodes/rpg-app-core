@@ -9,15 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/naetharu/rpg-api/internal/middleware"
 	"github.com/naetharu/rpg-api/internal/models"
+	"github.com/naetharu/rpg-api/internal/services"
 	"gorm.io/gorm"
 )
 
 type AdventureHandler struct {
-	DB *gorm.DB
+	DB                *gorm.DB
+	CloudflareService *services.CloudflareImagesService
 }
 
 func NewAdventureHandler(db *gorm.DB) *AdventureHandler {
-	return &AdventureHandler{DB: db}
+	return &AdventureHandler{
+		DB:                db,
+		CloudflareService: services.NewCloudflareImagesService(),
+	}
 }
 
 // POST /adventures - requires authentication
@@ -195,24 +200,59 @@ func (h *AdventureHandler) DeleteAdventure(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-
 	user, exists := middleware.GetCurrentUser(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
 		return
 	}
-
 	var adventure models.Adventure
 	if err := h.DB.Where("user_id = ? AND id = ?", user.ID, id).First(&adventure).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Adventure not found or access denied"})
 		return
 	}
-
 	// Start a transaction to ensure all deletes succeed or none do
 	tx := h.DB.Begin()
 	if tx.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
 		return
+	}
+
+	// Collect all Cloudflare image IDs that need to be deleted
+	var imageIDsToDelete []string
+
+	// Adventure images
+	if adventure.BannerImageID != "" {
+		imageIDsToDelete = append(imageIDsToDelete, adventure.BannerImageID)
+	}
+	if adventure.CardImageID != "" {
+		imageIDsToDelete = append(imageIDsToDelete, adventure.CardImageID)
+	}
+
+	// Title page images
+	var titlePage models.TitlePage
+	if err := tx.Where("adventure_id = ?", id).First(&titlePage).Error; err == nil {
+		if titlePage.BannerImageID != "" {
+			imageIDsToDelete = append(imageIDsToDelete, titlePage.BannerImageID)
+		}
+	}
+
+	// Scene images
+	var scenes []models.Scene
+	if err := tx.Joins("JOIN episodes ON scenes.episode_id = episodes.id").
+		Where("episodes.adventure_id = ?", id).Find(&scenes).Error; err == nil {
+		for _, scene := range scenes {
+			if scene.ImageID != "" {
+				imageIDsToDelete = append(imageIDsToDelete, scene.ImageID)
+			}
+		}
+	}
+
+	// Delete images from Cloudflare (do this before database cleanup)
+	for _, imageID := range imageIDsToDelete {
+		if err := h.CloudflareService.DeleteImage(imageID); err != nil {
+			// Log the error but don't fail the deletion
+			fmt.Printf("Warning: Failed to delete image from Cloudflare: %v\n", err)
+		}
 	}
 
 	// Remove the asset assocations from the scenes
@@ -221,42 +261,35 @@ func (h *AdventureHandler) DeleteAdventure(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete scene associations"})
 		return
 	}
-
 	// Delete scenes first (they reference episodes)
 	if err := tx.Exec("DELETE FROM scenes WHERE episode_id IN (SELECT id FROM episodes WHERE adventure_id = ?)", id).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete scenes"})
 		return
 	}
-
 	// Delete episodes
 	if err := tx.Where("adventure_id = ?", id).Delete(&models.Episode{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete episodes"})
 		return
 	}
-
 	// Delete title page if exists
 	tx.Where("adventure_id = ?", id).Delete(&models.TitlePage{})
-
 	// Delete epilogue and related data if exists
 	tx.Exec("DELETE FROM epilogue_outcomes WHERE epilogue_id IN (SELECT id FROM epilogues WHERE adventure_id = ?)", id)
 	tx.Exec("DELETE FROM follow_up_hooks WHERE epilogue_id IN (SELECT id FROM epilogues WHERE adventure_id = ?)", id)
 	tx.Where("adventure_id = ?", id).Delete(&models.Epilogue{})
-
 	// Finally delete the adventure
 	if err := tx.Delete(&adventure).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete adventure"})
 		return
 	}
-
 	// Commit the transaction
 	if err := tx.Commit().Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Adventure deleted successfully"})
 }
 

@@ -50,6 +50,7 @@ export interface TitlePage {
   title: string;
   subtitle: string;
   banner_image_url: string;
+  banner_image_id: string;
   introduction: string;
   background: string;
   prologue: string;

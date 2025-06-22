@@ -77,7 +77,9 @@ type Adventure struct {
 	Title          string         `json:"title"`
 	Description    string         `json:"description"`
 	BannerImageURL string         `json:"banner_image_url"`
+	BannerImageID  string         `json:"banner_image_id"`
 	CardImageURL   string         `json:"card_image_url"`
+	CardImageID    string         `json:"card_image_id"`
 	Genres         pq.StringArray `json:"genres" gorm:"type:text[]"`
 	IsOfficial     bool           `json:"is_official" gorm:"default:false"`
 	Reviewed       bool           `json:"reviewed" gorm:"default:false"`
@@ -99,6 +101,7 @@ type TitlePage struct {
 	Title          string    `json:"title"`
 	Subtitle       string    `json:"subtitle"`
 	BannerImageURL string    `json:"banner_image_url"`
+	BannerImageID  string    `json:"banner_image_id"`
 	Introduction   string    `json:"introduction" gorm:"type:text"`
 	Background     string    `json:"background" gorm:"type:text"`
 	Prologue       string    `json:"prologue" gorm:"type:text"`
@@ -125,6 +128,7 @@ type Scene struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	ImageURL    string    `json:"image_url"`
+	ImageID     string    `json:"image_id"`
 	Prose       string    `json:"prose" gorm:"type:text"`
 	GMNotes     string    `json:"gm_notes" gorm:"type:text"`
 	CreatedAt   time.Time `json:"created_at"`

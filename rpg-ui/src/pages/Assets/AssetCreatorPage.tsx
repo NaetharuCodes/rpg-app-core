@@ -91,24 +91,22 @@ export function AssetCreatorPage() {
       alert("Please sign in to create assets");
       return;
     }
-
     if (!formData.name.trim()) {
       alert("Please enter a name for your asset");
       return;
     }
-
     setIsSubmitting(true);
-
     try {
       let imageUrl = "";
-
-      // Handle image upload if user uploaded a file
+      let imageId = "";
+      // Check to see if my user uploaded an image, and if so upload it
       if (formData.image instanceof File) {
         console.log("Uploading image...");
         const uploadResult = await imageService.uploadImage(formData.image);
         imageUrl = uploadResult.urls.medium; // Use medium variant for the asset
+        imageId = uploadResult.image_id; // Store the Cloudflare image ID
       } else if (typeof formData.image === "string") {
-        // User selected from library
+        // Or user may use a lib image. I don't have this in place yet but condition here ready for when I add it.
         imageUrl = formData.image;
       } else {
         // No image selected - use placeholder
@@ -123,23 +121,20 @@ export function AssetCreatorPage() {
         };
         imageUrl = getPlaceholderImageUrl(formData.type);
       }
-
       // Create the asset with the uploaded image URL
       const assetData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         type: formData.type,
         image_url: imageUrl,
+        image_id: imageId,
         is_official: formData.isOfficial,
         genres: formData.genres,
         reviewed: false,
       };
-
       const apiResponse = await assetService.create(assetData);
-
       setCreatedAsset(apiResponse);
       setShowSuccessModal(true);
-
       // Reset form
       setFormData({
         type: "character",

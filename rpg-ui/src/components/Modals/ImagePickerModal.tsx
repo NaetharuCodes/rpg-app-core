@@ -12,7 +12,7 @@ export interface LibraryImage {
 interface ImagePickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectImage: (imageUrl: string) => void;
+  onSelectImage: (imageData: { url: string; id: string }) => void;
   aspectRatio?: "banner" | "square" | "landscape" | "portrait";
   title?: string;
   description?: string;
@@ -67,7 +67,10 @@ export function ImagePickerModal({
       try {
         setIsUploading(true); // Start loading
         const response = await imageService.uploadImage(file);
-        onSelectImage(response.urls.medium);
+        onSelectImage({
+          url: response.urls.medium,
+          id: response.image_id,
+        });
         onClose();
       } catch (error) {
         console.error("Upload failed:", error);

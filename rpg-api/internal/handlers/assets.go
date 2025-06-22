@@ -1,21 +1,27 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/naetharu/rpg-api/internal/middleware"
 	"github.com/naetharu/rpg-api/internal/models"
+	"github.com/naetharu/rpg-api/internal/services"
 	"gorm.io/gorm"
 )
 
 type AssetHandler struct {
-	DB *gorm.DB
+	DB                *gorm.DB
+	CloudflareService *services.CloudflareImagesService
 }
 
 func NewAssetHandler(db *gorm.DB) *AssetHandler {
-	return &AssetHandler{DB: db}
+	return &AssetHandler{
+		DB:                db,
+		CloudflareService: services.NewCloudflareImagesService(),
+	}
 }
 
 // POST /assets - requires authentication
@@ -180,6 +186,15 @@ func (h *AssetHandler) DeleteAsset(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		}
 		return
+	}
+
+	// Delete from Cloudflare if it has an ImageID
+	if asset.ImageID != "" {
+		if err := h.CloudflareService.DeleteImage(asset.ImageID); err != nil {
+			// Log the error but don't fail the deletion - we still want to clean up the DB
+			// You might want to add proper logging here
+			fmt.Printf("Warning: Failed to delete image from Cloudflare: %v\n", err)
+		}
 	}
 
 	if err := h.DB.Delete(&asset).Error; err != nil {
