@@ -59,6 +59,7 @@ const createEmptyAdventure = (): Adventure => ({
   is_official: false,
   age_rating: "For Everyone",
   episodes: [],
+  reviewed: false,
   created_at: "",
 });
 
@@ -394,10 +395,12 @@ export function AdventureBuilderOverviewPage() {
           title: adventure.title,
           description: adventure.description,
           card_image_url: adventure.card_image_url || "",
-          card_image_id: adventure.card_image_id || "", // ADD THIS LINE
+          card_image_id: adventure.card_image_id || "",
           banner_image_url: "",
+          banner_image_id: "",
           genres: adventure.genres || [],
           is_official: false,
+          reviewed: false,
           age_rating: adventure.age_rating,
         });
         setAdventure(created);
