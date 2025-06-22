@@ -206,36 +206,22 @@ export function HomePage() {
             : "Join the community and get access to everything you need to become a confident GM."}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {isAuthenticated ? (
-            <>
-              <Button as="link" href="/dashboard" variant="primary" size="lg">
-                Go to Dashboard
-              </Button>
-              <Button
-                as="link"
-                href="/adventures"
-                variant="secondary"
-                size="lg"
-              >
-                Browse Adventures
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button as="link" href="/login" variant="accent" size="lg">
-                Get Started
-              </Button>
-              <Button
-                as="link"
-                href="/adventures"
-                variant="secondary"
-                leftIcon={BookOpen}
-                size="lg"
-              >
-                Preview Adventures
-              </Button>
-            </>
-          )}
+          <Button
+            href="/adventures"
+            variant="secondary"
+            size="lg"
+            onClick={() => navigate(`/assets/`)}
+          >
+            Go to Assets
+          </Button>
+          <Button
+            href="/adventures"
+            variant="secondary"
+            size="lg"
+            onClick={() => navigate(`/adventures/`)}
+          >
+            Browse Adventures
+          </Button>
         </div>
       </Section>
     </div>
