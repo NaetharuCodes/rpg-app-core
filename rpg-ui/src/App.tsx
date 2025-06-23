@@ -31,6 +31,7 @@ import { AuthCallbackPage } from "./pages/Auth/AuthCallbackPage";
 import { AdminLayout } from "./components/AdminLayout/AdminLayout";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppShell } from "./components/AppShell/AppShell";
+import { WorldsOverviewPage } from "./pages/Worlds/WorldsOverviewPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -105,6 +106,7 @@ function App() {
 
             {/* WORLDS */}
             <Route path="/worlds" element={<WorldsGalleryPage />} />
+            <Route path="/worlds/:id" element={<WorldsOverviewPage />} />
 
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />

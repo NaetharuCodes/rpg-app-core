@@ -231,7 +231,7 @@ export function WorldsGalleryPage() {
                     onClick={() => handlePlayWorld(world)}
                     className="flex-1"
                   >
-                    Play World
+                    View World
                   </Button>
                 ) : (
                   // Custom adventures - play and edit
@@ -242,7 +242,7 @@ export function WorldsGalleryPage() {
                       onClick={() => handlePlayWorld(world)}
                       className="flex-1"
                     >
-                      Play
+                      View
                     </Button>
                     <Button
                       variant="secondary"
