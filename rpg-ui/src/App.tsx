@@ -35,6 +35,7 @@ import { WorldsOverviewPage } from "./pages/Worlds/WorldsOverviewPage";
 import { WorldHistoryPage } from "./pages/Worlds/WorldHistoryPage";
 import { WorldLorePage } from "./pages/Worlds/WorldLorePage";
 import { WorldStoriesPage } from "./pages/Worlds/WorldStoriesPage";
+import { StoryReaderPage } from "./pages/Worlds/StoryReaderPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -109,6 +110,10 @@ function App() {
             <Route path="/worlds/:id/history" element={<WorldHistoryPage />} />
             <Route path="/worlds/:id/lore" element={<WorldLorePage />} />{" "}
             <Route path="/worlds/:id/stories" element={<WorldStoriesPage />} />
+            <Route
+              path="/worlds/:id/stories/:id/read"
+              element={<StoryReaderPage />}
+            />
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/about" element={<AboutPage />} />
