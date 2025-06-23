@@ -34,6 +34,7 @@ import { AppShell } from "./components/AppShell/AppShell";
 import { WorldsOverviewPage } from "./pages/Worlds/WorldsOverviewPage";
 import { WorldHistoryPage } from "./pages/Worlds/WorldHistoryPage";
 import { WorldLorePage } from "./pages/Worlds/WorldLorePage";
+import { WorldStoriesPage } from "./pages/Worlds/WorldStoriesPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -59,12 +60,10 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
-
             {/* ASSET PAGES */}
             <Route path="/assets" element={<AssetsGalleryPage />} />
             <Route path="/assets/:id" element={<AssetDetailPage />} />
             <Route path="/assets/create" element={<AssetCreatorPage />} />
-
             {/* ADVENTURE ROUTES */}
             <Route path="/adventures" element={<AdventureGalleryPage />} />
             <Route
@@ -83,7 +82,6 @@ function App() {
               path="/adventures/:adventureId/epilogue"
               element={<AdventureEpiloguePage />}
             />
-
             {/* ADVENTURE CREATOR ROUTES */}
             <Route
               path="/adventures/create"
@@ -105,24 +103,20 @@ function App() {
               path="/adventures/:id/edit/episodes/:episodeId/scenes/:sceneId"
               element={<AdventureSceneEditorPage />}
             />
-
             {/* WORLDS */}
             <Route path="/worlds" element={<WorldsGalleryPage />} />
             <Route path="/worlds/:id" element={<WorldsOverviewPage />} />
             <Route path="/worlds/:id/history" element={<WorldHistoryPage />} />
-            <Route path="/worlds/:id/lore" element={<WorldLorePage />} />
-
+            <Route path="/worlds/:id/lore" element={<WorldLorePage />} />{" "}
+            <Route path="/worlds/:id/stories" element={<WorldStoriesPage />} />
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/faq" element={<FAQPage />} />
-
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
-
             {/* Admin routes */}
             <Route path="/admin/*" element={<AdminLayout />} />
-
             {/* Protected Routes (will add auth guards later) */}
             <Route path="/dashboard" element={<DashboardPage />} />
           </Routes>

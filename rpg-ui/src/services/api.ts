@@ -133,6 +133,36 @@ export interface FollowUpHook {
   order: number;
 }
 
+export interface Story {
+  id: number;
+  world_id: number;
+  title: string;
+  category: string;
+  excerpt: string;
+  created_at: string;
+  chapters: Chapter[];
+  cover_image_url: string;
+  word_count: number;
+}
+
+export interface Chapter {
+  id: number;
+  story_id: number;
+  title: string;
+  order: number;
+  created_at: string;
+  pages: Page[];
+}
+
+export interface Page {
+  id: number;
+  chapter_id: number;
+  order: number;
+  type: "title" | "text" | "image" | "notes";
+  content: string;
+  created_at: string;
+}
+
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("auth_token");
   const headers: HeadersInit = {
