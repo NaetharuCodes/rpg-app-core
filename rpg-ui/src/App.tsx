@@ -33,6 +33,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppShell } from "./components/AppShell/AppShell";
 import { WorldsOverviewPage } from "./pages/Worlds/WorldsOverviewPage";
 import { WorldHistoryPage } from "./pages/Worlds/WorldHistoryPage";
+import { WorldLorePage } from "./pages/Worlds/WorldLorePage";
 
 // Placeholders
 const LoginPage = () => (
@@ -109,6 +110,7 @@ function App() {
             <Route path="/worlds" element={<WorldsGalleryPage />} />
             <Route path="/worlds/:id" element={<WorldsOverviewPage />} />
             <Route path="/worlds/:id/history" element={<WorldHistoryPage />} />
+            <Route path="/worlds/:id/lore" element={<WorldLorePage />} />
 
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />

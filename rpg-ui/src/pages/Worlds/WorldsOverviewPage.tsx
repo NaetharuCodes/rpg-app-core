@@ -58,13 +58,10 @@ export function WorldsOverviewPage() {
   const [world, setWorld] = useState<World | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data loading
   useEffect(() => {
     // TODO: Replace with actual API call
-    setTimeout(() => {
-      setWorld(mockWorld);
-      setIsLoading(false);
-    }, 500);
+    setWorld(mockWorld);
+    setIsLoading(false);
   }, [id]);
 
   if (isLoading) {
@@ -198,7 +195,7 @@ export function WorldsOverviewPage() {
         spacing="md"
         style={{
           backgroundImage: world.banner_image_url
-            ? `linear-gradient(rgba(1, 0, 0, .7), rgba(1, 0, 0, .9)), url(${world.banner_image_url})`
+            ? `linear-gradient(rgba(1, 0, 0, ), rgba(1, 0, 0, .9)), url(${world.banner_image_url})`
             : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
