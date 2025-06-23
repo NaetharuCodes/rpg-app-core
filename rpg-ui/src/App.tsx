@@ -32,6 +32,7 @@ import { AdminLayout } from "./components/AdminLayout/AdminLayout";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppShell } from "./components/AppShell/AppShell";
 import { WorldsOverviewPage } from "./pages/Worlds/WorldsOverviewPage";
+import { WorldHistoryPage } from "./pages/Worlds/WorldHistoryPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -107,6 +108,7 @@ function App() {
             {/* WORLDS */}
             <Route path="/worlds" element={<WorldsGalleryPage />} />
             <Route path="/worlds/:id" element={<WorldsOverviewPage />} />
+            <Route path="/worlds/:id/history" element={<WorldHistoryPage />} />
 
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />
