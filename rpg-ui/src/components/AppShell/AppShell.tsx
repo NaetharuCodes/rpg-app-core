@@ -13,6 +13,7 @@ import {
   Moon,
   Sun,
   Earth,
+  Swords,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,6 +48,7 @@ export function AppShell({ children }: AppShellProps) {
     { name: "Assets", href: "/assets", icon: Package },
     { name: "Adventures", href: "/adventures", icon: Map },
     { name: "Worlds", href: "/worlds", icon: Earth },
+    { name: "Campaigns", href: "/campaigns", icon: Swords },
     { name: "Rules", href: "/rules", icon: BookOpen },
     { name: "About", href: "/about", icon: Info },
   ];
