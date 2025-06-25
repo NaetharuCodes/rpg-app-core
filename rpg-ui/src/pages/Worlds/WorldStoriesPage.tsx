@@ -3,14 +3,11 @@ import { ArrowLeft, Edit, Plus } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Section } from "@/components/Section/Section";
 import { useAuth } from "@/contexts/AuthContext";
-import { LoreCard } from "@/components/LoreCard/LoreCard";
-import { useState } from "react";
-import { LoreDetailModal } from "@/components/Modals/LoreDetailModal";
+
 import { StoryCard } from "@/components/StoryCard/StoryCard";
 import type { Story } from "@/services/api";
 
 export function WorldStoriesPage() {
-  const [selectedLore, setSelectedLore] = useState<any>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -51,18 +48,14 @@ export function WorldStoriesPage() {
                 Back to World
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">
-                  {worldTitle} - Lore & Myths
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  Stories, legends, and cultural beliefs
-                </p>
+                <h1 className="text-3xl font-bold">{worldTitle} - Stories</h1>
+                <p className="text-muted-foreground mt-1">Stories</p>
               </div>
             </div>
 
             {isAuthenticated && (
               <Button variant="secondary" leftIcon={Edit}>
-                Edit Lore
+                Edit Story
               </Button>
             )}
           </div>
@@ -94,16 +87,17 @@ export function WorldStoriesPage() {
             <StoryCard
               key={story.id}
               story={story}
-              onClick={(lore) => setSelectedLore(lore)}
+              onClick={() =>
+                navigate(`/worlds/${story.world_id}/stories/${story.id}/readcinematic, Chiaroscuro, monochrome, 
+
+toddler, young girl, flat chest, naked, mother, mother spreading girl's pussy, 
+
+squatting on dildo, gold dildo, `)
+              }
             />
           ))}
         </div>
       </Section>
-      <LoreDetailModal
-        isOpen={!!selectedLore}
-        onClose={() => setSelectedLore(null)}
-        lore={selectedLore}
-      />
     </div>
   );
 }
