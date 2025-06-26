@@ -1,17 +1,7 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Badge } from "@/components/Badge/Badge";
-
-interface TimelineEvent {
-  id: number;
-  title: string;
-  description: string;
-  startDate: string;
-  endDate: string | null;
-  era: string;
-  imageUrl?: string;
-  details?: string; // Extended description for the modal
-}
+import type { TimelineEvent } from "@/services/api";
 
 interface TimelineEventCardProps {
   isOpen: boolean;
@@ -46,16 +36,16 @@ export function TimelineEventCard({
         <div className="p-6">
           {/* Date */}
           <div className="text-sm text-muted-foreground mb-4">
-            {event.endDate
-              ? `${event.startDate} - ${event.endDate}`
-              : event.startDate}
+            {event.end_date
+              ? `${event.start_date} - ${event.end_date}`
+              : event.start_date}
           </div>
 
           {/* Image */}
-          {event.imageUrl && (
+          {event.image_url && (
             <div className="mb-6">
               <img
-                src={event.imageUrl}
+                src={event.image_url}
                 alt={event.title}
                 className="w-full h-48 object-cover rounded-lg"
               />

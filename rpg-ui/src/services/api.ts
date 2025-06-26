@@ -43,6 +43,25 @@ export interface World {
   created_at: string;
 }
 
+export interface TimelineEvent {
+  id: number;
+  world_id: number;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string | null;
+  era: string;
+  importance: "minor" | "major" | "critical";
+  sort_order: number;
+  image_url?: string;
+  image_id?: string;
+  details?: string;
+  user_id?: number;
+  user?: User;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Adventure {
   id: number;
   title: string;
@@ -532,5 +551,91 @@ export const adventureService = {
         }
       );
     },
+  },
+};
+
+export const worldService = {
+  async getAll(): Promise<World[]> {
+    const response = await authenticatedFetch(`${API_BASE}/worlds`);
+    return response.json();
+  },
+
+  async get(id: number): Promise<World> {
+    const response = await authenticatedFetch(`${API_BASE}/worlds/${id}`);
+    return response.json();
+  },
+
+  async create(
+    world: Omit<World, "id" | "created_at" | "user_id" | "user">
+  ): Promise<World> {
+    const response = await authenticatedFetch(`${API_BASE}/worlds`, {
+      method: "POST",
+      body: JSON.stringify(world),
+    });
+    return response.json();
+  },
+
+  async update(id: number, world: Partial<World>): Promise<World> {
+    const response = await authenticatedFetch(`${API_BASE}/worlds/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(world),
+    });
+    return response.json();
+  },
+
+  async delete(id: number): Promise<void> {
+    await authenticatedFetch(`${API_BASE}/worlds/${id}`, {
+      method: "DELETE",
+    });
+  },
+};
+
+export const timelineEventService = {
+  async getAll(worldId: number): Promise<TimelineEvent[]> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/timeline-events`
+    );
+    return response.json();
+  },
+
+  async create(
+    worldId: number,
+    event: Omit<
+      TimelineEvent,
+      "id" | "world_id" | "created_at" | "updated_at" | "user_id" | "user"
+    >
+  ): Promise<TimelineEvent> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/timeline-events`,
+      {
+        method: "POST",
+        body: JSON.stringify(event),
+      }
+    );
+    return response.json();
+  },
+
+  async update(
+    worldId: number,
+    eventId: number,
+    event: Partial<TimelineEvent>
+  ): Promise<TimelineEvent> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/timeline-events/${eventId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(event),
+      }
+    );
+    return response.json();
+  },
+
+  async delete(worldId: number, eventId: number): Promise<void> {
+    await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/timeline-events/${eventId}`,
+      {
+        method: "DELETE",
+      }
+    );
   },
 };

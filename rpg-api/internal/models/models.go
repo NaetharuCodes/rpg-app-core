@@ -162,6 +162,49 @@ type Epilogue struct {
 	FollowUpHooks []FollowUpHook    `json:"follow_up_hooks" gorm:"foreignKey:EpilogueID"`
 }
 
+type World struct {
+	ID             uint           `json:"id" gorm:"primaryKey"`
+	Title          string         `json:"title" gorm:"not null"`
+	Description    string         `json:"description"`
+	BannerImageURL string         `json:"banner_image_url"`
+	BannerImageID  string         `json:"banner_image_id"`
+	CardImageURL   string         `json:"card_image_url"`
+	CardImageID    string         `json:"card_image_id"`
+	Genres         pq.StringArray `json:"genres" gorm:"type:text[]"`
+	IsOfficial     bool           `json:"is_official" gorm:"default:false"`
+	Reviewed       bool           `json:"reviewed" gorm:"default:false"`
+	AgeRating      string         `json:"age_rating" gorm:"default:'For Everyone'"`
+	UserID         *uint          `json:"user_id" gorm:"index"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+
+	// Relationships
+	User           *User           `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	TimelineEvents []TimelineEvent `json:"timeline_events,omitempty" gorm:"foreignKey:WorldID"`
+}
+
+type TimelineEvent struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	WorldID     uint      `json:"world_id"`
+	Title       string    `json:"title" gorm:"not null"`
+	Description string    `json:"description"`
+	StartDate   string    `json:"start_date" gorm:"not null"`
+	EndDate     *string   `json:"end_date"`
+	Era         string    `json:"era" gorm:"not null"`
+	Importance  string    `json:"importance" gorm:"not null;default:'minor'"`
+	SortOrder   int       `json:"sort_order" gorm:"not null"`
+	ImageURL    string    `json:"image_url"`
+	ImageID     string    `json:"image_id"`
+	Details     string    `json:"details" gorm:"type:text"`
+	UserID      *uint     `json:"user_id" gorm:"index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+
+	// Relationships
+	World World `json:"world,omitempty" gorm:"foreignKey:WorldID"`
+	User  *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
+}
+
 type EpilogueOutcome struct {
 	ID          uint   `json:"id" gorm:"primaryKey"`
 	EpilogueID  uint   `json:"epilogue_id"`

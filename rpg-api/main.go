@@ -34,6 +34,8 @@ func main() {
 		&models.FollowUpHook{},
 		&models.EmailVerificationToken{},
 		&models.PasswordResetToken{},
+		&models.World{},
+		&models.TimelineEvent{},
 	)
 
 	// Setup middleware
@@ -45,6 +47,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(db)
 	uploadHandler := handlers.NewUploadHandler()
 	adminHandler := handlers.NewAdminHandler(db)
+	worldHandler := handlers.NewWorldHandler(db) // Add this
+	timelineEventHandler := handlers.NewTimelineEventHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -114,6 +118,19 @@ func main() {
 	r.POST("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.CreateEpilogue)
 	r.PATCH("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.UpdateEpilogue)
 	r.DELETE("/adventures/:id/epilogue", authMiddleware.RequireAuth(), adventureHandler.DeleteEpilogue)
+
+	// World routes
+	r.GET("/worlds", authMiddleware.OptionalAuth(), worldHandler.GetWorlds)
+	r.GET("/worlds/:id", authMiddleware.OptionalAuth(), worldHandler.GetWorld)
+	r.POST("/worlds", authMiddleware.RequireAuth(), worldHandler.CreateWorld)
+	r.PATCH("/worlds/:id", authMiddleware.RequireAuth(), worldHandler.UpdateWorld)
+	r.DELETE("/worlds/:id", authMiddleware.RequireAuth(), worldHandler.DeleteWorld)
+
+	// Timeline Event routes
+	r.GET("/worlds/:id/timeline-events", authMiddleware.OptionalAuth(), timelineEventHandler.GetTimelineEvents)
+	r.POST("/worlds/:id/timeline-events", authMiddleware.RequireAuth(), timelineEventHandler.CreateTimelineEvent)
+	r.PATCH("/worlds/:id/timeline-events/:eventId", authMiddleware.RequireAuth(), timelineEventHandler.UpdateTimelineEvent)
+	r.DELETE("/worlds/:id/timeline-events/:eventId", authMiddleware.RequireAuth(), timelineEventHandler.DeleteTimelineEvent)
 
 	// Admin routes (require admin auth)
 	r.GET("/admin/stats", authMiddleware.RequireAuth(), adminHandler.GetStats)
