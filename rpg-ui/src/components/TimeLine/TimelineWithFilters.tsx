@@ -6,8 +6,11 @@ import type { TimelineEvent } from "@/services/api";
 
 interface TimelineWithFiltersProps {
   events: TimelineEvent[];
-  onEventClick?: (event: TimelineEvent) => void;
-  onAddEvent?: (date: string) => void;
+  onEventClick: (event: TimelineEvent) => void;
+  onAddEvent: (date: string) => void;
+  onEditEvent: (event: TimelineEvent) => void;
+  onDeleteEvent: (eventId: number) => void;
+  isEditing?: boolean;
 }
 
 interface GroupedEvent {
@@ -34,6 +37,9 @@ export function TimelineWithFilters({
   events,
   onEventClick,
   onAddEvent,
+  onEditEvent,
+  onDeleteEvent,
+  isEditing = false,
 }: TimelineWithFiltersProps) {
   const [importanceFilter, setImportanceFilter] =
     useState<ImportanceFilter>("all");
@@ -329,21 +335,32 @@ export function TimelineWithFilters({
                               {event.title}
                             </h3>
                             <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  event.importance === "critical"
-                                    ? "destructive"
-                                    : event.importance === "major"
-                                      ? "default"
-                                      : "secondary"
-                                }
-                                size="sm"
-                              >
-                                {event.importance}
-                              </Badge>
-                              <Badge variant="outline" size="sm">
-                                {event.era}
-                              </Badge>
+                              {isEditing && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onEditEvent(event);
+                                    }}
+                                    className="text-xs px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                                    title="Edit event"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDeleteEvent(event.id);
+                                    }}
+                                    className="text-xs px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                                    title="Delete event"
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                              <Badge>...</Badge>
+                              <Badge>...</Badge>
                             </div>
                           </div>
 

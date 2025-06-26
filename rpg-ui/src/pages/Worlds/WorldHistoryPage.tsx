@@ -61,17 +61,65 @@ export function WorldHistoryPage() {
     setShowEventModal(true);
   };
 
-  const handleSaveEvent = async (eventData: any) => {
+  const handleSaveEvent = async (eventData) => {
     if (!id) return;
 
     try {
-      const newEvent = await timelineEventService.create(
+      if (editingEvent) {
+        // Update existing event
+        const updated = await timelineEventService.update(
+          parseInt(id),
+          editingEvent.id,
+          eventData
+        );
+        setEvents((prev) =>
+          prev.map((e) => (e.id === editingEvent.id ? updated : e))
+        );
+      } else {
+        // Create new event
+        const newEvent = await timelineEventService.create(
+          parseInt(id),
+          eventData
+        );
+        setEvents((prev) => [...prev, newEvent]);
+      }
+    } catch (error) {
+      console.error("Failed to save event:", error);
+      throw error;
+    }
+  };
+
+  const handleEditEvent = (event) => {
+    setEditingEvent(event);
+    setShowEventModal(true);
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!confirm("Are you sure you want to delete this event?")) return;
+
+    try {
+      await timelineEventService.delete(parseInt(id), eventId);
+      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+      alert("Failed to delete event. Please try again.");
+    }
+  };
+
+  const handleUpdateEvent = async (eventData) => {
+    if (!editingEvent || !id) return;
+
+    try {
+      const updated = await timelineEventService.update(
         parseInt(id),
+        editingEvent.id,
         eventData
       );
-      setEvents((prev) => [...prev, newEvent]);
+      setEvents((prev) =>
+        prev.map((e) => (e.id === editingEvent.id ? updated : e))
+      );
     } catch (error) {
-      console.error("Failed to create event:", error);
+      console.error("Failed to update event:", error);
       throw error;
     }
   };
@@ -156,11 +204,13 @@ export function WorldHistoryPage() {
             </Button>
           )}
         </div>
-
         <TimelineWithFilters
           events={events}
           onEventClick={setSelectedEvent}
           onAddEvent={handleAddEvent}
+          onEditEvent={handleEditEvent}
+          onDeleteEvent={handleDeleteEvent}
+          isEditing={true}
         />
       </Section>
 
@@ -174,7 +224,7 @@ export function WorldHistoryPage() {
         onClose={() => setShowEventModal(false)}
         onSave={handleSaveEvent}
         event={editingEvent}
-        isCreating={true}
+        isCreating={!editingEvent}
       />
     </div>
   );
