@@ -165,42 +165,63 @@ export function TimelineWithFilters({
 
   return (
     <div className="space-y-6">
-      <div className="bg-card border border-border rounded-lg p-4">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between h-[64px]">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Timeline Filters
-            </h3>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>
+      <div className="bg-gradient-to-r from-card to-card/50 border border-border/50 rounded-xl shadow-sm p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Filter className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Timeline Filters</h3>
+              <p className="text-sm text-muted-foreground">
                 Showing {filteredEvents.length} of {events.length} events
-              </span>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                  Clear Filters
-                </Button>
-              )}
+              </p>
             </div>
           </div>
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={clearAllFilters}>
+              Clear All
+            </Button>
+          )}
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Importance</label>
-              <div className="flex flex-wrap gap-1">
+        {/* Filter Groups */}
+        <div className="space-y-6">
+          {/* Search Bar - Full Width */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search events by title or description..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 text-sm border border-border rounded-lg bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            />
+          </div>
+
+          {/* Filter Pills Row */}
+          <div className="flex flex-wrap items-center gap-6">
+            {/* Importance Filters */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground min-w-fit">
+                Importance:
+              </span>
+              <div className="flex items-center gap-2">
                 {importanceLevels.map((level) => (
-                  <Button
+                  <button
                     key={level.value}
-                    variant={
-                      importanceFilter === level.value ? "primary" : "secondary"
-                    }
-                    size="sm"
                     onClick={() => setImportanceFilter(level.value)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-full transition-all ${
+                      importanceFilter === level.value
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                   >
                     {level.label}
                     {level.value !== "all" && (
-                      <div
-                        className={`w-2 h-2 rounded-full ml-1 ${
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full ml-2 ${
                           level.value === "critical"
                             ? "bg-red-500"
                             : level.value === "major"
@@ -209,77 +230,83 @@ export function TimelineWithFilters({
                         }`}
                       />
                     )}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Era</label>
-              <div className="flex flex-wrap gap-1">
-                <Button
-                  variant={eraFilter === null ? "primary" : "secondary"}
-                  size="sm"
+            {/* Era Filters */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground min-w-fit">
+                Era:
+              </span>
+              <div className="flex items-center gap-2">
+                <button
                   onClick={() => setEraFilter(null)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-full transition-all ${
+                    eraFilter === null
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
                   All Eras
-                </Button>
+                </button>
                 {availableEras.map((era) => (
-                  <Button
+                  <button
                     key={era}
-                    variant={eraFilter === era ? "primary" : "secondary"}
-                    size="sm"
                     onClick={() => setEraFilter(era)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-full transition-all ${
+                      eraFilter === era
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                   >
                     {era}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search events..."
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date Range</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="Start"
-                  value={dateRange.start || ""}
-                  onChange={(e) =>
-                    setDateRange({
-                      start: e.target.value ? parseInt(e.target.value) : null,
-                      end: dateRange.end,
-                    })
-                  }
-                  className="w-20 px-2 py-1 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                />
-                <span className="text-muted-foreground text-sm">to</span>
-                <input
-                  type="number"
-                  placeholder="End"
-                  value={dateRange.end || ""}
-                  onChange={(e) =>
-                    setDateRange({
-                      start: dateRange.start,
-                      end: e.target.value ? parseInt(e.target.value) : null,
-                    })
-                  }
-                  className="w-20 px-2 py-1 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                />
-              </div>
+          {/* Date Range */}
+          <div className="flex items-center gap-4 pt-2 border-t border-border/30">
+            <span className="text-sm font-medium text-muted-foreground min-w-fit">
+              Date Range:
+            </span>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                placeholder="Start year"
+                value={dateRange.start || ""}
+                onChange={(e) =>
+                  setDateRange({
+                    start: e.target.value ? parseInt(e.target.value) : null,
+                    end: dateRange.end,
+                  })
+                }
+                className="w-28 px-3 py-2 text-sm border border-border rounded-lg bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+              <span className="text-muted-foreground text-sm">to</span>
+              <input
+                type="number"
+                placeholder="End year"
+                value={dateRange.end || ""}
+                onChange={(e) =>
+                  setDateRange({
+                    start: dateRange.start,
+                    end: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
+                className="w-28 px-3 py-2 text-sm border border-border rounded-lg bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+              {(dateRange.start || dateRange.end) && (
+                <button
+                  onClick={() => setDateRange({ start: null, end: null })}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </div>
