@@ -22,23 +22,7 @@ import { Button } from "@/components/Button/Button";
 import { Section } from "@/components/Section/Section";
 import { useAuth } from "@/contexts/AuthContext";
 import { ageRatingColors } from "@/lib/constants";
-import type { World } from "@/services/api";
-
-// Mock world data for now
-const mockWorld: World = {
-  id: 1,
-  title: "The Dustlands",
-  description:
-    "A harsh desert world where ancient magic meets the struggle for survival. Once-great cities now lie buried beneath endless dunes, while nomadic tribes navigate the treacherous landscape seeking water and shelter.",
-  banner_image_url:
-    "https://png.pngtree.com/background/20230401/original/pngtree-abstract-neon-lights-background-picture-image_2247943.jpg",
-  card_image_url: "",
-  genres: ["Fantasy", "Post-Apocalyptic", "Adventure"],
-  is_official: false,
-  reviewed: false,
-  age_rating: "Teen",
-  created_at: "2024-01-15T10:30:00Z",
-};
+import { worldService, type World } from "@/services/api";
 
 interface WorldSection {
   id: string;
@@ -59,9 +43,22 @@ export function WorldsOverviewPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    setWorld(mockWorld);
-    setIsLoading(false);
+    const fetchWorld = async () => {
+      if (!id) return;
+
+      try {
+        setIsLoading(true);
+        const worldData = await worldService.get(parseInt(id));
+        setWorld(worldData);
+      } catch (error) {
+        console.error("Failed to fetch world:", error);
+        setWorld(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWorld();
   }, [id]);
 
   if (isLoading) {

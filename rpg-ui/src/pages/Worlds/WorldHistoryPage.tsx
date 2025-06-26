@@ -12,6 +12,7 @@ import {
   type World,
   type TimelineEvent,
 } from "@/services/api";
+import { TimelineEventModal } from "@/components/Modals/TimelineEventModal";
 
 export function WorldHistoryPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,8 @@ export function WorldHistoryPage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,8 +57,23 @@ export function WorldHistoryPage() {
   }, [id]);
 
   const handleAddEvent = async (date: string) => {
-    // TODO: Implement add event functionality
-    console.log("Add event at date:", date);
+    setEditingEvent(null);
+    setShowEventModal(true);
+  };
+
+  const handleSaveEvent = async (eventData: any) => {
+    if (!id) return;
+
+    try {
+      const newEvent = await timelineEventService.create(
+        parseInt(id),
+        eventData
+      );
+      setEvents((prev) => [...prev, newEvent]);
+    } catch (error) {
+      console.error("Failed to create event:", error);
+      throw error;
+    }
   };
 
   if (isLoading) {
@@ -128,7 +146,12 @@ export function WorldHistoryPage() {
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-semibold">Timeline</h2>
           {isAuthenticated && (
-            <Button variant="primary" leftIcon={Plus} size="sm">
+            <Button
+              variant="primary"
+              leftIcon={Plus}
+              size="sm"
+              onClick={() => handleAddEvent("")}
+            >
               Add Event
             </Button>
           )}
@@ -145,6 +168,13 @@ export function WorldHistoryPage() {
         isOpen={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
         event={selectedEvent}
+      />
+      <TimelineEventModal
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        onSave={handleSaveEvent}
+        event={editingEvent}
+        isCreating={true}
       />
     </div>
   );
