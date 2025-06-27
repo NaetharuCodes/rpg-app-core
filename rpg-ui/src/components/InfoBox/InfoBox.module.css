@@ -1,0 +1,106 @@
+/* Cyberpunk Theme */
+.cyberpunk {
+  --info-box-border: #00fff9;
+  --info-box-bg: rgba(26, 26, 46, 0.9);
+  --info-box-bg-active: linear-gradient(
+    135deg,
+    rgba(0, 255, 249, 0.1),
+    rgba(255, 0, 193, 0.1)
+  );
+  --info-box-hover-bg: rgba(0, 255, 249, 0.1);
+  --info-box-text: #fff;
+  --info-box-title: #00fff9;
+}
+
+.cyberpunk.infoBox {
+  border: 2px solid var(--info-box-border);
+  background: var(--info-box-bg);
+  box-shadow: 0 0 15px rgba(0, 255, 249, 0.3);
+}
+
+.cyberpunk.infoBox:hover:not(.active) {
+  box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+  background: var(--info-box-hover-bg);
+}
+
+.cyberpunk.infoBox.active {
+  background: var(--info-box-bg-active);
+  border-color: #ff00c1;
+  box-shadow: 0 0 25px rgba(255, 0, 193, 0.4);
+}
+
+.cyberpunk .title {
+  color: var(--info-box-title);
+}
+/* Core CSS */
+
+.wrapper {
+  position: relative;
+  width: 250px; /* Reserve space for expanded state */
+  height: 120px; /* Reserve space for expanded state */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.infoBox {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--info-box-border, white);
+  border-radius: 50%;
+  background: var(--info-box-bg, #1e1e1e);
+  cursor: pointer;
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.infoBox:hover:not(.active) {
+  transform: scale(1.1);
+  background: var(--info-box-hover-bg, rgb(194, 65, 12));
+}
+
+.infoBox.active {
+  width: 250px;
+  height: 120px;
+  border-radius: 8px;
+  background: var(--info-box-bg-active, rgb(194, 65, 12));
+  transform: rotate(360deg);
+}
+
+.content {
+  opacity: 0;
+  padding: 16px;
+  animation: fadeIn 0.3s ease-in-out 0.3s forwards;
+  text-align: left;
+  width: 100%;
+}
+
+.title {
+  font-weight: bold;
+  margin: 0 0 8px 0;
+  color: var(--info-box-title, white);
+  font-size: 16px;
+}
+
+.message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--info-box-text, white);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -11,6 +11,7 @@ import { Hero } from "@/components/Hero/Hero";
 import { Section } from "@/components/Section/Section";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { InfoBox } from "@/components/InfoBox/InfoBox";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -66,6 +67,32 @@ export function HomePage() {
 
       {/* Why I Built This Section */}
       <Section align="center">
+        <div className="my-8">
+          <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
+        </div>
+        {/* Test the InfoBox */}
+        <div className="my-8">
+          <h3 className="text-xl font-semibold mb-4">Info Boxes</h3>
+
+          <div className="flex gap-8 items-start">
+            {/* Default theme */}
+            <InfoBox
+              title="Adventure Tip"
+              message="Always check your inventory before entering a dungeon. You never know what dangers await!"
+              theme="cyberpunk"
+            />
+            <InfoBox
+              title="Adventure Tip"
+              message="Always check your inventory before entering a dungeon. You never know what dangers await!"
+              theme="cyberpunk"
+            />
+            <InfoBox
+              title="Adventure Tip"
+              message="Always check your inventory before entering a dungeon. You never know what dangers await!"
+              theme="cyberpunk"
+            />
+          </div>
+        </div>
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
           Why I Built This
         </h2>
