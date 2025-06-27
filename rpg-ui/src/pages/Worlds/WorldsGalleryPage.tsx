@@ -208,9 +208,9 @@ export function WorldsGalleryPage() {
                   <p className="text-lg mb-4">
                     You haven't created any worlds yet
                   </p>
-                  <Link to="/adventures/create">
+                  <Link to="/worlds/create">
                     <Button variant="primary" leftIcon={Plus}>
-                      Create Your First World
+                      Create Your First World Now
                     </Button>
                   </Link>
                 </div>

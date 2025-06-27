@@ -103,7 +103,7 @@ export function WorldsOverviewPage() {
         spacing="md"
         style={{
           backgroundImage: world.banner_image_url
-            ? `linear-gradient(rgba(1, 0, 0, ), rgba(1, 0, 0, .9)), url(${world.banner_image_url})`
+            ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.8)), url(${world.banner_image_url})`
             : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
