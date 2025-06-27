@@ -62,6 +62,14 @@ export interface TimelineEvent {
   updated_at: string;
 }
 
+export interface WorldEra {
+  id: number;
+  world_id: number;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface Adventure {
   id: number;
   title: string;
@@ -637,5 +645,60 @@ export const timelineEventService = {
         method: "DELETE",
       }
     );
+  },
+};
+
+export const worldEraService = {
+  async getAll(worldId: number): Promise<WorldEra[]> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/eras`
+    );
+    return response.json();
+  },
+
+  async create(
+    worldId: number,
+    era: Omit<WorldEra, "id" | "world_id" | "created_at">
+  ): Promise<WorldEra> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/eras`,
+      {
+        method: "POST",
+        body: JSON.stringify(era),
+      }
+    );
+    return response.json();
+  },
+
+  async update(
+    worldId: number,
+    eraId: number,
+    era: Partial<Pick<WorldEra, "name" | "sort_order">>
+  ): Promise<WorldEra> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/eras/${eraId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(era),
+      }
+    );
+    return response.json();
+  },
+
+  async delete(worldId: number, eraId: number): Promise<void> {
+    await authenticatedFetch(`${API_BASE}/worlds/${worldId}/eras/${eraId}`, {
+      method: "DELETE",
+    });
+  },
+
+  async reorder(worldId: number, eraIds: number[]): Promise<WorldEra[]> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/worlds/${worldId}/eras/reorder`,
+      {
+        method: "POST",
+        body: JSON.stringify({ era_ids: eraIds }),
+      }
+    );
+    return response.json();
   },
 };

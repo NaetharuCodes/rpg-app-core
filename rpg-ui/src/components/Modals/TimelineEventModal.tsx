@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
-import type { TimelineEvent } from "@/services/api";
+import type { TimelineEvent, WorldEra } from "@/services/api";
 
 interface TimelineEventModalProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ interface TimelineEventModalProps {
   ) => Promise<void>;
   event?: TimelineEvent | null;
   isCreating?: boolean;
+  eras: WorldEra[];
 }
 
 const IMPORTANCE_LEVELS = [
@@ -29,6 +30,7 @@ export function TimelineEventModal({
   onSave,
   event,
   isCreating = false,
+  eras,
 }: TimelineEventModalProps) {
   const [formData, setFormData] = useState({
     title: "",
@@ -193,16 +195,21 @@ export function TimelineEventModal({
                   <label className="block text-sm font-medium mb-2">
                     Era <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.era}
                     onChange={(e) =>
                       setFormData({ ...formData, era: e.target.value })
                     }
                     className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                    placeholder="e.g., Ancient Era, Modern Times..."
                     required
-                  />
+                  >
+                    <option value="">Select an era...</option>
+                    {eras.map((era) => (
+                      <option key={era.id} value={era.name}>
+                        {era.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

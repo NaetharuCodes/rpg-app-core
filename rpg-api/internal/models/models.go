@@ -205,6 +205,17 @@ type TimelineEvent struct {
 	User  *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
+type WorldEra struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	WorldID   uint      `json:"world_id" gorm:"not null;index"`
+	Name      string    `json:"name" gorm:"not null"`
+	SortOrder int       `json:"sort_order" gorm:"not null"`
+	CreatedAt time.Time `json:"created_at"`
+
+	// Relationships
+	World World `json:"world,omitempty" gorm:"foreignKey:WorldID"`
+}
+
 type EpilogueOutcome struct {
 	ID          uint   `json:"id" gorm:"primaryKey"`
 	EpilogueID  uint   `json:"epilogue_id"`

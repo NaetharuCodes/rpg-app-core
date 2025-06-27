@@ -11,8 +11,11 @@ import {
   timelineEventService,
   type World,
   type TimelineEvent,
+  type WorldEra,
+  worldEraService,
 } from "@/services/api";
 import { TimelineEventModal } from "@/components/Modals/TimelineEventModal";
+import { EraManager } from "@/components/EraManager/EraManager";
 
 export function WorldHistoryPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +31,8 @@ export function WorldHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
+  const [eras, setEras] = useState<WorldEra[]>([]);
+  const [showEraManagement, setShowEraManagement] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -37,14 +42,15 @@ export function WorldHistoryPage() {
         setIsLoading(true);
         setError(null);
 
-        // Load world and timeline events
-        const [worldData, eventsData] = await Promise.all([
+        const [worldData, eventsData, erasData] = await Promise.all([
           worldService.get(parseInt(id)),
           timelineEventService.getAll(parseInt(id)),
+          worldEraService.getAll(parseInt(id)),
         ]);
 
         setWorld(worldData);
         setEvents(eventsData);
+        setEras(erasData);
       } catch (err) {
         console.error("Failed to load world data:", err);
         setError("Failed to load world data");
@@ -189,6 +195,34 @@ export function WorldHistoryPage() {
         </div>
       </Section>
 
+      {/* Era Management Section */}
+      <Section spacing="md">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold">Historical Eras</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowEraManagement(!showEraManagement)}
+          >
+            {showEraManagement ? "Hide" : "Manage"} Eras
+          </Button>
+        </div>
+
+        {showEraManagement && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Manage the historical eras for this world. Eras will appear in
+              this order on the timeline.
+            </p>
+            <EraManager
+              worldId={parseInt(id!)}
+              eras={eras}
+              onErasChange={setEras}
+            />
+          </div>
+        )}
+      </Section>
+
       {/* Timeline Section */}
       <Section background="muted" spacing="lg">
         <div className="flex items-center justify-between mb-8">
@@ -225,6 +259,7 @@ export function WorldHistoryPage() {
         onSave={handleSaveEvent}
         event={editingEvent}
         isCreating={!editingEvent}
+        eras={eras}
       />
     </div>
   );

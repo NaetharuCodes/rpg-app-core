@@ -36,6 +36,7 @@ func main() {
 		&models.PasswordResetToken{},
 		&models.World{},
 		&models.TimelineEvent{},
+		&models.WorldEra{},
 	)
 
 	// Setup middleware
@@ -47,8 +48,9 @@ func main() {
 	authHandler := handlers.NewAuthHandler(db)
 	uploadHandler := handlers.NewUploadHandler()
 	adminHandler := handlers.NewAdminHandler(db)
-	worldHandler := handlers.NewWorldHandler(db) // Add this
+	worldHandler := handlers.NewWorldHandler(db)
 	timelineEventHandler := handlers.NewTimelineEventHandler(db)
+	worldEraHandler := handlers.NewWorldEraHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -131,6 +133,13 @@ func main() {
 	r.POST("/worlds/:id/timeline-events", authMiddleware.RequireAuth(), timelineEventHandler.CreateTimelineEvent)
 	r.PATCH("/worlds/:id/timeline-events/:eventId", authMiddleware.RequireAuth(), timelineEventHandler.UpdateTimelineEvent)
 	r.DELETE("/worlds/:id/timeline-events/:eventId", authMiddleware.RequireAuth(), timelineEventHandler.DeleteTimelineEvent)
+
+	// World Era routes
+	r.GET("/worlds/:id/eras", authMiddleware.OptionalAuth(), worldEraHandler.GetEras)
+	r.POST("/worlds/:id/eras", authMiddleware.RequireAuth(), worldEraHandler.CreateEra)
+	r.PATCH("/worlds/:id/eras/:eraId", authMiddleware.RequireAuth(), worldEraHandler.UpdateEra)
+	r.DELETE("/worlds/:id/eras/:eraId", authMiddleware.RequireAuth(), worldEraHandler.DeleteEra)
+	r.POST("/worlds/:id/eras/reorder", authMiddleware.RequireAuth(), worldEraHandler.ReorderEras)
 
 	// Admin routes (require admin auth)
 	r.GET("/admin/stats", authMiddleware.RequireAuth(), adminHandler.GetStats)
