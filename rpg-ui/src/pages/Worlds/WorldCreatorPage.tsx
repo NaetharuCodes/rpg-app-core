@@ -11,7 +11,7 @@ import { ImagePickerModal } from "@/components/Modals/ImagePickerModal";
 export function WorldCreatorPage() {
   const [showBannerImagePicker, setShowBannerImagePicker] = useState(false);
   const [showCardImagePicker, setShowCardImagePicker] = useState(false);
-  const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<
     Omit<World, "id" | "created_at" | "user_id" | "user">
@@ -27,6 +27,8 @@ export function WorldCreatorPage() {
     is_official: false,
     reviewed: false,
   });
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
