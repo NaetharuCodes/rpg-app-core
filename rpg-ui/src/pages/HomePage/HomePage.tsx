@@ -11,7 +11,8 @@ import { Hero } from "@/components/Hero/Hero";
 import { Section } from "@/components/Section/Section";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { InfoBox } from "@/components/InfoBox/InfoBox";
+import { RadioTabs } from "@/components/RadioTabs/RadioTabs";
+import { SlideText } from "@/components/SlideText/SlideText";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -70,6 +71,17 @@ export function HomePage() {
         <div className="my-8">
           <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
         </div>
+        <SlideText text="Dive Into the Night" theme="cyberpunk" />
+        <RadioTabs
+          theme="cyberpunk"
+          name="example"
+          options={[
+            { value: "option-1", label: "Option 1" },
+            { value: "option-2", label: "Option 2" },
+            { value: "option-3", label: "Option 3" },
+          ]}
+          onChange={(value) => console.log(value)}
+        />
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
           Why I Built This
         </h2>

@@ -25,7 +25,7 @@
   box-shadow: 0 0 15px rgba(255, 0, 193, 0.6);
 }
 
-/* Core CSS - this is the default and we fall back here if we are not using a specific theme */
+/* Core CSS */
 
 .container {
   margin: 32px 0;
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  min-height: 320px;
+  min-height: 64px;
 }
 
 .expandingMenu {
@@ -42,8 +42,8 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  width: 260px;
-  height: 260px;
+  width: 64px;
+  height: 64px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -68,7 +68,7 @@
 
 .expandingMenu li {
   position: absolute;
-  transform-origin: 130px;
+  transform-origin: 220px;
   transition: 0.4s;
   opacity: 0;
   display: flex;
@@ -92,7 +92,7 @@
 }
 
 .expandingMenu.active li {
-  transform: translateX(calc(70px * var(--i)));
+  transform: translateX(calc(80px * var(--i)));
   opacity: 1;
 }
 

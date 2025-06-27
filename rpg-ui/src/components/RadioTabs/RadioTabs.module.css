@@ -1,0 +1,59 @@
+/* Cyberpunk variant */
+.radioGroup.cyberpunk .customRadio + .label {
+  background-color: #0a0a0a;
+  color: #00fff9;
+  border: 1px solid #00fff9;
+  box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.radioGroup.cyberpunk .customRadio:checked + .label {
+  background-color: #ff00c1;
+  color: #000;
+  border-color: #ff00c1;
+  box-shadow: 0 0 20px rgba(255, 0, 193, 0.6);
+}
+
+/* Default Styles */
+.radioGroup {
+  margin: 32px 0 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customRadio {
+  opacity: 0;
+  position: absolute;
+  cursor: pointer;
+}
+
+.customRadio + .label {
+  background-color: grey;
+  color: black;
+  height: 40px;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding-left: 8px;
+  padding-right: 8px;
+  width: 100px;
+  transition: 0.4s;
+  cursor: pointer;
+}
+
+.radioGroup {
+  margin: 32px 0 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customRadio:checked + .label {
+  background-color: rgb(194 65 12);
+  color: rgb(255, 255, 255);
+  width: 200px;
+}

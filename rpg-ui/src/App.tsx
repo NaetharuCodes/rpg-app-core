@@ -37,6 +37,7 @@ import { WorldLorePage } from "./pages/Worlds/WorldLorePage";
 import { WorldStoriesPage } from "./pages/Worlds/WorldStoriesPage";
 import { StoryReaderPage } from "./pages/Worlds/StoryReaderPage";
 import { WorldCreatorPage } from "./pages/Worlds/WorldCreatorPage";
+import { DemoPage } from "./pages/DemoPage/DemoPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -121,6 +122,7 @@ function App() {
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/faq" element={<FAQPage />} />
+            <Route path="/demo" element={<DemoPage />} />
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
             {/* Admin routes */}

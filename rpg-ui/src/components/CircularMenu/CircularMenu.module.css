@@ -23,7 +23,9 @@
 }
 
 .cyberpunk .menu.active li button:hover {
-  box-shadow: 0 0 15px rgba(255, 0, 193, 0.6);
+  box-shadow:
+    0 0 25px rgba(255, 0, 193, 0.8),
+    0 0 50px rgba(255, 0, 193, 0.4);
   border-color: #ff00c1;
 }
 
@@ -36,7 +38,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px 0;
-  min-height: 320px;
+  min-height: 130px;
 }
 
 .menu {
@@ -74,9 +76,16 @@
   background: var(--menu-item-bg, transparent);
   transform: rotate(calc(360deg / -8 * var(--i)));
   color: var(--menu-item-color, transparent);
-  transition: 1s;
-  transition-delay: 0.2s;
+  transition: 0s;
+  transition-delay: 0s;
   cursor: pointer;
+}
+
+.menu li:hover {
+  color: var(--menu-item-hover-color, rgb(194, 65, 12));
+  border-color: var(--menu-item-hover-border, rgb(194, 65, 12));
+  background: var(--menu-item-hover-bg, transparent);
+  transition: 0.2s;
 }
 
 .menu.active li button {

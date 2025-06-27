@@ -1,0 +1,97 @@
+.slideText.cyberpunk {
+  --glitch-blue: #00fff9;
+  --glitch-red: #ff00c1;
+  color: #0a0a0a;
+  -webkit-text-stroke: 1px #00fff9;
+  text-shadow:
+    0 0 5px rgba(0, 255, 249, 0.8),
+    0 0 10px rgba(0, 255, 249, 0.6),
+    0 0 20px rgba(0, 255, 249, 0.4);
+  filter: drop-shadow(0 0 8px rgba(0, 255, 249, 0.5));
+  position: relative;
+  overflow: hidden;
+}
+
+.slideText.cyberpunk::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  color: #ff00c1;
+  -webkit-text-stroke: 0 #ff00c1;
+  border-right: 3px solid #ff00c1;
+  overflow: hidden;
+  animation: slideText var(--animation-duration, 6s) linear infinite;
+  white-space: nowrap;
+  text-shadow:
+    0 0 5px rgba(255, 0, 193, 0.6),
+    -2px 0 var(--glitch-blue);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 193, 0.4));
+}
+
+@keyframes glitchLayer1 {
+  0% {
+    transform: translateX(0px);
+  }
+  20% {
+    transform: translateX(-2px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  60% {
+    transform: translateX(-1px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+.container {
+  /* Remove this line: background-color: rgb(30, 30, 30); */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.slideText {
+  position: relative;
+  display: flex;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: rgb(30, 30, 30);
+  -webkit-text-stroke: 1px rgb(194 65 12);
+  font-size: 60px;
+}
+
+.slideText::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  color: rgb(194 65 12);
+  -webkit-text-stroke: 0 rgb(194 65 12);
+  border-right: 2px solid rgb(194 65 12);
+  overflow: hidden;
+  animation: slideText 6s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes slideText {
+  0% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
+}
