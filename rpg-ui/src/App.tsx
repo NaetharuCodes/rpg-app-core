@@ -116,6 +116,7 @@ function App() {
               element={<StoryReaderPage />}
             />
             <Route path="/worlds/create" element={<WorldCreatorPage />} />
+            <Route path="/worlds/:id/edit" element={<WorldCreatorPage />} />
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/about" element={<AboutPage />} />

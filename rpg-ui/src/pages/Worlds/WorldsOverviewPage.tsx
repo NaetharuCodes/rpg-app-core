@@ -24,21 +24,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ageRatingColors } from "@/lib/constants";
 import { worldService, type World } from "@/services/api";
 
-interface WorldSection {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  count: number;
-  countLabel: string;
-  href: string;
-  category: "content" | "assets";
-}
-
 export function WorldsOverviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [world, setWorld] = useState<World | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -77,84 +66,6 @@ export function WorldsOverviewPage() {
     );
   }
 
-  const sections: WorldSection[] = [
-    // Content Sections
-    {
-      id: "history",
-      title: "History",
-      description: "Timeline of key events that shaped this world",
-      icon: Clock,
-      count: 8,
-      countLabel: "Historical Events",
-      href: `/worlds/${id}/history`,
-      category: "content",
-    },
-    {
-      id: "lore",
-      title: "Lore & Myths",
-      description: "Mythology, beliefs, and cultural traditions",
-      icon: BookOpen,
-      count: 5,
-      countLabel: "Myths & Legends",
-      href: `/worlds/${id}/lore`,
-      category: "content",
-    },
-    {
-      id: "stories",
-      title: "Stories",
-      description: "Prose pieces that showcase the world's feel and themes",
-      icon: FileText,
-      count: 3,
-      countLabel: "Stories",
-      href: `/worlds/${id}/stories`,
-      category: "content",
-    },
-    // Asset Sections
-    {
-      id: "characters",
-      title: "Key Characters",
-      description: "Important people who shape the world's destiny",
-      icon: Users,
-      count: 12,
-      countLabel: "Key Characters",
-      href: `/worlds/${id}/characters`,
-      category: "assets",
-    },
-    {
-      id: "locations",
-      title: "Key Locations",
-      description: "Significant places of power, beauty, or danger",
-      icon: MapPin,
-      count: 7,
-      countLabel: "Key Locations",
-      href: `/worlds/${id}/locations`,
-      category: "assets",
-    },
-    {
-      id: "creatures",
-      title: "Key Creatures",
-      description: "Notable beings that inhabit this world",
-      icon: Zap,
-      count: 9,
-      countLabel: "Key Creatures",
-      href: `/worlds/${id}/creatures`,
-      category: "assets",
-    },
-    {
-      id: "items",
-      title: "Key Items",
-      description: "Artifacts and objects of significance",
-      icon: Package,
-      count: 6,
-      countLabel: "Key Items",
-      href: `/worlds/${id}/items`,
-      category: "assets",
-    },
-  ];
-
-  const contentSections = sections.filter((s) => s.category === "content");
-  const assetSections = sections.filter((s) => s.category === "assets");
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -175,7 +86,7 @@ export function WorldsOverviewPage() {
               </div>
             </div>
 
-            {isAuthenticated && !world.is_official && (
+            {isAuthenticated && world.user_id && user?.id === world.user_id && (
               <Link to={`/worlds/${id}/edit`}>
                 <Button variant="primary" leftIcon={Edit}>
                   Edit World
@@ -192,7 +103,7 @@ export function WorldsOverviewPage() {
         spacing="md"
         style={{
           backgroundImage: world.banner_image_url
-            ? `linear-gradient(rgba(1, 0, 0, ), rgba(1, 0, 0, .9)), url(${world.banner_image_url})`
+            ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.8)), url(${world.banner_image_url})`
             : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -250,26 +161,62 @@ export function WorldsOverviewPage() {
       <Section spacing="md">
         <h2 className="text-2xl font-semibold mb-6">World Building</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {contentSections.map((section) => (
-            <Link key={section.id} to={section.href}>
-              <Card variant="elevated" hover="lift" className="h-full">
-                <CardIcon icon={section.icon} variant="gradient" size="md" />
-                <CardHeader>
-                  <h3 className="text-xl font-semibold mb-2">
-                    {section.title}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="secondary" size="sm">
-                      {section.count} {section.countLabel}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{section.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          <Link to={`/worlds/${id}/history`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={Clock} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-xl font-semibold mb-2">History</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    Timeline
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Timeline of key events that shaped this world
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to={`/worlds/${id}/lore`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={BookOpen} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-xl font-semibold mb-2">Lore & Myths</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    Cultural
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Mythology, beliefs, and cultural traditions
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to={`/worlds/${id}/stories`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={FileText} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-xl font-semibold mb-2">Stories</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    Narrative
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Prose pieces that showcase the world's feel and themes
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </Section>
 
@@ -277,28 +224,81 @@ export function WorldsOverviewPage() {
       <Section background="muted" spacing="md">
         <h2 className="text-2xl font-semibold mb-6">Key Assets</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {assetSections.map((section) => (
-            <Link key={section.id} to={section.href}>
-              <Card variant="elevated" hover="lift" className="h-full">
-                <CardIcon icon={section.icon} variant="gradient" size="md" />
-                <CardHeader>
-                  <h3 className="text-lg font-semibold mb-2">
-                    {section.title}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="secondary" size="sm">
-                      {section.count}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">
-                    {section.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          <Link to={`/worlds/${id}/characters`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={Users} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-lg font-semibold mb-2">Key Characters</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    NPCs
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  Important people who shape the world's destiny
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to={`/worlds/${id}/locations`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={MapPin} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-lg font-semibold mb-2">Key Locations</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    Places
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  Significant places of power, beauty, or danger
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to={`/worlds/${id}/creatures`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={Zap} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-lg font-semibold mb-2">Key Creatures</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    Beings
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  Notable beings that inhabit this world
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to={`/worlds/${id}/items`}>
+            <Card variant="elevated" hover="lift" className="h-full">
+              <CardIcon icon={Package} variant="gradient" size="md" />
+              <CardHeader>
+                <h3 className="text-lg font-semibold mb-2">Key Items</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" size="sm">
+                    Artifacts
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  Artifacts and objects of significance
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </Section>
     </div>

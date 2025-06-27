@@ -2,21 +2,10 @@ import { Button } from "@/components/Button/Button";
 import { WorldCard } from "@/components/WorldCard/WorldCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import type { World } from "@/services/api";
+import { worldService, type World } from "@/services/api";
 import { Edit, Filter, Play, Plus, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-const sampleWorld: World = {
-  id: 0,
-  title: "The Dustlands",
-  description: "A world of danger in an ever-growing destert",
-  genres: ["fantasy", "adventure"],
-  is_official: false,
-  reviewed: false,
-  age_rating: "For Everyone",
-  created_at: "",
-};
 
 type ViewMode = "rpg-core" | "my-worlds";
 type AgeRating = "For Everyone" | "Teen" | "Adult";
@@ -36,30 +25,41 @@ export function WorldsGalleryPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // TODO: Update this with the real api call once I make it
   useEffect(() => {
-    const fetchAdventures = async () => {
+    const fetchWorlds = async () => {
       try {
         setIsLoading(true);
-        // const data = await worldService.getAll();
-        setWorlds([sampleWorld]);
+        const data = await worldService.getAll();
+        setWorlds(data);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load adventures"
-        );
+        setError(err instanceof Error ? err.message : "Failed to load worlds");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchAdventures();
+    fetchWorlds();
   }, []);
 
-  const handlePlayWorld = (world: World) => {};
+  const handleViewWorld = (world: World) => {
+    navigate(`/worlds/${world.id}`);
+  };
 
-  const handleEditWorld = (world: World) => {};
+  const handleEditWorld = (world: World) => {
+    navigate(`/worlds/${world.id}/edit`);
+  };
 
-  const handleDeleteWorld = (world: World) => {};
+  const handleDeleteWorld = async (world: World) => {
+    if (!confirm(`Are you sure you want to delete "${world.title}"?`)) return;
+
+    try {
+      await worldService.delete(world.id);
+      setWorlds((prev) => prev.filter((w) => w.id !== world.id));
+    } catch (error) {
+      console.error("Failed to delete world:", error);
+      alert("Failed to delete world. Please try again.");
+    }
+  };
 
   const filteredWorlds = worlds.filter((adventure) => {
     const matchesViewMode =
@@ -208,9 +208,9 @@ export function WorldsGalleryPage() {
                   <p className="text-lg mb-4">
                     You haven't created any worlds yet
                   </p>
-                  <Link to="/adventures/create">
+                  <Link to="/worlds/create">
                     <Button variant="primary" leftIcon={Plus}>
-                      Create Your First World
+                      Create Your First World Now
                     </Button>
                   </Link>
                 </div>
@@ -222,13 +222,13 @@ export function WorldsGalleryPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWorlds.map((world) => (
-              <WorldCard key={sampleWorld.id} world={sampleWorld}>
+              <WorldCard key={world.id} world={world}>
                 {viewMode === "rpg-core" ? (
                   // Official adventures - just play
                   <Button
                     variant="primary"
                     leftIcon={Play}
-                    onClick={() => handlePlayWorld(world)}
+                    onClick={() => handleViewWorld(world)}
                     className="flex-1"
                   >
                     View World
@@ -239,7 +239,7 @@ export function WorldsGalleryPage() {
                     <Button
                       variant="primary"
                       leftIcon={Play}
-                      onClick={() => handlePlayWorld(world)}
+                      onClick={() => handleViewWorld(world)}
                       className="flex-1"
                     >
                       View

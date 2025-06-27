@@ -178,8 +178,37 @@ func (h *WorldHandler) DeleteWorld(c *gin.Context) {
 		return
 	}
 
-	if err := h.DB.Delete(&world).Error; err != nil {
+	// Start a transaction to ensure all deletes succeed or none do
+	tx := h.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+		return
+	}
+
+	// Delete timeline events first
+	if err := tx.Where("world_id = ?", id).Delete(&models.TimelineEvent{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete timeline events"})
+		return
+	}
+
+	// Delete world eras
+	if err := tx.Where("world_id = ?", id).Delete(&models.WorldEra{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete world eras"})
+		return
+	}
+
+	// Finally delete the world
+	if err := tx.Delete(&world).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete world"})
+		return
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
 		return
 	}
 
