@@ -113,3 +113,71 @@
     clip: rect(57px, 9999px, 43px, 0);
   }
 }
+
+/* Neon variant styles */
+.neon {
+  box-shadow:
+    0 0 5px #00fff9,
+    0 0 10px #00fff9,
+    0 0 20px #00fff9;
+  transition: all 0.3s ease;
+}
+
+.button.neon {
+  position: relative;
+  background-color: #111;
+  color: #00fff9;
+  border: none;
+  font-weight: bold;
+  text-transform: uppercase;
+  overflow: hidden;
+  box-shadow:
+    0 0 5px #00fff9,
+    0 0 10px #00fff9,
+    0 0 20px #00fff9;
+  transition: all 0.3s ease;
+}
+
+.button.neon::before,
+.button.neon::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background-color: #00fff9;
+  z-index: -1;
+  border-radius: inherit;
+  filter: blur(10px);
+}
+
+.button.neon::after {
+  filter: blur(20px);
+}
+
+.button.neon:hover {
+  color: #111;
+  background-color: #00fff9;
+  box-shadow:
+    0 0 10px #00fff9,
+    0 0 20px #00fff9,
+    0 0 40px #00fff9;
+}
+
+.button.neon:hover::before,
+.button.neon:hover::after {
+  animation: neonPulse 1.5s infinite alternate;
+}
+
+@keyframes neonPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}

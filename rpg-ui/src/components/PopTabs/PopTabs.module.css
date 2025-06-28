@@ -1,0 +1,74 @@
+.container {
+  margin: 32px 0;
+}
+
+.tab {
+  height: 40px;
+  border-radius: 0 10px 10px 0;
+  margin: 5px 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 8px;
+  width: 40px;
+  background-color: var(--tab-bg, oklch(0.94 0.003 106));
+  color: var(
+    --tab-bg,
+    oklch(0.94 0.003 106)
+  ); /* Same as background = invisible text */
+  border: 1px solid var(--tab-border, oklch(0.88 0.003 106));
+  overflow: hidden;
+  transition: all 0.7s ease;
+  cursor: pointer;
+}
+
+.tab::after {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  border-top: 3px solid var(--arrow-color, oklch(0.556 0 0));
+  border-right: 3px solid var(--arrow-color, oklch(0.556 0 0));
+  border-radius: 2px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  transition: transform 0.7s ease;
+}
+
+.tab.expanded {
+  width: 200px;
+  color: var(--tab-expanded-color, oklch(0.145 0 0));
+  background-color: var(--tab-expanded-bg, oklch(0.99 0.002 106));
+  font-weight: bold;
+}
+
+.tab.expanded::after {
+  transform: translateY(-50%) rotate(585deg);
+}
+
+/* Cyberpunk theme */
+.cyberpunk .tab {
+  background-color: rgba(26, 26, 46, 0.8);
+  color: rgba(26, 26, 46, 0.8); /* Same as background = invisible text */
+  border: 1px solid #00fff9;
+  box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+  --arrow-color: #fff;
+}
+
+.cyberpunk .tab:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 249, 0.6);
+}
+
+.cyberpunk .tab.expanded {
+  background-color: #ff00c1;
+  color: #000;
+  border-color: #ff00c1;
+  box-shadow: 0 0 20px rgba(255, 0, 193, 0.6);
+  font-weight: bold;
+}
+
+.cyberpunk .tab::after {
+  border-color: #fff;
+}

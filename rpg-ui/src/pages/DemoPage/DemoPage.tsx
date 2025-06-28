@@ -2,6 +2,7 @@ import { Button } from "@/components/Button/Button";
 import { CircularMenu } from "@/components/CircularMenu/CircularMenu";
 import { ExpandingMenu } from "@/components/ExpandingMenu/ExpandingMenu";
 import { InfoBox } from "@/components/InfoBox/InfoBox";
+import { PopTabs } from "@/components/PopTabs/PopTabs";
 import { RadioTabs } from "@/components/RadioTabs/RadioTabs";
 import { SlideText } from "@/components/SlideText/SlideText";
 import {
@@ -28,8 +29,9 @@ export function DemoPage() {
       {/* Slide Text */}
       <SlideText text="Cyberpunk Theme" theme="cyberpunk" />
 
-      <div>
+      <div className="flex gap-10">
         <Button variant="glitch">Press Glitch</Button>
+        <Button variant="neon">Press Neon</Button>
       </div>
 
       <div>
@@ -155,6 +157,12 @@ export function DemoPage() {
         <InfoBox
           title="Box"
           message="This is an info box, cool eh!"
+          theme="cyberpunk"
+        />
+      </div>
+      <div className="w-[180px] pb-20">
+        <PopTabs
+          tabs={[{ label: "First" }, { label: "second" }, { label: "third" }]}
           theme="cyberpunk"
         />
       </div>

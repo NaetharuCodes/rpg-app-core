@@ -18,6 +18,7 @@ const buttonVariants = cva(
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         glitch:
           "bg-yellow-400 text-black hover:bg-yellow-300 font-bold uppercase",
+        neon: "bg-black text-cyan-400 font-bold uppercase relative overflow-hidden",
       },
       size: {
         sm: "h-9 px-3 text-sm",
@@ -117,7 +118,8 @@ const Button = React.forwardRef<
         ref={ref as React.Ref<HTMLButtonElement>}
         className={cn(
           buttonVariants({ variant, size, className }),
-          variant === "glitch" && styles.glitch
+          variant === "glitch" && styles.glitch,
+          variant === "neon" && styles.neon
         )}
         disabled={disabled || loading}
         {...(variant === "glitch" && { "data-text": children })}
