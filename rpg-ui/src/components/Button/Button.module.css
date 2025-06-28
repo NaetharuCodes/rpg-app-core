@@ -1,8 +1,170 @@
+/* Base button styles */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--ring, oklch(0.708 0 0));
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Variants */
+.primary {
+  background-color: var(--primary, oklch(0.205 0 0));
+  color: var(--primary-foreground, oklch(0.985 0 0));
+}
+
+.primary:hover {
+  background-color: var(--primary-hover, oklch(0.18 0 0));
+}
+
+.secondary {
+  background-color: transparent;
+  color: var(--foreground, oklch(0.145 0 0));
+  border: 1px solid var(--border, oklch(0.88 0.003 106));
+}
+
+.secondary:hover {
+  background-color: var(--accent, oklch(0.88 0.14 194.77));
+  color: var(--accent-foreground, oklch(0.145 0 0));
+}
+
+.accent {
+  background-color: var(--accent, oklch(0.88 0.14 194.77));
+  color: var(--accent-foreground, oklch(0.145 0 0));
+}
+
+.accent:hover {
+  background-color: var(--accent-hover, oklch(0.8 0.14 194.77));
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--foreground, oklch(0.145 0 0));
+}
+
+.ghost:hover {
+  background-color: var(--accent, oklch(0.88 0.14 194.77));
+  color: var(--accent-foreground, oklch(0.145 0 0));
+}
+
+.destructive {
+  background-color: var(--destructive, oklch(0.577 0.245 27.325));
+  color: white;
+}
+
+.destructive:hover {
+  background-color: var(--destructive-hover, oklch(0.52 0.245 27.325));
+}
+
+/* Sizes */
+.sm {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.md {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 16px;
+}
+
+.lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+}
+
+.xl {
+  height: 56px;
+  padding: 0 32px;
+  font-size: 18px;
+}
+
+/* Icons */
+.leftIcon {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+}
+
+.rightIcon {
+  margin-left: 8px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Cyberpunk theme */
+.cyberpunk.primary {
+  background-color: rgba(26, 26, 46, 0.8);
+  color: #00fff9;
+  border: 1px solid #00fff9;
+  box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+}
+
+.cyberpunk.primary:hover {
+  background-color: #00fff9;
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 255, 249, 0.6);
+}
+
 .glitch {
+  --button-bg: #ffc107; /* Rich mid-yellow */
+  --button-text: #000000; /* Black text for contrast */
   --glitch-blue: #00fff9;
   --glitch-red: #ff00c1;
   position: relative;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--button-text);
+  background-color: var(--button-bg);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
   overflow: hidden;
+}
+
+.glitch:hover {
+  background-color: #ffca28; /* Slightly lighter yellow on hover */
 }
 
 .glitch::before,
@@ -13,13 +175,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ffc107; /* Explicit yellow background like original */
-  color: #000000; /* Explicit black text like original */
+  background-color: var(--button-bg);
+  color: var(--button-text);
   display: flex;
   justify-content: center;
   align-items: center;
   transition: all 0.3s ease;
-  pointer-events: none;
 }
 
 .glitch::before {
@@ -114,32 +275,24 @@
   }
 }
 
-/* Neon variant styles */
+/* Neon theme */
 .neon {
-  box-shadow:
-    0 0 5px #00fff9,
-    0 0 10px #00fff9,
-    0 0 20px #00fff9;
-  transition: all 0.3s ease;
-}
-
-.button.neon {
-  position: relative;
   background-color: #111;
   color: #00fff9;
-  border: none;
   font-weight: bold;
   text-transform: uppercase;
+  position: relative;
   overflow: hidden;
   box-shadow:
     0 0 5px #00fff9,
     0 0 10px #00fff9,
     0 0 20px #00fff9;
-  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.button.neon::before,
-.button.neon::after {
+.neon::before,
+.neon::after {
   content: "";
   position: absolute;
   top: -2px;
@@ -152,11 +305,7 @@
   filter: blur(10px);
 }
 
-.button.neon::after {
-  filter: blur(20px);
-}
-
-.button.neon:hover {
+.neon:hover {
   color: #111;
   background-color: #00fff9;
   box-shadow:
@@ -165,9 +314,72 @@
     0 0 40px #00fff9;
 }
 
-.button.neon:hover::before,
-.button.neon:hover::after {
+.neon:hover::before,
+.neon:hover::after {
   animation: neonPulse 1.5s infinite alternate;
+}
+
+.neon::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -100%;
+  width: 100%;
+  height: calc(100% + 4px);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 0, 193, 0.8),
+    transparent
+  );
+  animation: edgeGlowSweep 3s linear infinite;
+  z-index: 1;
+}
+
+.neon::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background-color: #00fff9;
+  z-index: -1;
+  border-radius: inherit;
+  filter: blur(20px);
+}
+
+@keyframes edgeGlowSweep {
+  0% {
+    left: -100%;
+    top: -2px;
+    width: 100%;
+    height: calc(100% + 4px);
+  }
+  25% {
+    left: calc(100% - 4px);
+    top: -100%;
+    width: calc(100% + 4px);
+    height: 100%;
+  }
+  50% {
+    left: 100%;
+    top: calc(100% - 2px);
+    width: 100%;
+    height: calc(100% + 4px);
+  }
+  75% {
+    left: -2px;
+    top: 100%;
+    width: calc(100% + 4px);
+    height: 100%;
+  }
+  100% {
+    left: -100%;
+    top: -2px;
+    width: 100%;
+    height: calc(100% + 4px);
+  }
 }
 
 @keyframes neonPulse {
