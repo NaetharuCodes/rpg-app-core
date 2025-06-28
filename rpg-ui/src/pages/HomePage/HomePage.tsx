@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { RadioTabs } from "@/components/RadioTabs/RadioTabs";
 import { SlideText } from "@/components/SlideText/SlideText";
+import { CyberpunkSection } from "@/components/CyberpunkSection/CyberpunkSection";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -65,6 +66,8 @@ export function HomePage() {
           )}
         </div>
       </Hero>
+      {/* Cyberpunk Theme Section */}
+      <CyberpunkSection />
 
       {/* Why I Built This Section */}
       <Section align="center">
