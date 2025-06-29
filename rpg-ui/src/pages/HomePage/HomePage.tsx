@@ -1,4 +1,4 @@
-import { Play, BookOpen, Users, Package, Dice6 } from "lucide-react";
+import { Play, BookOpen, Users, Package } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import {
   Card,
@@ -22,40 +22,87 @@ export function HomePage() {
   return (
     <div className="min-h-full">
       {/* Hero Section */}
-      <Hero>
-        <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-          Making RPGs Easier to Run
-        </h1>
-        <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-          Jump into ready-to-run adventures or build your own. Simple D6 gets
-          you playing in minutes, or bring your favorite system for deeper
-          mechanics. Built by GMs, for the way you actually play.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {isAuthenticated ? (
-            <>
-              <Button onClick={() => navigate(`/adventures/`)} variant="accent">
-                Browse Adventures
-              </Button>
-              <Button onClick={() => navigate(`/rules/`)} variant="accent">
-                Simple D6 Rules
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                as="link"
-                href="/adventures"
-                variant="accent"
-                leftIcon={Play}
-              >
-                Explore Adventures
-              </Button>
-              <Button as="link" href="/login" variant="secondary">
-                Get Started
-              </Button>
-            </>
-          )}
+      <Hero variant="default" className="relative overflow-hidden">
+        {/* Content container */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left side - Text content */}
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground">
+              Get Your Group Playing Tonight
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground">
+              Jump into tested adventures in minutes. No prep, no stress, just
+              great stories waiting to unfold with Simple D6 or your favorite
+              system.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    onClick={() => navigate(`/adventures/`)}
+                    variant="accent"
+                    leftIcon={Play}
+                    size="lg"
+                  >
+                    Start Your First Adventure
+                  </Button>
+                  <Button
+                    onClick={() => navigate(`/rules/`)}
+                    variant="secondary"
+                    size="lg"
+                  >
+                    Try Simple D6 Rules
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    as="link"
+                    href="/adventures"
+                    variant="accent"
+                    leftIcon={Play}
+                    size="lg"
+                  >
+                    Start Your First Adventure
+                  </Button>
+                  <Button as="link" href="/rules" variant="secondary" size="lg">
+                    Try Simple D6 Rules
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right side - Character showcase */}
+          {/* Right side - Character showcase */}
+          <div className="relative h-96 lg:h-[500px]">
+            {/* Horror character - top left */}
+            <div className="absolute top-0 left-0 w-32 h-44 lg:w-40 lg:h-56 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform rotate-12 hover:rotate-6 hover:shadow-2xl hover:scale-105 transition-all duration-500">
+              <img
+                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/08cbbf60-7b2e-4cae-419a-3620eca80800/XLPortrait"
+                alt="Horror Adventure"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Sci-fi scene - center */}
+            <div className="absolute top-12 right-8 w-36 h-48 lg:w-44 lg:h-60 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform -rotate-6 hover:rotate-0 hover:shadow-2xl hover:scale-105 transition-all duration-500">
+              <img
+                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/bcba3eb6-6af9-498e-a11f-43363a0a6500/XLPortrait"
+                alt="Sci-Fi Adventure"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Cyberpunk character - bottom */}
+            <div className="absolute bottom-0 left-12 w-28 h-40 lg:w-36 lg:h-48 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform rotate-6 hover:rotate-12 hover:shadow-2xl hover:scale-105 transition-all duration-500">
+              <img
+                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/5fe960f7-49aa-41e2-b2c5-095b6c653300/XLPortrait"
+                alt="Cyberpunk Adventure"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
         </div>
       </Hero>
       {/* Cyberpunk Theme Section */}
