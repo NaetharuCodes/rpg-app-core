@@ -1,4 +1,4 @@
-import { Play, BookOpen, Users, Package } from "lucide-react";
+import { Play, BookOpen, Users, Package, Map } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import {
   Card,
@@ -27,14 +27,25 @@ export function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Text content */}
           <div className="space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">
-              Get Your Group Playing Tonight
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground">
-              Jump into tested adventures in minutes. No prep, no stress, just
-              great stories waiting to unfold with Simple D6 or your favorite
-              system.
-            </p>
+            <div className="space-y-6 text-left lg:text-left">
+              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-foreground to-accent bg-clip-text text-transparent mb-6">
+                Everything You Need to GM
+              </h1>
+              <div className="grid grid-cols-1 gap-3 text-lg text-muted-foreground mb-8">
+                <div className="flex items-center gap-3">
+                  <Play className="h-5 w-5 text-accent" />
+                  <span>Jump into tested adventures</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Package className="h-5 w-5 text-accent" />
+                  <span>Build with thousands of assets</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Map className="h-5 w-5 text-accent" />
+                  <span>Create entire worlds</span>
+                </div>
+              </div>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4">
               {isAuthenticated ? (
                 <>
