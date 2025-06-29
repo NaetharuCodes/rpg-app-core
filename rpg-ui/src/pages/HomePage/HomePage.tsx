@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { CyberpunkSection } from "@/components/Sections/CyberpunkSection/CyberpunkSection";
 import { CosmicHorrorSection } from "@/components/Sections/HorrorSection/CosmicHorrorSection";
+import { FantasySection } from "@/components/Sections/FantasySection/FantasySection";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -59,30 +60,8 @@ export function HomePage() {
       </Hero>
       {/* Cyberpunk Theme Section */}
       <CyberpunkSection />
-
-      {/* Why I Built This Section */}
-      <Section align="center">
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-          Adventures in a Dark Dystopian Future
-        </h2>
-        <p className="text-lg text-muted-foreground mb-8">
-          Venture out into the night. Fight against the power of corporations.
-          Find a way to break free from the cycle of control and manipulation.
-          Discover the dark secrets and true powers that make the world turn.
-        </p>
-        <div className="bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 rounded-lg p-8">
-          <h3 className="text-2xl font-semibold text-foreground mb-4">
-            Create Adventures and Campaigns in a Dystopian Future.
-          </h3>
-          <p className="text-lg text-muted-foreground">
-            Inspired by classic distopian fiction from Brave New World to
-            Neuromancer, 1984 to Childhood's End. Create your own stories in a
-            gritty world of cheap chrome and neon-stars.
-          </p>
-        </div>
-      </Section>
-
       <CosmicHorrorSection />
+      <FantasySection />
 
       {/* Features Section */}
       <Section background="accent" size="lg">
