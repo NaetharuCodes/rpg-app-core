@@ -5,16 +5,68 @@
   --cyberpunk-dark: #0a0a0a;
   --cyberpunk-darker: #1a1a2e;
 
-  width: 100vw;
+  width: 97.5vw;
   margin-left: 50%;
   transform: translateX(-50%);
   position: relative;
-  /* overflow: hidden; */
+  overflow: hidden;
   background: linear-gradient(
     135deg,
     var(--cyberpunk-dark) 0%,
     var(--cyberpunk-darker) 100%
   );
+  border-top: 4px solid #ff00c1;
+  border-bottom: 4px solid #ff00c1;
+}
+
+.cyberpunkSection::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -100%;
+  width: 100%;
+  height: calc(100% + 4px);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(12, 225, 233, 0.8),
+    transparent
+  );
+  animation: edgeGlowSweep 3s linear infinite;
+  z-index: 1;
+}
+
+@keyframes edgeGlowSweep {
+  0% {
+    left: -100%;
+    top: -2px;
+    width: 100%;
+    height: calc(100% + 4px);
+  }
+  25% {
+    left: calc(100% - 4px);
+    top: -100%;
+    width: calc(100% + 4px);
+    height: 100%;
+  }
+  50% {
+    left: 100%;
+    top: calc(100% - 2px);
+    width: 100%;
+    height: calc(100% + 4px);
+  }
+  75% {
+    left: -2px;
+    top: 100%;
+    width: calc(100% + 4px);
+    height: 100%;
+  }
+  100% {
+    left: -100%;
+    top: -2px;
+    width: 100%;
+    height: calc(100% + 4px);
+  }
 }
 
 .backgroundOverlay {

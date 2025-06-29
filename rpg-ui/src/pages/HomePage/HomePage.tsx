@@ -34,18 +34,10 @@ export function HomePage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {isAuthenticated ? (
             <>
-              <Button
-                onClick={() => navigate(`/adventures/`)}
-                variant="accent"
-                leftIcon={Play}
-              >
+              <Button onClick={() => navigate(`/adventures/`)} variant="accent">
                 Browse Adventures
               </Button>
-              <Button
-                onClick={() => navigate(`/rules/`)}
-                variant="accent"
-                leftIcon={Dice6}
-              >
+              <Button onClick={() => navigate(`/rules/`)} variant="accent">
                 Simple D6 Rules
               </Button>
             </>
@@ -71,37 +63,22 @@ export function HomePage() {
 
       {/* Why I Built This Section */}
       <Section align="center">
-        <div className="my-8">
-          <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-        </div>
-        <SlideText text="Dive Into the Night" theme="cyberpunk" />
-        <RadioTabs
-          theme="cyberpunk"
-          name="example"
-          options={[
-            { value: "option-1", label: "Option 1" },
-            { value: "option-2", label: "Option 2" },
-            { value: "option-3", label: "Option 3" },
-          ]}
-          onChange={(value) => console.log(value)}
-        />
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-          Why I Built This
+          Adventures in a Dark Dystopian Future
         </h2>
         <p className="text-lg text-muted-foreground mb-8">
-          After 25 years of GMing, I kept seeing the same thing: amazing people
-          who wanted to run games but felt overwhelmed by prep, or players who
-          couldn't find a group because no one wanted to GM.
+          Venture out into the night. Fight against the power of corporations.
+          Find a way to break free from the cycle of control and manipulation.
+          Discover the dark secrets and true powers that make the world turn.
         </p>
         <div className="bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 rounded-lg p-8">
           <h3 className="text-2xl font-semibold text-foreground mb-4">
-            So I Made Something That Actually Works
+            Create Adventures and Campaigns in a Dystopian Future.
           </h3>
           <p className="text-lg text-muted-foreground">
-            Adventures that run smoothly at real tables. Tools that help you
-            build exactly what your group needs. A system that gets out of your
-            way so you can focus on the stories. Because the best RPG
-            experiences happen when everyone's having fun.
+            Inspired by classic distopian fiction from Brave New World to
+            Neuromancer, 1984 to Childhood's End. Create your own stories in a
+            gritty world of cheap chrome and neon-stars.
           </p>
         </div>
       </Section>
