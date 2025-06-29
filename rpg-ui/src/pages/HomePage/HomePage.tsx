@@ -79,7 +79,7 @@ export function HomePage() {
             {/* Horror character - top left */}
             <div className="absolute top-0 left-0 w-32 h-44 lg:w-40 lg:h-56 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform rotate-12 hover:rotate-6 hover:shadow-2xl hover:scale-105 transition-all duration-500">
               <img
-                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/08cbbf60-7b2e-4cae-419a-3620eca80800/XLPortrait"
+                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/7474a62d-874f-45fe-191c-a9f07dc40100/XLPortrait"
                 alt="Horror Adventure"
                 className="w-full h-full object-cover"
               />
@@ -88,7 +88,7 @@ export function HomePage() {
             {/* Sci-fi scene - center */}
             <div className="absolute top-12 right-8 w-36 h-48 lg:w-44 lg:h-60 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform -rotate-6 hover:rotate-0 hover:shadow-2xl hover:scale-105 transition-all duration-500">
               <img
-                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/bcba3eb6-6af9-498e-a11f-43363a0a6500/XLPortrait"
+                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/ddac5605-015e-4dc3-d294-e4921fcfa300/XLPortrait"
                 alt="Sci-Fi Adventure"
                 className="w-full h-full object-cover"
               />
@@ -97,7 +97,7 @@ export function HomePage() {
             {/* Cyberpunk character - bottom */}
             <div className="absolute bottom-0 left-12 w-28 h-40 lg:w-36 lg:h-48 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform rotate-6 hover:rotate-12 hover:shadow-2xl hover:scale-105 transition-all duration-500">
               <img
-                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/5fe960f7-49aa-41e2-b2c5-095b6c653300/XLPortrait"
+                src="https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/8ff8e4d8-15e1-4f60-8bde-c24a0e827200/XLPortrait"
                 alt="Cyberpunk Adventure"
                 className="w-full h-full object-cover"
               />
