@@ -4,7 +4,7 @@
   --cyberpunk-pink: #ff00c1;
   --cyberpunk-dark: #0a0a0a;
   --cyberpunk-darker: #1a1a2e;
-
+  font-family: "Share Tech Mono", "Courier New", monospace;
   position: relative;
   overflow: hidden;
   background:
