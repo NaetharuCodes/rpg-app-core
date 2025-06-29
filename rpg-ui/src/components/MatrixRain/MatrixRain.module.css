@@ -18,8 +18,8 @@
   color: #00fff9;
   text-shadow: 0 0 5px #00fff9;
   white-space: pre;
-  animation: matrixFall linear infinite;
-  opacity: 0.7;
+  animation: matrixFall 8s linear infinite;
+  opacity: 0.1;
 }
 
 @keyframes matrixFall {

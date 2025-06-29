@@ -77,14 +77,14 @@ const faqData: FAQCategory[] = [
     badge: "Creative",
     items: [
       {
-        question: "Do you use AI art?",
-        answer:
-          "No. The art on the website is a combination of my own hand-made art. I draw and paint for a hobby. And also some public domain art – hand-made art that the artists have kindly posted with explicit permission for people to use for commercial purposes. I would love to get to a point where I can commission custom art. At the moment the cost is prohibitive. But if and when the site grows I am keen to explore this.",
-      },
-      {
         question: "What art can I upload?",
         answer:
-          "Your uploads are your own. Nothing is published for viewing by others. However, I do ask you keep your uploaded content reasonable. No explicit content is allowed.",
+          "Your can upload any art you wish to use with your own games. I reserve the right to remove uploads.",
+      },
+      {
+        question: "Can my uploads include NSFW content?",
+        answer:
+          "Yes, within reason. NSFW content should be in service of the game you are adding it for. Excessive uploads of explicit content will likely result in removals.",
       },
       {
         question: "Can I share my creations with others?",

@@ -6,14 +6,11 @@
   --fantasy-mist: rgba(255, 255, 255, 0.1);
   --fantasy-dark: #2d3748;
 
-  width: 97.5vw;
-  margin-left: 50%;
-  transform: translateX(-50%);
   position: relative;
   overflow: hidden;
   background:
     linear-gradient(rgba(45, 55, 72, 0.7), rgba(74, 85, 104, 0.8)),
-    url("https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/5aebf411-49b5-4e6e-855b-4f9b6afa2f00/BigBanner")
+    url("https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/7925a1e9-9008-467e-72a2-3f912c584f00/BigBanner")
       center/cover;
   border-top: 4px solid var(--fantasy-bronze);
   border-bottom: 4px solid var(--fantasy-bronze);

@@ -10,9 +10,6 @@
     url("  https://imagedelivery.net/eg6Xqa-jIrYvZBm8oCXnhg/373c00c9-7fb1-4444-61cb-6c98e058b600/BigBanner")
       center/cover;
 
-  width: 97.5vw;
-  margin-left: 50%;
-  transform: translateX(-50%);
   position: relative;
   overflow: hidden;
   border-top: 4px solid var(--horror-purple);
