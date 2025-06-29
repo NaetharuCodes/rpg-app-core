@@ -11,9 +11,8 @@ import { Hero } from "@/components/Hero/Hero";
 import { Section } from "@/components/Section/Section";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { RadioTabs } from "@/components/RadioTabs/RadioTabs";
-import { SlideText } from "@/components/SlideText/SlideText";
-import { CyberpunkSection } from "@/components/CyberpunkSection/CyberpunkSection";
+import { CyberpunkSection } from "@/components/Sections/CyberpunkSection/CyberpunkSection";
+import { CosmicHorrorSection } from "@/components/Sections/HorrorSection/CosmicHorrorSection";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -82,6 +81,8 @@ export function HomePage() {
           </p>
         </div>
       </Section>
+
+      <CosmicHorrorSection />
 
       {/* Features Section */}
       <Section background="accent" size="lg">

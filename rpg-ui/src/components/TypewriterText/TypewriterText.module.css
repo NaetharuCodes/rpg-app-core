@@ -1,0 +1,41 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+}
+
+.typewriterText {
+  font-family:
+    "Special Elite", "Courier New", "Lucida Console", Monaco, monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--foreground);
+  text-align: center;
+}
+
+.cursor {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  font-weight: normal;
+}
+
+.cursor.visible {
+  opacity: 1;
+}
+
+/* Horror theme */
+.typewriterText.horror {
+  color: #b0c4de; /* Pale blue */
+  text-shadow:
+    0 0 10px rgba(176, 196, 222, 0.5),
+    0 0 20px rgba(106, 13, 173, 0.3),
+    0 0 30px rgba(106, 13, 173, 0.2);
+  font-size: 3.5rem;
+}
+
+.typewriterText.horror .cursor {
+  color: #6a0dad; /* Purple cursor */
+  text-shadow: 0 0 10px currentColor;
+}
