@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { Badge } from "@/components/Badge/Badge";
 import { Button } from "@/components/Button/Button";

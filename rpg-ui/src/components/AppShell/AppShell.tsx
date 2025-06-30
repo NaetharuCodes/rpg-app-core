@@ -14,6 +14,9 @@ import {
   Sun,
   Earth,
   Swords,
+  PencilRuler,
+  PackageOpen,
+  IdCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,10 +48,11 @@ export function AppShell({ children }: AppShellProps) {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Assets", href: "/assets", icon: Package },
+    { name: "Assets", href: "/assets", icon: IdCard },
     { name: "Adventures", href: "/adventures", icon: Map },
     { name: "Worlds", href: "/worlds", icon: Earth },
     { name: "Campaigns", href: "/campaigns", icon: Swords },
+    { name: "Toolbox", href: "/toolbox", icon: PackageOpen },
     { name: "Rules", href: "/rules", icon: BookOpen },
     { name: "About", href: "/about", icon: Info },
   ];

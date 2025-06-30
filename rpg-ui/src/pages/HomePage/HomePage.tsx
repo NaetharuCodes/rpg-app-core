@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { CyberpunkSection } from "@/components/Sections/CyberpunkSection/CyberpunkSection";
 import { CosmicHorrorSection } from "@/components/Sections/HorrorSection/CosmicHorrorSection";
 import { FantasySection } from "@/components/Sections/FantasySection/FantasySection";
+import { FlipCard } from "@/components/FlipCard/FlipCard";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -85,7 +86,6 @@ export function HomePage() {
           </div>
 
           {/* Right side - Character showcase */}
-          {/* Right side - Character showcase */}
           <div className="relative h-96 lg:h-[500px]">
             {/* Horror character - top left */}
             <div className="absolute top-0 left-0 w-32 h-44 lg:w-40 lg:h-56 rounded-lg overflow-hidden shadow-xl border-2 border-border/20 transform rotate-12 hover:rotate-6 hover:shadow-2xl hover:scale-105 transition-all duration-500">
@@ -123,62 +123,32 @@ export function HomePage() {
 
       {/* Features Section */}
       <Section background="accent" size="lg">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-foreground mb-12">
-          Tools I Think You'll Love
-        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card variant="feature" className="text-center group">
-            <CardIcon icon={BookOpen} variant="gradient" />
-            <CardHeader>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Ready-to-Run Adventures
-              </h3>
-            </CardHeader>
-            <CardContent>
-              A wide range of adventures based on games I've run over the past
-              ~25 years. Grab one of these and start playing in minutes. From
-              Science fiction action on alien worlds, to mystery detective
-              stories in dark fantasy cities.
-              {isAuthenticated
-                ? " Your full collection is waiting."
-                : " Take a look and see what speaks to you."}
-            </CardContent>
-          </Card>
+          <FlipCard
+            frontTitle="Ready-to-Run Adventures"
+            frontText="A wide range of adventures ready to run."
+            backTitle="What You Get"
+            backText="Complete storylines, NPC details, maps, and everything you need to run great sessions tonight."
+            frontIcon={BookOpen}
+            theme="cyberpunk"
+          />
 
-          <Card variant="feature" className="text-center group">
-            <CardIcon icon={Package} variant="gradient" />
-            <CardHeader>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Asset Library
-              </h3>
-            </CardHeader>
-            <CardContent>
-              Build your personal collection of characters, creatures,
-              locations, and items. Organize them however makes sense for your
-              world and your style.
-              {isAuthenticated
-                ? " Create as many as you want."
-                : " Start building your world."}
-            </CardContent>
-          </Card>
-
-          <Card variant="feature" className="text-center group">
-            <CardIcon icon={Users} variant="gradient" />
-            <CardHeader>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Campaign Tools
-              </h3>
-            </CardHeader>
-            <CardContent>
-              Connect your adventures into ongoing stories. Keep track of what
-              matters to your group, organize your sessions the way that works
-              for you. No rigid structure - just tools that adapt to how you
-              actually run games.
-              {isAuthenticated
-                ? " Manage all your campaigns in one place."
-                : " See how it fits your style."}
-            </CardContent>
-          </Card>
+          <FlipCard
+            frontTitle="Adventure Creation Tools"
+            frontText="Build your own adventures to play and share with others."
+            backTitle="What You Get"
+            backText="Complete tools to create your own high quality adventures."
+            frontIcon={BookOpen}
+            theme="cyberpunk"
+          />
+          <FlipCard
+            frontTitle="World Building Tools"
+            frontText="Create rich worlds for your games."
+            backTitle="What You Get"
+            backText="Build mythologies, create stories, and write history timelines for your worlds."
+            frontIcon={BookOpen}
+            theme="cyberpunk"
+          />
         </div>
       </Section>
 

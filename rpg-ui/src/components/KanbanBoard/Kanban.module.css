@@ -1,0 +1,323 @@
+/* Simple Cyberpunk Kanban - keeping the clean design with cyberpunk colors */
+
+.cyberpunkKanban {
+  --cyberpunk-blue: #00fff9;
+  --cyberpunk-pink: #ff00c1;
+  --cyberpunk-green: #00ff00;
+  --cyberpunk-dark: rgba(26, 26, 46, 0.8);
+}
+
+.kanbanHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--cyberpunk-dark);
+  border: 1px solid var(--cyberpunk-blue);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+}
+
+.kanbanTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--cyberpunk-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px var(--cyberpunk-blue);
+}
+
+.kanbanGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 350px);
+  gap: 2rem;
+  justify-content: center;
+}
+
+/* Column Styles */
+.kanbanColumn {
+  background: var(--cyberpunk-dark);
+  border: 1px solid var(--cyberpunk-blue);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 0 5px rgba(0, 255, 249, 0.2);
+}
+
+.kanbanColumnHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid;
+}
+
+.kanbanColumnTitle {
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--color);
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.kanbanColumnCount {
+  background: var(--color);
+  color: black;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.kanbanDropZone {
+  min-height: 400px;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.kanbanDropZone.dragOver {
+  border-color: var(--color);
+  background: rgba(0, 255, 249, 0.05);
+}
+
+.kanbanDropZoneEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+/* Task Card Styles */
+.cyberpunkTaskCard {
+  background: rgba(26, 26, 46, 0.6);
+  border: 1px solid var(--cyberpunk-blue);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  cursor: move;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.cyberpunkTaskCard:hover {
+  border-color: var(--cyberpunk-pink);
+  box-shadow: 0 0 8px rgba(255, 0, 193, 0.4);
+  transform: translateY(-1px);
+}
+
+.cyberpunkTaskCard.dragging {
+  opacity: 0.7;
+  transform: rotate(2deg);
+}
+
+.taskCardTitle {
+  color: var(--cyberpunk-blue);
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.taskCardDescription {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.taskCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 255, 249, 0.2);
+}
+
+.taskCardDate {
+  color: rgba(0, 255, 249, 0.6);
+  font-size: 0.7rem;
+}
+
+.taskCardActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.taskCardBtn {
+  background: transparent;
+  border: 1px solid var(--cyberpunk-blue);
+  color: var(--cyberpunk-blue);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.taskCardBtn:hover {
+  background: var(--cyberpunk-blue);
+  color: black;
+}
+
+.taskCardBtn.delete {
+  border-color: var(--cyberpunk-pink);
+  color: var(--cyberpunk-pink);
+}
+
+.taskCardBtn.delete:hover {
+  background: var(--cyberpunk-pink);
+  color: black;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  max-width: 500px;
+  width: 90%;
+}
+
+/* Enhanced Create Form Styles */
+.cyberpunkCreateForm {
+  --cyberpunk-blue: #204645;
+  --cyberpunk-pink: #1b191b;
+  --cyberpunk-dark: rgba(26, 26, 46, 0.8);
+
+  background: var(--cyberpunk-dark);
+  border: 2px solid var(--cyberpunk-blue);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(0, 255, 249, 0.4);
+}
+
+/* Add a subtle animated border glow */
+.cyberpunkCreateForm::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    45deg,
+    var(--cyberpunk-blue),
+    var(--cyberpunk-pink),
+    var(--cyberpunk-blue)
+  );
+  border-radius: 15px;
+  z-index: -1;
+  opacity: 0.6;
+  animation: borderGlow 3s ease-in-out infinite;
+}
+
+@keyframes borderGlow {
+  0%,
+  100% {
+    opacity: 0.6;
+    filter: blur(1px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(2px);
+  }
+}
+
+.createFormTitle {
+  color: var(--cyberpunk-blue);
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.cyberpunkLabel {
+  display: block;
+  color: var(--cyberpunk-blue);
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Enhanced input styling */
+.cyberpunkInput {
+  width: 100%;
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid var(--cyberpunk-blue);
+  border-radius: 4px;
+  padding: 0.75rem;
+  color: white;
+  transition: border-color 0.2s ease;
+}
+
+.cyberpunkInput:focus {
+  outline: none;
+  border-color: var(--cyberpunk-pink);
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--cyberpunk-pink);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 0, 193, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .kanbanGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

@@ -236,3 +236,16 @@ type FollowUpHook struct {
 	// Relationship
 	Epilogue Epilogue `json:"epilogue" gorm:"foreignKey:EpilogueID"`
 }
+
+type Task struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name" gorm:"not null"`
+	Description string    `json:"description" gorm:"type:text"`
+	Status      string    `json:"status" gorm:"not null;default:'todo'"` // todo, in-progress, done
+	UserID      uint      `json:"user_id" gorm:"not null;index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+
+	// Relationships
+	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
+}

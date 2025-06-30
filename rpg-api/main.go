@@ -37,6 +37,7 @@ func main() {
 		&models.World{},
 		&models.TimelineEvent{},
 		&models.WorldEra{},
+		&models.Task{},
 	)
 
 	// Setup middleware
@@ -51,6 +52,7 @@ func main() {
 	worldHandler := handlers.NewWorldHandler(db)
 	timelineEventHandler := handlers.NewTimelineEventHandler(db)
 	worldEraHandler := handlers.NewWorldEraHandler(db)
+	taskHandler := handlers.NewTaskHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -149,6 +151,12 @@ func main() {
 	r.GET("/admin/content/unreviewed", authMiddleware.RequireAuth(), adminHandler.GetUnreviewedContent)
 	r.PATCH("/admin/content/assets/:id/review", authMiddleware.RequireAuth(), adminHandler.MarkAssetReviewed)
 	r.PATCH("/admin/content/adventures/:id/review", authMiddleware.RequireAuth(), adminHandler.MarkAdventureReviewed)
+
+	// Task routes
+	r.GET("/tasks", authMiddleware.RequireAuth(), taskHandler.GetTasks)
+	r.POST("/tasks", authMiddleware.RequireAuth(), taskHandler.CreateTask)
+	r.PATCH("/tasks/:id", authMiddleware.RequireAuth(), taskHandler.UpdateTask)
+	r.DELETE("/tasks/:id", authMiddleware.RequireAuth(), taskHandler.DeleteTask)
 
 	// Start server
 	port := os.Getenv("PORT")

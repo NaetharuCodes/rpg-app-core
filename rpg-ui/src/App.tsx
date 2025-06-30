@@ -38,6 +38,7 @@ import { WorldStoriesPage } from "./pages/Worlds/WorldStoriesPage";
 import { StoryReaderPage } from "./pages/Worlds/StoryReaderPage";
 import { WorldCreatorPage } from "./pages/Worlds/WorldCreatorPage";
 import { DemoPage } from "./pages/DemoPage/DemoPage";
+import { KanbanPage } from "./pages/Toolbox/KanbanPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -118,6 +119,8 @@ function App() {
             />
             <Route path="/worlds/create" element={<WorldCreatorPage />} />
             <Route path="/worlds/:id/edit" element={<WorldCreatorPage />} />
+            {/* Toolbox Routes */}
+            <Route path="/toolbox/kanban" element={<KanbanPage />} />
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/about" element={<AboutPage />} />
