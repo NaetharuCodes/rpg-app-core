@@ -38,7 +38,8 @@ import { WorldStoriesPage } from "./pages/Worlds/WorldStoriesPage";
 import { StoryReaderPage } from "./pages/Worlds/StoryReaderPage";
 import { WorldCreatorPage } from "./pages/Worlds/WorldCreatorPage";
 import { DemoPage } from "./pages/DemoPage/DemoPage";
-import { KanbanPage } from "./pages/Toolbox/KanbanPage";
+import { KanbanPage } from "./pages/Toolbox/KanbanPage/KanbanPage";
+import { PhoneticTablesPage } from "./pages/Toolbox/PhoneticsPage/PhoneticsTablesPage";
 
 // Placeholders
 const LoginPage = () => (
@@ -121,6 +122,7 @@ function App() {
             <Route path="/worlds/:id/edit" element={<WorldCreatorPage />} />
             {/* Toolbox Routes */}
             <Route path="/toolbox/kanban" element={<KanbanPage />} />
+            <Route path="/toolbox/phonetics" element={<PhoneticTablesPage />} />
             {/* MISC pages */}
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/about" element={<AboutPage />} />

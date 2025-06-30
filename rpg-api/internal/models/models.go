@@ -162,6 +162,8 @@ type Epilogue struct {
 	FollowUpHooks []FollowUpHook    `json:"follow_up_hooks" gorm:"foreignKey:EpilogueID"`
 }
 
+// Worlds
+
 type World struct {
 	ID             uint           `json:"id" gorm:"primaryKey"`
 	Title          string         `json:"title" gorm:"not null"`
@@ -237,6 +239,8 @@ type FollowUpHook struct {
 	Epilogue Epilogue `json:"epilogue" gorm:"foreignKey:EpilogueID"`
 }
 
+// Kanban Tool
+
 type Task struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Name        string    `json:"name" gorm:"not null"`
@@ -249,3 +253,36 @@ type Task struct {
 	// Relationships
 	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
+
+// Phonetic Tables
+
+type PhoneticTable struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name" gorm:"not null"`
+	Description string    `json:"description"`
+	IsOfficial  bool      `json:"is_official" gorm:"default:false"`
+	UserID      *uint     `json:"user_id" gorm:"index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+
+	// Relationships
+	User      *User              `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Syllables []PhoneticSyllable `json:"syllables,omitempty" gorm:"foreignKey:TableID"`
+}
+
+type PhoneticSyllable struct {
+	ID       uint   `json:"id" gorm:"primaryKey"`
+	TableID  uint   `json:"table_id" gorm:"not null;index"`
+	Syllable string `json:"syllable" gorm:"not null"`
+	Position int    `json:"position" gorm:"not null"` // 0=start, 1=middle, 2=end
+
+	// Relationship
+	Table *PhoneticTable `json:"table,omitempty" gorm:"foreignKey:TableID"`
+}
+
+// Constants for position values
+const (
+	PositionStart  = 0
+	PositionMiddle = 1
+	PositionEnd    = 2
+)

@@ -38,6 +38,8 @@ func main() {
 		&models.TimelineEvent{},
 		&models.WorldEra{},
 		&models.Task{},
+		&models.PhoneticTable{},
+		&models.PhoneticSyllable{},
 	)
 
 	// Setup middleware
@@ -53,6 +55,7 @@ func main() {
 	timelineEventHandler := handlers.NewTimelineEventHandler(db)
 	worldEraHandler := handlers.NewWorldEraHandler(db)
 	taskHandler := handlers.NewTaskHandler(db)
+	phoneticHandler := handlers.NewPhoneticHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -157,6 +160,16 @@ func main() {
 	r.POST("/tasks", authMiddleware.RequireAuth(), taskHandler.CreateTask)
 	r.PATCH("/tasks/:id", authMiddleware.RequireAuth(), taskHandler.UpdateTask)
 	r.DELETE("/tasks/:id", authMiddleware.RequireAuth(), taskHandler.DeleteTask)
+
+	// Phonetic table routes
+	r.GET("/phonetics", authMiddleware.OptionalAuth(), phoneticHandler.GetTables)
+	r.GET("/phonetics/:id", authMiddleware.OptionalAuth(), phoneticHandler.GetTable)
+	r.POST("/phonetics", authMiddleware.RequireAuth(), phoneticHandler.CreateTable)
+	r.PATCH("/phonetics/:id", authMiddleware.RequireAuth(), phoneticHandler.UpdateTable)
+	r.DELETE("/phonetics/:id", authMiddleware.RequireAuth(), phoneticHandler.DeleteTable)
+	r.POST("/phonetics/:id/syllables", authMiddleware.RequireAuth(), phoneticHandler.AddSyllable)
+	r.DELETE("/phonetics/:id/syllables/:syllableId", authMiddleware.RequireAuth(), phoneticHandler.DeleteSyllable)
+	r.POST("/phonetics/:id/generate", authMiddleware.OptionalAuth(), phoneticHandler.GenerateName)
 
 	// Start server
 	port := os.Getenv("PORT")

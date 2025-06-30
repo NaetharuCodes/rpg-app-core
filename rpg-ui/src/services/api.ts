@@ -190,6 +190,24 @@ export interface Page {
   created_at: string;
 }
 
+export interface PhoneticTable {
+  id: number;
+  name: string;
+  description: string;
+  is_official: boolean;
+  user_id?: number;
+  created_at: string;
+  updated_at: string;
+  syllables?: PhoneticSyllable[];
+}
+
+export interface PhoneticSyllable {
+  id: number;
+  table_id: number;
+  syllable: string;
+  position: number; // 0=start, 1=middle, 2=end
+}
+
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("auth_token");
   const headers: HeadersInit = {
@@ -697,6 +715,87 @@ export const worldEraService = {
       {
         method: "POST",
         body: JSON.stringify({ era_ids: eraIds }),
+      }
+    );
+    return response.json();
+  },
+};
+
+export const phoneticService = {
+  // Get all tables
+  async getAll(): Promise<PhoneticTable[]> {
+    const response = await authenticatedFetch(`${API_BASE}/phonetics`);
+    return response.json();
+  },
+
+  // Get single table with syllables
+  async getById(id: number): Promise<PhoneticTable> {
+    const response = await authenticatedFetch(`${API_BASE}/phonetics/${id}`);
+    return response.json();
+  },
+
+  // Create new table
+  async create(table: {
+    name: string;
+    description: string;
+  }): Promise<PhoneticTable> {
+    const response = await authenticatedFetch(`${API_BASE}/phonetics`, {
+      method: "POST",
+      body: JSON.stringify(table),
+    });
+    return response.json();
+  },
+
+  // Update table
+  async update(
+    id: number,
+    table: { name: string; description: string }
+  ): Promise<PhoneticTable> {
+    const response = await authenticatedFetch(`${API_BASE}/phonetics/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(table),
+    });
+    return response.json();
+  },
+
+  // Delete table
+  async delete(id: number): Promise<void> {
+    await authenticatedFetch(`${API_BASE}/phonetics/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // Add syllable to table
+  async addSyllable(
+    tableId: number,
+    syllable: { syllable: string; position: number }
+  ): Promise<PhoneticSyllable> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/phonetics/${tableId}/syllables`,
+      {
+        method: "POST",
+        body: JSON.stringify(syllable),
+      }
+    );
+    return response.json();
+  },
+
+  // Delete syllable
+  async deleteSyllable(tableId: number, syllableId: number): Promise<void> {
+    await authenticatedFetch(
+      `${API_BASE}/phonetics/${tableId}/syllables/${syllableId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+  // Generate random name
+  async generateName(tableId: number): Promise<{ name: string }> {
+    const response = await authenticatedFetch(
+      `${API_BASE}/phonetics/${tableId}/generate`,
+      {
+        method: "POST",
       }
     );
     return response.json();
