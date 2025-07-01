@@ -286,3 +286,121 @@ const (
 	PositionMiddle = 1
 	PositionEnd    = 2
 )
+
+// NPC Generation Models
+
+type NPCLocation struct {
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	WorldID      uint      `json:"world_id"`
+	Name         string    `json:"name" gorm:"not null"`
+	Description  string    `json:"description"`
+	LocationType string    `json:"location_type"` // "district", "village", "quarter", etc.
+	Population   int       `json:"population"`
+	WealthLevel  string    `json:"wealth_level"` // "poor", "middle", "wealthy", "noble"
+	CreatedAt    time.Time `json:"created_at"`
+
+	// Relationships
+	World World `json:"world" gorm:"foreignKey:WorldID"`
+	NPCs  []NPC `json:"npcs,omitempty" gorm:"foreignKey:LocationID"`
+}
+
+type Organization struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	WorldID     uint      `json:"world_id"`
+	Name        string    `json:"name" gorm:"not null"`
+	OrgType     string    `json:"org_type"` // "government", "guild", "criminal", "religious", etc.
+	Description string    `json:"description"`
+	PowerLevel  int       `json:"power_level"` // 1-10 scale
+	IsActive    bool      `json:"is_active" gorm:"default:true"`
+	CreatedAt   time.Time `json:"created_at"`
+
+	// Relationships
+	World   World                    `json:"world" gorm:"foreignKey:WorldID"`
+	Ranks   []OrganizationRank       `json:"ranks,omitempty" gorm:"foreignKey:OrganizationID"`
+	Members []OrganizationMembership `json:"members,omitempty" gorm:"foreignKey:OrganizationID"`
+}
+
+type OrganizationRank struct {
+	ID             uint   `json:"id" gorm:"primaryKey"`
+	OrganizationID uint   `json:"organization_id"`
+	Title          string `json:"title" gorm:"not null"`
+	AuthorityLevel int    `json:"authority_level"` // 1-10, higher = more authority
+	Description    string `json:"description"`
+	SortOrder      int    `json:"sort_order"`
+
+	// Relationships
+	Organization Organization             `json:"organization" gorm:"foreignKey:OrganizationID"`
+	Members      []OrganizationMembership `json:"members,omitempty" gorm:"foreignKey:RankID"`
+}
+
+type NPC struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	WorldID     uint      `json:"world_id"`
+	LocationID  *uint     `json:"location_id"` // Can be null if location-less
+	Name        string    `json:"name" gorm:"not null"`
+	Age         int       `json:"age"`
+	Gender      string    `json:"gender"`
+	Profession  string    `json:"profession"`
+	SocialClass string    `json:"social_class"` // "peasant", "merchant", "noble", etc.
+	Personality string    `json:"personality"`  // Brief personality traits
+	IsAlive     bool      `json:"is_alive" gorm:"default:true"`
+	CreatedAt   time.Time `json:"created_at"`
+
+	// Relationships
+	World       World                    `json:"world" gorm:"foreignKey:WorldID"`
+	Location    *NPCLocation             `json:"location,omitempty" gorm:"foreignKey:LocationID"`
+	Memberships []OrganizationMembership `json:"memberships,omitempty" gorm:"foreignKey:NPCID"`
+	// Self-referencing for family/relationships - we'll handle this with a junction table
+}
+
+type OrganizationMembership struct {
+	ID             uint       `json:"id" gorm:"primaryKey"`
+	NPCID          uint       `json:"npc_id"`
+	OrganizationID uint       `json:"organization_id"`
+	RankID         uint       `json:"rank_id"`
+	Status         string     `json:"status" gorm:"default:'active'"` // "active", "inactive", "expelled", "deceased"
+	JoinedAt       time.Time  `json:"joined_at"`
+	LeftAt         *time.Time `json:"left_at"`
+	Notes          string     `json:"notes"` // Special circumstances, achievements, etc.
+	CreatedAt      time.Time  `json:"created_at"`
+
+	// Relationships
+	NPC          NPC              `json:"npc" gorm:"foreignKey:NPCID"`
+	Organization Organization     `json:"organization" gorm:"foreignKey:OrganizationID"`
+	Rank         OrganizationRank `json:"rank" gorm:"foreignKey:RankID"`
+}
+
+type NPCRelationship struct {
+	ID                  uint       `json:"id" gorm:"primaryKey"`
+	WorldID             uint       `json:"world_id"`
+	FromNPCID           uint       `json:"from_npc_id"`
+	ToNPCID             uint       `json:"to_npc_id"`
+	RelationshipType    string     `json:"relationship_type"`             // "family", "friend", "rival", "romantic", "professional"
+	RelationshipSubtype string     `json:"relationship_subtype"`          // "parent", "sibling", "mentor", "enemy", etc.
+	Strength            int        `json:"strength"`                      // 1-10, how strong the relationship is
+	IsPublic            bool       `json:"is_public" gorm:"default:true"` // False for secret relationships
+	StartedAt           *time.Time `json:"started_at"`                    // When relationship began
+	EndedAt             *time.Time `json:"ended_at"`                      // Null if ongoing
+	Notes               string     `json:"notes"`
+	CreatedAt           time.Time  `json:"created_at"`
+
+	// Relationships
+	World   World `json:"world" gorm:"foreignKey:WorldID"`
+	FromNPC NPC   `json:"from_npc" gorm:"foreignKey:FromNPCID"`
+	ToNPC   NPC   `json:"to_npc" gorm:"foreignKey:ToNPCID"`
+}
+
+// For storing generation parameters and allowing regeneration
+type NPCGenerationConfig struct {
+	ID                uint      `json:"id" gorm:"primaryKey"`
+	WorldID           uint      `json:"world_id"`
+	Seed              int64     `json:"seed"` // For reproducible generation
+	PopulationSize    int       `json:"population_size"`
+	FamilyDensity     float64   `json:"family_density"` // 0.0-1.0
+	OrganizationCount int       `json:"organization_count"`
+	SocialClassDist   string    `json:"social_class_distribution"` // JSON storing class percentages
+	GeneratedAt       time.Time `json:"generated_at"`
+
+	// Relationships
+	World World `json:"world" gorm:"foreignKey:WorldID"`
+}

@@ -40,6 +40,13 @@ func main() {
 		&models.Task{},
 		&models.PhoneticTable{},
 		&models.PhoneticSyllable{},
+		&models.NPCLocation{},
+		&models.Organization{},
+		&models.OrganizationRank{},
+		&models.NPC{},
+		&models.OrganizationMembership{},
+		&models.NPCRelationship{},
+		&models.NPCGenerationConfig{},
 	)
 
 	// Setup middleware
@@ -56,6 +63,8 @@ func main() {
 	worldEraHandler := handlers.NewWorldEraHandler(db)
 	taskHandler := handlers.NewTaskHandler(db)
 	phoneticHandler := handlers.NewPhoneticHandler(db)
+	npcHandler := handlers.NewNPCHandler(db)
+	orgHandler := handlers.NewOrganizationHandler(db)
 
 	// Setup routes
 	r := gin.Default()
@@ -170,6 +179,21 @@ func main() {
 	r.POST("/phonetics/:id/syllables", authMiddleware.RequireAuth(), phoneticHandler.AddSyllable)
 	r.DELETE("/phonetics/:id/syllables/:syllableId", authMiddleware.RequireAuth(), phoneticHandler.DeleteSyllable)
 	r.POST("/phonetics/:id/generate", authMiddleware.OptionalAuth(), phoneticHandler.GenerateName)
+
+	// NPC routes
+	r.GET("/worlds/:id/npcs", authMiddleware.OptionalAuth(), npcHandler.GetNPCs)
+	r.GET("/worlds/:id/npcs/:npcId", authMiddleware.OptionalAuth(), npcHandler.GetNPC)
+	r.POST("/worlds/:id/npcs", authMiddleware.RequireAuth(), npcHandler.CreateNPC)
+	r.PATCH("/worlds/:id/npcs/:npcId", authMiddleware.RequireAuth(), npcHandler.UpdateNPC)
+	r.DELETE("/worlds/:id/npcs/:npcId", authMiddleware.RequireAuth(), npcHandler.DeleteNPC)
+	r.POST("/worlds/:id/generate-npcs", authMiddleware.RequireAuth(), npcHandler.GenerateNPCs)
+
+	// Organization routes
+	r.GET("/worlds/:id/organizations", authMiddleware.OptionalAuth(), orgHandler.GetOrganizations)
+	r.GET("/worlds/:id/organizations/:orgId", authMiddleware.OptionalAuth(), orgHandler.GetOrganization)
+	r.POST("/worlds/:id/organizations", authMiddleware.RequireAuth(), orgHandler.CreateOrganization)
+	r.PATCH("/worlds/:id/organizations/:orgId", authMiddleware.RequireAuth(), orgHandler.UpdateOrganization)
+	r.DELETE("/worlds/:id/organizations/:orgId", authMiddleware.RequireAuth(), orgHandler.DeleteOrganization)
 
 	// Start server
 	port := os.Getenv("PORT")
