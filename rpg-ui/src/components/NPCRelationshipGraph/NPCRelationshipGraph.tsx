@@ -140,7 +140,7 @@ export function NPCRelationshipGraph({
       .data(links)
       .join("line")
       .attr("stroke", (d: GraphLink) =>
-        getRelationshipColor(d.relationship_type)
+        getRelationshipColor(d.relationship_type, d.relationship_subtype)
       )
       .attr("stroke-width", (d: GraphLink) => Math.max(1, d.strength / 2))
       .attr("stroke-opacity", 0.6);
@@ -282,10 +282,24 @@ export function NPCRelationshipGraph({
   return (
     <div ref={containerRef} className="w-full h-full">
       <div className="mb-4 flex flex-wrap gap-4 text-sm">
+        <div className="font-semibold">Family:</div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-          <span>Family</span>
+          <div className="w-4 h-4 rounded-full bg-blue-900"></div>
+          <span>Parent/Child</span>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-green-600"></div>
+          <span>Siblings</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-red-600"></div>
+          <span>Cousins</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-purple-600"></div>
+          <span>Spouse</span>
+        </div>
+        <div className="font-semibold ml-4">Other:</div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full bg-green-500"></div>
           <span>Professional</span>
@@ -387,7 +401,17 @@ function transformData(npcs: NPC[]) {
   };
 }
 
-function getRelationshipColor(type: string): string {
+function getRelationshipColor(type: string, subtype?: string): string {
+  if (type === "family" && subtype) {
+    const familyColors = {
+      parent: "#1e3a8a", // Very dark blue
+      sibling: "#059669", // Green
+      cousin: "#dc2626", // Red
+      spouse: "#7c3aed", // Purple
+    };
+    return familyColors[subtype as keyof typeof familyColors] || "#6366f1"; // Default family blue
+  }
+
   const colors = {
     family: "#3b82f6",
     professional: "#10b981",
