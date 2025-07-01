@@ -347,10 +347,11 @@ type NPC struct {
 	CreatedAt   time.Time `json:"created_at"`
 
 	// Relationships
-	World       World                    `json:"world" gorm:"foreignKey:WorldID"`
-	Location    *NPCLocation             `json:"location,omitempty" gorm:"foreignKey:LocationID"`
-	Memberships []OrganizationMembership `json:"memberships,omitempty" gorm:"foreignKey:NPCID"`
-	// Self-referencing for family/relationships - we'll handle this with a junction table
+	World             World                    `json:"world" gorm:"foreignKey:WorldID"`
+	Location          *NPCLocation             `json:"location,omitempty" gorm:"foreignKey:LocationID"`
+	Memberships       []OrganizationMembership `json:"memberships,omitempty" gorm:"foreignKey:NPCID"`
+	FromRelationships []NPCRelationship        `json:"from_relationships,omitempty" gorm:"foreignKey:FromNPCID"`
+	ToRelationships   []NPCRelationship        `json:"to_relationships,omitempty" gorm:"foreignKey:ToNPCID"`
 }
 
 type OrganizationMembership struct {

@@ -52,6 +52,8 @@ func (h *NPCHandler) GetNPCs(c *gin.Context) {
 		Preload("Location").
 		Preload("Memberships.Organization").
 		Preload("Memberships.Rank").
+		Preload("FromRelationships.ToNPC").
+		Preload("ToRelationships.FromNPC").
 		Find(&npcs).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch NPCs"})
 		return
@@ -98,6 +100,7 @@ func (h *NPCHandler) GetNPC(c *gin.Context) {
 		Preload("Location").
 		Preload("Memberships.Organization").
 		Preload("Memberships.Rank").
+		Preload("ToRelationships.FromNPC").
 		First(&npc).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "NPC not found"})
 		return

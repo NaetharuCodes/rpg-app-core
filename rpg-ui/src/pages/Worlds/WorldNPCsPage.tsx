@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button/Button";
 import { Card, CardHeader, CardContent } from "@/components/Card/Card";
 import { Badge } from "@/components/Badge/Badge";
+import { NPCRelationshipGraph } from "@/components/NPCRelationshipGraph/NPCRelationshipGraph";
 
 interface NPC {
   id: number;
@@ -23,6 +24,21 @@ interface NPC {
       title: string;
     };
   }[];
+  // Add relationship fields
+  from_relationships?: {
+    id: number;
+    to_npc: NPC;
+    relationship_type: string;
+    relationship_subtype: string;
+    strength: number;
+  }[];
+  to_relationships?: {
+    id: number;
+    from_npc: NPC;
+    relationship_type: string;
+    relationship_subtype: string;
+    strength: number;
+  }[];
 }
 
 export function WorldNPCsPage() {
@@ -32,6 +48,7 @@ export function WorldNPCsPage() {
   const [npcs, setNpcs] = useState<NPC[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showGenerationModal, setShowGenerationModal] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "graph">("list");
 
   useEffect(() => {
     const fetchNPCs = async () => {
@@ -42,7 +59,7 @@ export function WorldNPCsPage() {
           `http://localhost:8080/worlds/${id}/npcs`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
             },
           }
         );
@@ -71,7 +88,7 @@ export function WorldNPCsPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
           body: JSON.stringify(config),
         }
@@ -91,7 +108,7 @@ export function WorldNPCsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Simple Header */}
+      {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
@@ -106,17 +123,43 @@ export function WorldNPCsPage() {
               </div>
             </div>
 
-            <Button
-              variant="primary"
-              onClick={() => setShowGenerationModal(true)}
-            >
-              ⚡ Generate NPCs
-            </Button>
+            <div className="flex items-center gap-4">
+              {/* View Toggle */}
+              <div className="flex bg-muted rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                    viewMode === "list"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  List View
+                </button>
+                <button
+                  onClick={() => setViewMode("graph")}
+                  className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                    viewMode === "graph"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Relationship Graph
+                </button>
+              </div>
+
+              <Button
+                variant="primary"
+                onClick={() => setShowGenerationModal(true)}
+              >
+                ⚡ Generate NPCs
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* NPC List */}
+      {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         {npcs.length === 0 ? (
           <Card>
@@ -133,7 +176,7 @@ export function WorldNPCsPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : (
+        ) : viewMode === "list" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {npcs.map((npc) => (
               <Card key={npc.id}>
@@ -169,10 +212,14 @@ export function WorldNPCsPage() {
               </Card>
             ))}
           </div>
+        ) : (
+          <div className="flex items-center justify-center h-96 border-2 border-dashed border-border rounded-lg">
+            <NPCRelationshipGraph npcs={npcs} />
+          </div>
         )}
       </div>
 
-      {/* Simple Generation Modal */}
+      {/* Generation Modal */}
       {showGenerationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md m-4">
